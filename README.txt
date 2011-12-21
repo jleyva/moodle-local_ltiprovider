@@ -33,15 +33,11 @@ External student
 
 === Grading ===
 
-Grades are send back automatically when a user gets a grade in activities like the quiz or the assignment.
-
-Other activities that not uses the Moodle events API can't send back grades automatically. 
-A cron job checks periodically this activities for sending back grades.
-For performance reasen, this check is only made in users with recent activity.
-
+A cron job checks periodically activities for sending back grades.
 
 == Future versions ==
 
 Handle authentication with a custom auth plugin for Moodle (for handling logout, etc...)
 Add options for automatically add remote users to course groups.
 Add options for automatically add remote users to system cohorts.
+Add options for enabling duration time for enrolments
