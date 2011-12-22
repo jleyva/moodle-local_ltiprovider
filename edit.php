@@ -57,7 +57,7 @@ if (!$context = get_context_instance(CONTEXT_COURSE, $course->id)) {
 }
 
 require_login($course);
-require_capability('local/ltiprovider:providetool', $context);
+require_capability('local/ltiprovider:manage', $context);
 
 $returnurl = new moodle_url('/local/ltiprovider/index.php', array('courseid' => $courseid));
 

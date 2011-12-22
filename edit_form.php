@@ -112,8 +112,6 @@ class edit_form extends moodleform {
         $mform->setType('institution', PARAM_MULTILANG);
         $mform->setDefault('institution', $templateuser->institution);		
 		
-		
-		
         $mform->addElement('hidden','id');
         $mform->setType('id', PARAM_INT);
 

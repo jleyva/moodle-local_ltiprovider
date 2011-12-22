@@ -92,3 +92,12 @@ function ltiprovider_delete_tool($tool) {
 
     $DB->delete_records('local_ltiprovider', array('id'=>$tool->id));
 }
+
+/**
+ * Cron function
+ * @return void
+ */
+function local_ltiprovider_cron() {
+    global $DB;
+
+}

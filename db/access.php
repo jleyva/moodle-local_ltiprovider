@@ -27,7 +27,18 @@ defined('MOODLE_INTERNAL') || die;
 
 $capabilities = array(
 
-    'local/ltiprovider:providetool' => array(
+    'local/ltiprovider:manage' => array(
+
+        'riskbitmask' => RISK_SPAM,	
+	
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        )
+    ),
+	'local/ltiprovider:view' => array(
 
         'riskbitmask' => RISK_SPAM,	
 	
