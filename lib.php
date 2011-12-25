@@ -104,6 +104,7 @@ function local_ltiprovider_cron() {
     $synctime = 60*60;  // Every 1 hour grades are sync
     $timenow = time();
     
+    mtrace('Running cron for ltiprovider');
     if ($tools = $DB->get_records('local_ltiprovider', array('disabled' => 0))) {
         foreach ($tools as $tool) {
             if ($tool->lastsync + $synctime < $timenow) {
@@ -125,14 +126,26 @@ function local_ltiprovider_cron() {
                                 }                                
                             }
                             else if ($context->contextlevel == CONTEXT_MODULE) {
-                                $grade = 0;
+                                require_once("$CFG->libdir/gradelib.php");
+                                $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
+                                $grades = grade_get_grades($cm->course, 'mod', $cm->modname, $cm->id, $user->userid);
+                                if (empty($grades->items[0]->grades)) {
+                                    $grade = false;
+                                } else {
+                                    $grade = reset($grades->items[0]->grades);
+                                    $grade = $grade->grade;
+                                }
                             }
                             
                             // We sync with the external system only when the new grade differs with the previous one
-                            if ($grade !== false and $grade != $user->lastgrade) {
+                            // TODO - Global setting for check this
+                            // We assume base 100 grades
+                            if ($grade !== false and $grade != $user->lastgrade and $grade > 0 and $grade <= 100) {
+                                $grade = $grade / 100;
                             
                                 $DB->set_field('local_ltiprovider_user', 'lastsync', $timenow, array('id' => $user->id));
                                 $DB->set_field('local_ltiprovider_user', 'lastgrade', $grade, array('id' => $user->id));
+                                mtrace("User grade send to remote system. userid: $user->userid grade: $grade");
                             }
                         }
                     }
