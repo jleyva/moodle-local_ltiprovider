@@ -29,8 +29,8 @@ $capabilities = array(
 
     'local/ltiprovider:manage' => array(
 
-        'riskbitmask' => RISK_SPAM,	
-	
+        'riskbitmask' => RISK_SPAM,    
+    
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(
@@ -38,10 +38,10 @@ $capabilities = array(
             'manager' => CAP_ALLOW
         )
     ),
-	'local/ltiprovider:view' => array(
+    'local/ltiprovider:view' => array(
 
-        'riskbitmask' => RISK_SPAM,	
-	
+        'riskbitmask' => RISK_SPAM,    
+    
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(

@@ -35,53 +35,53 @@ class edit_form extends moodleform {
         global $USER, $CFG, $COURSE;
 
         $mform =& $this->_form;
-		$templateuser = $USER;
-		$context = $this->_customdata['context'];
+        $templateuser = $USER;
+        $context = $this->_customdata['context'];
 
-		$mform->addElement('header', 'settingsheader', get_string('toolsettings', 'local_ltiprovider'));
-		
-		$tools = array();
-		$tools[$context->id] = get_string('course');
-		get_all_mods($this->_customdata['courseid'], $mods, $modnames, $modnamesplural, $modnamesused);
-		
-		foreach($mods as $mod){
-			print_r($mod);
-		}
-		$mform->addElement('select', 'contextid', get_string('tooltobeprovide','local_ltiprovider'), $tools);
-		$mform->setDefault('contextid', $context->id);
-		
-		$assignableroles = get_assignable_roles($context);
-		
-		$mform->addElement('select', 'croleinst', get_string('courseroleinstructor','local_ltiprovider'), $assignableroles);
-		$mform->addElement('select', 'crolelearn', get_string('courserolelearner','local_ltiprovider'), $assignableroles);
-		
-		$mform->addElement('select', 'aroleinst', get_string('activityroleinstructor','local_ltiprovider'), $assignableroles);
-		$mform->disabledIf('aroleinst', 'contextid', 'eq', 0);
-		$mform->addElement('select', 'arolelearn', get_string('activityrolelearner','local_ltiprovider'), $assignableroles);
-		$mform->disabledIf('arolelearn', 'contextid', 'eq', 0);
-		
-		
-		$mform->addElement('header', 'settingsheader', get_string('remotesystem', 'local_ltiprovider'));
-		
-		$mform->addElement('text', 'secret', get_string('secret', 'local_ltiprovider'), 'maxlength="64" size="25"');
+        $mform->addElement('header', 'settingsheader', get_string('toolsettings', 'local_ltiprovider'));
+        
+        $tools = array();
+        $tools[$context->id] = get_string('course');
+        get_all_mods($this->_customdata['courseid'], $mods, $modnames, $modnamesplural, $modnamesused);
+        
+        foreach($mods as $mod){
+            print_r($mod);
+        }
+        $mform->addElement('select', 'contextid', get_string('tooltobeprovide','local_ltiprovider'), $tools);
+        $mform->setDefault('contextid', $context->id);
+        
+        $assignableroles = get_assignable_roles($context);
+        
+        $mform->addElement('select', 'croleinst', get_string('courseroleinstructor','local_ltiprovider'), $assignableroles);
+        $mform->addElement('select', 'crolelearn', get_string('courserolelearner','local_ltiprovider'), $assignableroles);
+        
+        $mform->addElement('select', 'aroleinst', get_string('activityroleinstructor','local_ltiprovider'), $assignableroles);
+        $mform->disabledIf('aroleinst', 'contextid', 'eq', 0);
+        $mform->addElement('select', 'arolelearn', get_string('activityrolelearner','local_ltiprovider'), $assignableroles);
+        $mform->disabledIf('arolelearn', 'contextid', 'eq', 0);
+        
+        
+        $mform->addElement('header', 'settingsheader', get_string('remotesystem', 'local_ltiprovider'));
+        
+        $mform->addElement('text', 'secret', get_string('secret', 'local_ltiprovider'), 'maxlength="64" size="25"');
         $mform->setType('secret', PARAM_MULTILANG);
         $mform->setDefault('secret', md5(uniqid(rand(), 1)));
         $mform->addRule('secret', get_string('required'), 'required');
-		
-		$textlib = textlib_get_instance();
+        
+        $textlib = textlib_get_instance();
         $choices = $textlib->get_encodings();
         $mform->addElement('select', 'encoding', get_string('remoteencoding', 'local_ltiprovider'), $choices);
         $mform->setDefault('encoding', 'UTF-8');
 
-		
-		
-		$mform->addElement('header', 'defaultheader', get_string('userdefaultvalues', 'local_ltiprovider'));
-		
-		$choices = array(0 => get_string('emaildisplayno'), 1 => get_string('emaildisplayyes'), 2 => get_string('emaildisplaycourse'));
+        
+        
+        $mform->addElement('header', 'defaultheader', get_string('userdefaultvalues', 'local_ltiprovider'));
+        
+        $choices = array(0 => get_string('emaildisplayno'), 1 => get_string('emaildisplayyes'), 2 => get_string('emaildisplaycourse'));
         $mform->addElement('select', 'maildisplay', get_string('emaildisplay'), $choices);
         $mform->setDefault('maildisplay', 2);
-		
-		$mform->addElement('text', 'city', get_string('city'), 'maxlength="100" size="25"');
+        
+        $mform->addElement('text', 'city', get_string('city'), 'maxlength="100" size="25"');
         $mform->setType('city', PARAM_MULTILANG);
         if (empty($CFG->defaultcity)) {
             $mform->setDefault('city', $templateuser->city);
@@ -89,8 +89,8 @@ class edit_form extends moodleform {
             $mform->setDefault('city', $CFG->defaultcity);
         }
         $mform->addRule('city', get_string('required'), 'required');
-		
-		$mform->addElement('select', 'country', get_string('selectacountry'), get_string_manager()->get_list_of_countries());
+        
+        $mform->addElement('select', 'country', get_string('selectacountry'), get_string_manager()->get_list_of_countries());
         if (empty($CFG->country)) {
             $mform->setDefault('country', $templateuser->country);
         } else {
@@ -110,8 +110,8 @@ class edit_form extends moodleform {
 
         $mform->addElement('text', 'institution', get_string('institution'), 'maxlength="40" size="25"');
         $mform->setType('institution', PARAM_MULTILANG);
-        $mform->setDefault('institution', $templateuser->institution);		
-		
+        $mform->setDefault('institution', $templateuser->institution);        
+        
         $mform->addElement('hidden','id');
         $mform->setType('id', PARAM_INT);
 

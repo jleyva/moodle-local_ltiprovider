@@ -31,7 +31,7 @@ class TrivialOAuthDataStore extends OAuthDataStore {
     function lookup_nonce($consumer, $token, $nonce, $timestamp) {
         // Should add some clever logic to keep nonces from
         // being reused - for no we are really trusting
-	// that the timestamp will save us
+    // that the timestamp will save us
         return NULL;
     }
 

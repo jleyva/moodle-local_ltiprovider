@@ -33,17 +33,17 @@ defined('MOODLE_INTERNAL') || die;
  * @param navigation_node $nav Current navigation object
  */
 function ltiprovider_extends_navigation ($nav) {
-	global $USER, $PAGE;
-	
-	// Check capabilities for tool providers
-	if ($PAGE->course->id && $PAGE->course->id != SITEID && has_capability('local/ltiprovider:providetool',$PAGE->context)) {
-		$coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
-		$coursenode->add(get_string('pluginname', 'local_ltiprovider'), new moodle_url('/local/ltiprovider/index.php?courseid='.$PAGE->course->id), $nav::TYPE_SETTING, null, 'ltiprovider'.$PAGE->course->id);
-	}
-	
-	if ($USER->auth == 'nologin' && strpos($USER->username, 'ltiprovider') === 0) {
-		$coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
-	}
+    global $USER, $PAGE;
+    
+    // Check capabilities for tool providers
+    if ($PAGE->course->id && $PAGE->course->id != SITEID && has_capability('local/ltiprovider:providetool',$PAGE->context)) {
+        $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
+        $coursenode->add(get_string('pluginname', 'local_ltiprovider'), new moodle_url('/local/ltiprovider/index.php?courseid='.$PAGE->course->id), $nav::TYPE_SETTING, null, 'ltiprovider'.$PAGE->course->id);
+    }
+    
+    if ($USER->auth == 'nologin' && strpos($USER->username, 'ltiprovider') === 0) {
+        $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
+    }
 }
 
 /**
@@ -54,8 +54,8 @@ function ltiprovider_extends_navigation ($nav) {
  */
 function ltiprovider_add_tool($tool) {
     global $DB;
-	
-	if (!isset($tool->disabled)) {
+    
+    if (!isset($tool->disabled)) {
         $tool->disabled = 0;
     }
     if (!isset($tool->timecreated)) {
@@ -98,6 +98,47 @@ function ltiprovider_delete_tool($tool) {
  * @return void
  */
 function local_ltiprovider_cron() {
-    global $DB;
+    global $DB, $CFG;
+    
+    // TODO - Add a global setting for this
+    $synctime = 60*60;  // Every 1 hour grades are sync
+    $timenow = time();
+    
+    if ($tools = $DB->get_records('local_ltiprovider', array('disabled' => 0))) {
+        foreach ($tools as $tool) {
+            if ($tool->lastsync + $synctime < $timenow) {
+                if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id))) {
+                    foreach ($users as $user) {
+                        // This can happen is the sync process has an unexpected error
+                        if ($user->lastsync > $tool->lastsync) {
+                            continue;
+                        }
+                        
+                        $grade = false;
+                        if ($context = $DB->get_record('context', array('id' => $tool->contextid))) {
+                            if ($context->contextlevel == CONTEXT_COURSE) {
+                                require_once($CFG->libdir.'/gradelib.php');
+                                require_once($CFG->dirroot.'/grade/querylib.php');
 
+                                if($grade = grade_get_course_grade($user->userid, $tool->courseid)){
+                                    $grade = $grade->grade;
+                                }                                
+                            }
+                            else if ($context->contextlevel == CONTEXT_MODULE) {
+                                $grade = 0;
+                            }
+                            
+                            // We sync with the external system only when the new grade differs with the previous one
+                            if ($grade !== false and $grade != $user->lastgrade) {
+                            
+                                $DB->set_field('local_ltiprovider_user', 'lastsync', $timenow, array('id' => $user->id));
+                                $DB->set_field('local_ltiprovider_user', 'lastgrade', $grade, array('id' => $user->id));
+                            }
+                        }
+                    }
+                }
+                $DB->set_field('local_ltiprovider', 'lastsync', $timenow, array('id' => $tool->id));
+            }
+        }
+    }
 }

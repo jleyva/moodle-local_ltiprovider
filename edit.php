@@ -34,26 +34,26 @@ $hide = optional_param('hide', 0, PARAM_INT);
 $show = optional_param('show', 0, PARAM_INT);
 
 if ($id) {
-	if (! ($tool = $DB->get_record('local_ltiprovider', array('id'=>$id)))) {
-		print_error('invalidtoolid', 'local_ltiprovider');
-	}
-	$courseid = $tool->courseid;
+    if (! ($tool = $DB->get_record('local_ltiprovider', array('id'=>$id)))) {
+        print_error('invalidtoolid', 'local_ltiprovider');
+    }
+    $courseid = $tool->courseid;
 }
 else {
-	$tool = new stdClass();
-	$tool->id = -1;
-	$tool->courseid = $courseid;
+    $tool = new stdClass();
+    $tool->id = -1;
+    $tool->courseid = $courseid;
 }
 
 if (! ($course = $DB->get_record('course', array('id'=>$courseid)))) {
-	print_error('invalidcourseid', 'error');
+    print_error('invalidcourseid', 'error');
 }
 
 $PAGE->set_url('/local/ltiprovider/edit.php', array('id' => $id, 'courseid' => $courseid));
 
 preload_course_contexts($course->id);
 if (!$context = get_context_instance(CONTEXT_COURSE, $course->id)) {
-	print_error('nocontext');
+    print_error('nocontext');
 }
 
 require_login($course);
@@ -75,7 +75,7 @@ if ($delete and $tool->id) {
     $PAGE->set_title($strheading);
     $PAGE->set_heading($COURSE->fullname);
     
-	echo $OUTPUT->header();
+    echo $OUTPUT->header();
     echo $OUTPUT->heading($strheading);
     $yesurl = new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'delete'=>1, 'confirm'=>1,'sesskey'=>sesskey()));
     $message = get_string('delconfirm', 'local_ltiprovider');
@@ -85,12 +85,12 @@ if ($delete and $tool->id) {
 }
 
 if ((!empty($hide) or !empty($show)) and $tool->id and confirm_sesskey()) {
-	if (!empty($hide)) {
-		$disabled = 1;
-	} else {
-		$disabled = 0;
-	}
-	$DB->set_field('local_ltiprovider', 'disabled', $disabled, array('id' => $tool->id));
+    if (!empty($hide)) {
+        $disabled = 1;
+    } else {
+        $disabled = 0;
+    }
+    $DB->set_field('local_ltiprovider', 'disabled', $disabled, array('id' => $tool->id));
 }
 
 $PAGE->navbar->add($strheading);
@@ -107,11 +107,11 @@ if ($editform->is_cancelled()) {
 
     if ($data->id) {
         // Update
-		ltiprovider_update_tool($data);
+        ltiprovider_update_tool($data);
     } 
-	else {
+    else {
         // Create new
-		ltiprovider_add_tool($data);
+        ltiprovider_add_tool($data);
     }
     redirect($returnurl);
 }

@@ -29,11 +29,11 @@ require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 $toolid = required_param('id', PARAM_INT);
 
 if (! ($tool = $DB->get_record('local_ltiprovider', array('id'=>$toolid)))) {
-	print_error('invalidtoolid', 'local_ltiprovider');
+    print_error('invalidtoolid', 'local_ltiprovider');
 }
 
 if ($tool->disabled) {
-	print_error('tooldisabled', 'local_ltiprovider');
+    print_error('tooldisabled', 'local_ltiprovider');
 }
  
 // Do not set session, do not redirect
@@ -41,137 +41,137 @@ $context = new BLTI($tool->secret, false, false);
 
 // Correct launch request
 if ($context->valid) {
-	
-	// Check that we can perform enrolments
-	if (enrol_is_enabled('manual')) {
+    
+    // Check that we can perform enrolments
+    if (enrol_is_enabled('manual')) {
         $manual = enrol_get_plugin('manual');
     } else {
         print_error('nomanualenrol', 'local_ltiprovider');
     }
-	
-	// Transform to utf8 all the post and get data
-	$textlib = textlib_get_instance();
-	foreach ($_POST as $key => $value) {
-		$_POST[$key] = $textlib->convert($value, $tool->encoding);
-	}
-	foreach ($_GET as $key => $value) {
-		$_GET[$key] = $textlib->convert($value, $tool->encoding);
-	}
-	
-	// We need an username without extended chars
-	$username = 'ltiprovider'.md5($context->getUserKey());
-	
-	// Check if the user exists
-	$user = $DB->get_record('user',array('username',$username));
-	if (! $user) {
-		$user = new stdClass();
-		// clean_param , email username text
-		$user->auth = 'nologin';
-		$user->username = $username;
-		$user->firstname = optional_param('lis_person_name_given', '', PARAM_TEXT);
-		$user->lastname = optional_param('lis_person_name_family', '', PARAM_TEXT);
-		$user->email = clean_param($context->getUserEmail(), PARAM_EMAIL);
-		$user->city = $tool->city;
-		$user->country = $tool->country;
-		$user->institution = $tool->institution;
-		$user->timezone = $tool->timezone;
-		$user->maildisplay = $tool->maildisplay;		
-		
-		$user->lang = $tool->lang;
-		if(! $user->lang && isset($_POST['launch_presentation_locale'])){
-			$user->lang = optional_param('launch_presentation_locale', '', PARAM_LANG);
-		}
-		if(! $user->lang){
-			// TODO: This should be changed for detect the course lang
-			$user->lang = current_language();
-		}
-		
-		$user->id = $DB->insert_record('user', $user);
-		// Reload full user
-		$user = $DB->get_record('user',array('id', $user->id));
-	}
+    
+    // Transform to utf8 all the post and get data
+    $textlib = textlib_get_instance();
+    foreach ($_POST as $key => $value) {
+        $_POST[$key] = $textlib->convert($value, $tool->encoding);
+    }
+    foreach ($_GET as $key => $value) {
+        $_GET[$key] = $textlib->convert($value, $tool->encoding);
+    }
+    
+    // We need an username without extended chars
+    $username = 'ltiprovider'.md5($context->getUserKey());
+    
+    // Check if the user exists
+    $user = $DB->get_record('user',array('username',$username));
+    if (! $user) {
+        $user = new stdClass();
+        // clean_param , email username text
+        $user->auth = 'nologin';
+        $user->username = $username;
+        $user->firstname = optional_param('lis_person_name_given', '', PARAM_TEXT);
+        $user->lastname = optional_param('lis_person_name_family', '', PARAM_TEXT);
+        $user->email = clean_param($context->getUserEmail(), PARAM_EMAIL);
+        $user->city = $tool->city;
+        $user->country = $tool->country;
+        $user->institution = $tool->institution;
+        $user->timezone = $tool->timezone;
+        $user->maildisplay = $tool->maildisplay;        
+        
+        $user->lang = $tool->lang;
+        if(! $user->lang && isset($_POST['launch_presentation_locale'])){
+            $user->lang = optional_param('launch_presentation_locale', '', PARAM_LANG);
+        }
+        if(! $user->lang){
+            // TODO: This should be changed for detect the course lang
+            $user->lang = current_language();
+        }
+        
+        $user->id = $DB->insert_record('user', $user);
+        // Reload full user
+        $user = $DB->get_record('user',array('id', $user->id));
+    }
 
-	// Enrol user in course and activity if needed
-	if (! $context = $DB->get_record('context', array('id' => $tool->contextid))) {
-		print_error("invalidcontext");
-	}
-	
-	if ($context->contextlevel == CONTEXT_COURSE) {
-		$courseid = $context->instanceid;
-		$urltogo = $CFG->wwwroot.'/course/view.php?id='.$courseid;
-	}
-	else if ($context->contextlevel == CONTEXT_MODULE) {
-		$cmid = $context->instanceid;
-		$cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
-		$courseid = $cm->course;
-		$urltogo = $CFG->wwwroot.'/mod/'.$cm->modname.'/view.php?id='.$cm->id;
-	}
-	else {
-		print_error("invalidcontext");
-	}
-	
-	$course = $DB->get_record('course', array('id' => $courseid), MUST_EXIST);
-	
-	// Enrol the user in the course
-	$roles = explode(',', $_POST['roles']);
-	$role =(in_array('Instructor', $roles))? 'Instructor' : 'Learner';
-	
-	$today = time();
-	$today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
-	$timeend = 0;
-	if($tool->enrolduration){
-		$duration = (int)$tool->enrolduration * 60*60*24; // convert days to seconds
-		if ($duration > 0) { // sanity check
-			$timeend = $today + $duration;
-		}
-	}
-	// Course role id for the Instructor or Learner
-	// TODO Do something with lti system admin (urn:lti:sysrole:ims/lis/Administrator)
-	$roleid = ($role == 'Instructor')? $tool->croleinst: $tool->crolelearn;
-	
-	if ($instances = enrol_get_instances($course->id, false)) {
-		foreach ($instances as $instance) {
-			if ($instance->enrol === 'manual') {
-				$instance->enrol_user($course->id, $user->id, $roleid, $today, $timeend);
-				break;
-			}
-		}
-	}
-	
-	if ($context->contextlevel == CONTEXT_MODULE) {
-		// Enrol the user in the activity
-		if(($tool->aroleinst && $role == 'Instructor') || ($tool->arolelearn && $role == 'Learner')){
-			$roleid = ($role == 'Instructor')? $tool->aroleinst: $tool->arolelearn;
-			role_assign($roleid, $user->id, $tool->contextid);
-		}
-	}
-	
-	// Login user
-	$sourceid = optional_param('lis_result_sourcedid', '', PARAM_RAW);
-	
-	if ($userlog = $DB->get_record('local_ltiprovider_user', array('toolid' => $tool->id, 'userid' => $user->id, 'sourceid' => $sourceid))) {
-		$DB->set_field('local_ltiprovider_user', 'lastaccess', time(), array('id' => $userlog->id));
-	}
-	else {
-		// These data is needed for sending backup outcomes (aka grades)
-		$userlog = new stdClass();
-		$userlog->userid = $user->id;
-		$userlog->toolid = $tool->id;
-		// TODO Improve these checks
-		$userlog->serviceurl = optional_param('lis_outcome_service_url', '', PARAM_RAW);
-		$userlog->sourceid = $sourceid;
-		$userlog->consumerkey = optional_param('oauth_consumer_key', '', PARAM_RAW);
-		$userlog->consumersecret = $tool->secret;
-		$userlog->lastsync = 0;
-		$userlog->lastgrade = 0;
-		$userlog->lastaccess = time();
-		$DB->insert('local_ltiprovider_user', $userlog);
-	}
-	
-	add_to_log(SITEID, 'user', 'login', $urltogo, "ltiprovider login", 0, $user->id);
+    // Enrol user in course and activity if needed
+    if (! $context = $DB->get_record('context', array('id' => $tool->contextid))) {
+        print_error("invalidcontext");
+    }
+    
+    if ($context->contextlevel == CONTEXT_COURSE) {
+        $courseid = $context->instanceid;
+        $urltogo = $CFG->wwwroot.'/course/view.php?id='.$courseid;
+    }
+    else if ($context->contextlevel == CONTEXT_MODULE) {
+        $cmid = $context->instanceid;
+        $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
+        $courseid = $cm->course;
+        $urltogo = $CFG->wwwroot.'/mod/'.$cm->modname.'/view.php?id='.$cm->id;
+    }
+    else {
+        print_error("invalidcontext");
+    }
+    
+    $course = $DB->get_record('course', array('id' => $courseid), MUST_EXIST);
+    
+    // Enrol the user in the course
+    $roles = explode(',', $_POST['roles']);
+    $role =(in_array('Instructor', $roles))? 'Instructor' : 'Learner';
+    
+    $today = time();
+    $today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
+    $timeend = 0;
+    if($tool->enrolduration){
+        $duration = (int)$tool->enrolduration * 60*60*24; // convert days to seconds
+        if ($duration > 0) { // sanity check
+            $timeend = $today + $duration;
+        }
+    }
+    // Course role id for the Instructor or Learner
+    // TODO Do something with lti system admin (urn:lti:sysrole:ims/lis/Administrator)
+    $roleid = ($role == 'Instructor')? $tool->croleinst: $tool->crolelearn;
+    
+    if ($instances = enrol_get_instances($course->id, false)) {
+        foreach ($instances as $instance) {
+            if ($instance->enrol === 'manual') {
+                $instance->enrol_user($course->id, $user->id, $roleid, $today, $timeend);
+                break;
+            }
+        }
+    }
+    
+    if ($context->contextlevel == CONTEXT_MODULE) {
+        // Enrol the user in the activity
+        if(($tool->aroleinst && $role == 'Instructor') || ($tool->arolelearn && $role == 'Learner')){
+            $roleid = ($role == 'Instructor')? $tool->aroleinst: $tool->arolelearn;
+            role_assign($roleid, $user->id, $tool->contextid);
+        }
+    }
+    
+    // Login user
+    $sourceid = optional_param('lis_result_sourcedid', '', PARAM_RAW);
+    
+    if ($userlog = $DB->get_record('local_ltiprovider_user', array('toolid' => $tool->id, 'userid' => $user->id, 'sourceid' => $sourceid))) {
+        $DB->set_field('local_ltiprovider_user', 'lastaccess', time(), array('id' => $userlog->id));
+    }
+    else {
+        // These data is needed for sending backup outcomes (aka grades)
+        $userlog = new stdClass();
+        $userlog->userid = $user->id;
+        $userlog->toolid = $tool->id;
+        // TODO Improve these checks
+        $userlog->serviceurl = optional_param('lis_outcome_service_url', '', PARAM_RAW);
+        $userlog->sourceid = $sourceid;
+        $userlog->consumerkey = optional_param('oauth_consumer_key', '', PARAM_RAW);
+        $userlog->consumersecret = $tool->secret;
+        $userlog->lastsync = 0;
+        $userlog->lastgrade = 0;
+        $userlog->lastaccess = time();
+        $DB->insert('local_ltiprovider_user', $userlog);
+    }
+    
+    add_to_log(SITEID, 'user', 'login', $urltogo, "ltiprovider login", 0, $user->id);
     complete_user_login($user);
-	redirect($urltogo);
+    redirect($urltogo);
 }
 else {
-	print_error('invalidcredentials', 'local_ltiprovider');
+    print_error('invalidcredentials', 'local_ltiprovider');
 }

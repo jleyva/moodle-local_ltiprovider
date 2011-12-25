@@ -9,6 +9,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
 		<FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="contextid"/>
 		<FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="courseid" NEXT="croleinst"/>
+		<FIELD NAME="disabled" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="contextid" NEXT="croleinst"/>
 		<FIELD NAME="croleinst" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="flase" PREVIOUS="contextid" NEXT="crolelearn"/>
 		<FIELD NAME="crolelearn" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="flase" PREVIOUS="croleinst" NEXT="aroleinst"/>
 		<FIELD NAME="aroleinst" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="flase" PREVIOUS="crolelearn" NEXT="arolelearn"/>
@@ -21,8 +22,9 @@
 		<FIELD NAME="maildisplay" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="2" SEQUENCE="false" PREVIOUS="timezone" NEXT="city"/>
 		<FIELD NAME="city" TYPE="char" LENGTH="120" NOTNULL="true" SEQUENCE="false" PREVIOUS="maildisplay" NEXT="country"/>
 		<FIELD NAME="country" TYPE="char" LENGTH="2" NOTNULL="true" SEQUENCE="false" PREVIOUS="city" NEXT=""/>
-		<FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="country" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="timecreated"/>
+		<FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="country" NEXT="lastsync"/>
+        <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="timecreated" NEXT="timemodified"/>
+		<FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="lastsync"/>
 		
       </FIELDS>
       <KEYS>
