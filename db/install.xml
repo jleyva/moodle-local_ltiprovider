@@ -4,16 +4,16 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="local_ltiprovider" COMMENT="List of tools provided to the remote system" NEXT="loal_ltiprovider_user">
+    <TABLE NAME="local_ltiprovider" COMMENT="List of tools provided to the remote system" NEXT="local_ltiprovider_user">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
 		<FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="contextid"/>
-		<FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="courseid" NEXT="croleinst"/>
+		<FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="courseid" NEXT="disabled"/>
 		<FIELD NAME="disabled" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="contextid" NEXT="croleinst"/>
-		<FIELD NAME="croleinst" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="flase" PREVIOUS="contextid" NEXT="crolelearn"/>
-		<FIELD NAME="crolelearn" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="flase" PREVIOUS="croleinst" NEXT="aroleinst"/>
-		<FIELD NAME="aroleinst" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="flase" PREVIOUS="crolelearn" NEXT="arolelearn"/>
-		<FIELD NAME="arolelearn" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="flase" PREVIOUS="aroleinst" NEXT="secret"/>
+		<FIELD NAME="croleinst" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="disabled" NEXT="crolelearn"/>
+		<FIELD NAME="crolelearn" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="croleinst" NEXT="aroleinst"/>
+		<FIELD NAME="aroleinst" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="crolelearn" NEXT="arolelearn"/>
+		<FIELD NAME="arolelearn" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="aroleinst" NEXT="secret"/>
 		<FIELD NAME="secret" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="arolelearn" NEXT="encoding"/>
 		<FIELD NAME="encoding" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="secret" NEXT="institution"/>
 		<FIELD NAME="institution" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" PREVIOUS="encoding" NEXT="lang"/>
@@ -21,19 +21,18 @@
 		<FIELD NAME="timezone" TYPE="char" LENGTH="100" NOTNULL="true" DEFAULT="99" SEQUENCE="false" PREVIOUS="lang" NEXT="maildisplay"/>
 		<FIELD NAME="maildisplay" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="2" SEQUENCE="false" PREVIOUS="timezone" NEXT="city"/>
 		<FIELD NAME="city" TYPE="char" LENGTH="120" NOTNULL="true" SEQUENCE="false" PREVIOUS="maildisplay" NEXT="country"/>
-		<FIELD NAME="country" TYPE="char" LENGTH="2" NOTNULL="true" SEQUENCE="false" PREVIOUS="city" NEXT=""/>
+		<FIELD NAME="country" TYPE="char" LENGTH="2" NOTNULL="true" SEQUENCE="false" PREVIOUS="city" NEXT="timecreated"/>
 		<FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="country" NEXT="lastsync"/>
         <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="timecreated" NEXT="timemodified"/>
-		<FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="lastsync"/>
-		
+		<FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="lastsync"/>		
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-	<TABLE NAME="local_ltiprovider_user" COMMENT="User access log and gradeback data" PREVIOUS="loal_ltiprovider">
+	<TABLE NAME="local_ltiprovider_user" COMMENT="User access log and gradeback data" PREVIOUS="local_ltiprovider">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT=""/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="userid"/>
 		<FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="toolid"/>
 		<FIELD NAME="toolid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="userid" NEXT="serviceurl"/>
 		<FIELD NAME="serviceurl" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="toolid" NEXT="sourceid"/>
@@ -47,6 +46,6 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
-    </
+    </TABLE>
   </TABLES>
 </XMLDB>

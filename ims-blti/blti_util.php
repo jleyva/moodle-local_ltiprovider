@@ -175,24 +175,24 @@ function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false) {
         $r .= "  //]]> \n" ;
         $r .= "</script>\n";
         $r .= "<a id=\"displayText\" href=\"javascript:basicltiDebugToggle();\">";
-        $r .= get_string("toggle_debug_data","basiclti")."</a>\n";
+        $r .= get_stringIMS("toggle_debug_data","basiclti")."</a>\n";
         $r .= "<div id=\"basicltiDebug\" style=\"display:none\">\n";
-        $r .=  "<b>".get_string("basiclti_endpoint","basiclti")."</b><br/>\n";
+        $r .=  "<b>".get_stringIMS("basiclti_endpoint","basiclti")."</b><br/>\n";
         $r .= $endpoint . "<br/>\n&nbsp;<br/>\n";
-        $r .=  "<b>".get_string("basiclti_parameters","basiclti")."</b><br/>\n";
+        $r .=  "<b>".get_stringIMS("basiclti_parameters","basiclti")."</b><br/>\n";
         foreach($newparms as $key => $value ) {
             $key = htmlspecialchars($key);
             $value = htmlspecialchars($value);
             $r .= "$key = $value<br/>\n";
         }
         $r .= "&nbsp;<br/>\n";
-        $r .= "<p><b>".get_string("basiclti_base_string","basiclti")."</b><br/>\n".$last_base_string."</p>\n";
+        $r .= "<p><b>".get_stringIMS("basiclti_base_string","basiclti")."</b><br/>\n".$last_base_string."</p>\n";
         $r .= "</div>\n";
     }
     $r .= "</form>\n";
     if ( $iframeattr ) {
         $r .= "<iframe name=\"basicltiLaunchFrame\"  id=\"basicltiLaunchFrame\" src=\"\"\n";
-        $r .= $iframeattr . ">\n<p>".get_string("frames_required","basiclti")."</p>\n</iframe>\n";
+        $r .= $iframeattr . ">\n<p>".get_stringIMS("frames_required","basiclti")."</p>\n</iframe>\n";
     }
     if ( ! $debug ) {
         $ext_submit = "ext_submit";
@@ -214,7 +214,7 @@ function postLaunchHTML($newparms, $endpoint, $debug=false, $iframeattr=false) {
 }
 
 /* This is a bit of homage to Moodle's pattern of internationalisation */
-function get_string($key,$bundle) {
+function get_stringIMS($key,$bundle) {
     return $key;
 }
 

@@ -24,16 +24,17 @@
  */
 
 require_once(dirname(__FILE__) . '/../../config.php'); 
-require_once('edit_form.php');
+require_once($CFG->dirroot.'/local/ltiprovider/lib.php');
+require_once($CFG->dirroot.'/local/ltiprovider/edit_form.php');
  
 $id = optional_param('id', -1, PARAM_INT);    // user id; -1 if creating new tool
-$courseid = optional_param('course', 0, PARAM_INT);   // course id (defaults to Site)
+$courseid = optional_param('courseid', 0, PARAM_INT);   // course id (defaults to Site)
 $delete    = optional_param('delete', 0, PARAM_BOOL);
 $confirm   = optional_param('confirm', 0, PARAM_BOOL);
 $hide = optional_param('hide', 0, PARAM_INT);
 $show = optional_param('show', 0, PARAM_INT);
 
-if ($id) {
+if ($id > 0) {
     if (! ($tool = $DB->get_record('local_ltiprovider', array('id'=>$id)))) {
         print_error('invalidtoolid', 'local_ltiprovider');
     }
@@ -91,8 +92,10 @@ if ((!empty($hide) or !empty($show)) and $tool->id and confirm_sesskey()) {
         $disabled = 0;
     }
     $DB->set_field('local_ltiprovider', 'disabled', $disabled, array('id' => $tool->id));
+    redirect($returnurl);
 }
 
+$PAGE->navbar->add(get_string('pluginname', 'local_ltiprovider'), new moodle_url('/local/ltiprovider/index.php', array('courseid'=>$course->id)));
 $PAGE->navbar->add($strheading);
 $PAGE->set_title($strheading);
 $PAGE->set_heading($course->fullname . ': '.$strheading);
@@ -105,7 +108,7 @@ if ($editform->is_cancelled()) {
 
 } elseif ($data = $editform->get_data()) {
 
-    if ($data->id) {
+    if ($data->id > 0) {
         // Update
         ltiprovider_update_tool($data);
     } 

@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot.'/lib/formslib.php');
+require_once($CFG->dirroot.'/course/lib.php');
 
 /// get url variables
 class edit_form extends moodleform {
@@ -45,21 +46,25 @@ class edit_form extends moodleform {
         get_all_mods($this->_customdata['courseid'], $mods, $modnames, $modnamesplural, $modnamesused);
         
         foreach($mods as $mod){
-            print_r($mod);
+            $tools[$mod->context->id] = format_string($mod->name);
         }
+        
         $mform->addElement('select', 'contextid', get_string('tooltobeprovide','local_ltiprovider'), $tools);
         $mform->setDefault('contextid', $context->id);
         
         $assignableroles = get_assignable_roles($context);
         
         $mform->addElement('select', 'croleinst', get_string('courseroleinstructor','local_ltiprovider'), $assignableroles);
+        $mform->setDefault('croleinst', '3');
         $mform->addElement('select', 'crolelearn', get_string('courserolelearner','local_ltiprovider'), $assignableroles);
+        $mform->setDefault('crolelearn', '5');
         
         $mform->addElement('select', 'aroleinst', get_string('activityroleinstructor','local_ltiprovider'), $assignableroles);
         $mform->disabledIf('aroleinst', 'contextid', 'eq', 0);
+        $mform->setDefault('aroleinst', '3');
         $mform->addElement('select', 'arolelearn', get_string('activityrolelearner','local_ltiprovider'), $assignableroles);
         $mform->disabledIf('arolelearn', 'contextid', 'eq', 0);
-        
+        $mform->setDefault('arolelearn', '5');
         
         $mform->addElement('header', 'settingsheader', get_string('remotesystem', 'local_ltiprovider'));
         
@@ -72,8 +77,6 @@ class edit_form extends moodleform {
         $choices = $textlib->get_encodings();
         $mform->addElement('select', 'encoding', get_string('remoteencoding', 'local_ltiprovider'), $choices);
         $mform->setDefault('encoding', 'UTF-8');
-
-        
         
         $mform->addElement('header', 'defaultheader', get_string('userdefaultvalues', 'local_ltiprovider'));
         

@@ -43,6 +43,7 @@ $string['deletetool'] = 'Delete a tool';
 $string['toolsprovided'] = 'List of tools provided';
 $string['name'] = 'Tool name';
 $string['url'] = 'URL';
-$string[''] = '';
+
+$string['invalidcredentials'] = 'Invalid credentials';
 $string[''] = '';
 $string[''] = '';

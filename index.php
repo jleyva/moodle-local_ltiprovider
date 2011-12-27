@@ -41,6 +41,7 @@ if (!$context = get_context_instance(CONTEXT_COURSE, $course->id)) {
 require_login($course);
 require_capability('local/ltiprovider:view', $context);
 
+//$PAGE->navbar->add(get_string('toolsprovided', 'local_ltiprovider'));
 echo $OUTPUT->header();
 
 echo $OUTPUT->heading(get_string('toolsprovided', 'local_ltiprovider'));
@@ -57,14 +58,14 @@ foreach($tools as $tool) {
     if (has_capability('local/ltiprovider:manage', $context)) {
         $buttons = array();
         
-        $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'delete'=>1)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/delete'), 'alt'=>get_string('delete'), 'class'=>'iconsmall')));
-        $buttons[] =  html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/edit'), 'alt'=>get_string('edit'), 'class'=>'iconsmall')));
+        $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'delete'=>1, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/delete'), 'alt'=>get_string('delete'), 'class'=>'iconsmall')));
+        $buttons[] =  html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/edit'), 'alt'=>get_string('edit'), 'class'=>'iconsmall')));
 
         if ($tool->disabled) {
-            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'show'=>1)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/show'), 'alt'=>get_string('show'), 'class'=>'iconsmall')));
+            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'show'=>1, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/show'), 'alt'=>get_string('show'), 'class'=>'iconsmall')));
         }
         else {
-            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'hide'=>1)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/hide'), 'alt'=>get_string('hide'), 'class'=>'iconsmall')));
+            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'hide'=>1, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/hide'), 'alt'=>get_string('hide'), 'class'=>'iconsmall')));
         }
         
         $line[] = implode(' ', $buttons);
@@ -83,10 +84,10 @@ $table->head  = array(
     get_string('edit'));
 $table->size  = array('20%', '20%', '50%', '10%');
 $table->align = array('left', 'left', 'left', 'center');
-$table->width = '80%';
+$table->width = '99%';
 $table->data  = $data;
 echo html_writer::table($table);
 
-echo $OUTPUT->single_button(new moodle_url('/local/ltiprovider/edit.php', array('id' => -1)), get_string('add'));}
+echo $OUTPUT->single_button(new moodle_url('/local/ltiprovider/edit.php', array('id' => -1, 'courseid' => $course->id)), get_string('add'));
 
 echo $OUTPUT->footer();
