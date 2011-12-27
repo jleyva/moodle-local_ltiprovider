@@ -24,7 +24,7 @@
  */
 
 defined('MOODLE_INTERNAL') || die;
-
+require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
 /**
  * Change the navigation block and bar only for external users
  * 
@@ -108,6 +108,7 @@ function local_ltiprovider_cron() {
     if ($tools = $DB->get_records('local_ltiprovider', array('disabled' => 0))) {
         foreach ($tools as $tool) {
             if ($tool->lastsync + $synctime < $timenow) {
+                mtrace(" Sync tool id $tool->id course id $tool->courseid");
                 if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id))) {
                     foreach ($users as $user) {
                         // This can happen is the sync process has an unexpected error
@@ -139,13 +140,30 @@ function local_ltiprovider_cron() {
                             
                             // We sync with the external system only when the new grade differs with the previous one
                             // TODO - Global setting for check this
-                            // We assume base 100 grades
+                            // I assume base 100 grades
                             if ($grade !== false and $grade != $user->lastgrade and $grade > 0 and $grade <= 100) {
                                 $grade = $grade / 100;
-                            
-                                $DB->set_field('local_ltiprovider_user', 'lastsync', $timenow, array('id' => $user->id));
-                                $DB->set_field('local_ltiprovider_user', 'lastgrade', $grade, array('id' => $user->id));
-                                mtrace("User grade send to remote system. userid: $user->userid grade: $grade");
+                                    
+                                $data = array(
+                                  'lti_message_type' => 'basic-lis-updateresult',
+                                  'sourcedid' => $user->sourceid,
+                                  'result_statusofresult' => 'final',
+                                  'result_resultvaluesourcedid' => 'decimal',
+                                  'result_resultscore_textstring' => $grade);
+
+                                $newdata = signParameters($data, $user->serviceurl, 'POST', $user->consumerkey, $user->consumersecret);
+
+                                $retval = do_post_request($url, http_build_query($newdata));
+                                // TODO - Check for errors in $retval in a correct way (parsing xml)
+                                
+                                if (strpos($retval, 'Success') !== false) {
+                                
+                                    $DB->set_field('local_ltiprovider_user', 'lastsync', $timenow, array('id' => $user->id));
+                                    $DB->set_field('local_ltiprovider_user', 'lastgrade', $grade, array('id' => $user->id));
+                                    mtrace("User grade send to remote system. userid: $user->userid grade: $grade");
+                                } else {
+                                    mtrace("User grade send failed: ".$retval);
+                                }
                             }
                         }
                     }

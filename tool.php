@@ -161,6 +161,7 @@ if ($context->valid) {
         $userlog->serviceurl = optional_param('lis_outcome_service_url', '', PARAM_RAW);
         $userlog->sourceid = $sourceid;
         $userlog->consumerkey = optional_param('oauth_consumer_key', '', PARAM_RAW);
+        // TODO Do not store secret here
         $userlog->consumersecret = $tool->secret;
         $userlog->lastsync = 0;
         $userlog->lastgrade = 0;
