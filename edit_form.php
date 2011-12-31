@@ -52,6 +52,9 @@ class edit_form extends moodleform {
         $mform->addElement('select', 'contextid', get_string('tooltobeprovide','local_ltiprovider'), $tools);
         $mform->setDefault('contextid', $context->id);
         
+        $mform->addElement('checkbox', 'sendgrades', null, get_string('sendgrades', 'local_ltiprovider'));
+        $mform->setDefault('sendgrades', 1);
+        
         $assignableroles = get_assignable_roles($context);
         
         $mform->addElement('select', 'croleinst', get_string('courseroleinstructor','local_ltiprovider'), $assignableroles);
@@ -114,6 +117,20 @@ class edit_form extends moodleform {
         $mform->addElement('text', 'institution', get_string('institution'), 'maxlength="40" size="25"');
         $mform->setType('institution', PARAM_MULTILANG);
         $mform->setDefault('institution', $templateuser->institution);        
+        
+        $mform->addElement('header', 'layoutandcss', get_string('layoutandcss', 'local_ltiprovider'));
+        
+        $mform->addElement('checkbox', 'hidepageheader', null, get_string('hidepageheader', 'local_ltiprovider'));
+        $mform->addElement('checkbox', 'hidepagefooter', null, get_string('hidepagefooter', 'local_ltiprovider'));
+        $mform->addElement('checkbox', 'hideleftblocks', null, get_string('hideleftblocks', 'local_ltiprovider'));
+        $mform->addElement('checkbox', 'hiderightblocks', null, get_string('hiderightblocks', 'local_ltiprovider'));
+        $mform->setAdvanced('hideleftblocks');
+        $mform->setAdvanced('hiderightblocks');
+        
+        $editoroptions = array();
+        $displayoptions = array('rows'=>'4', 'cols'=>'');
+        $mform->addElement('textarea', 'customcss', get_string('customcss', 'local_ltiprovider'), $displayoptions, $editoroptions);
+        $mform->setAdvanced('customcss');
         
         $mform->addElement('hidden','id');
         $mform->setType('id', PARAM_INT);

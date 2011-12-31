@@ -33,7 +33,7 @@ require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
  * @param navigation_node $nav Current navigation object
  */
 function ltiprovider_extends_navigation ($nav) {
-    global $USER, $PAGE;
+    global $USER, $PAGE, $SESSION;
     
     // Check capabilities for tool providers
     if ($PAGE->course->id && $PAGE->course->id != SITEID && has_capability('local/ltiprovider:view',$PAGE->context)) {
@@ -42,7 +42,15 @@ function ltiprovider_extends_navigation ($nav) {
     }
     
     if (isset($USER) and isset($USER->auth) and $USER->auth == 'nologin' and strpos($USER->username, 'ltiprovider') === 0) {
+        // We delete all the navigation nodes except the course one
         $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
+        foreach(array('myprofile', 'users', 'site', 'home', 'myhome', 'mycourses', 'courses', '1') as $nodekey) {
+            if($node = $nav->get($nodekey)) {
+                $node->remove();
+            }
+        }        
+        $nav->children->add($coursenode);
+        $PAGE->requires->css(new moodle_url('/local/ltiprovider/styles.php', array('id' => $SESSION->ltiprovider->id)));
     }
 }
 
@@ -64,7 +72,13 @@ function ltiprovider_add_tool($tool) {
     if (!isset($tool->timemodified)) {
         $tool->timemodified = $tool->timecreated;
     }
-
+    
+    $tool->sendgrades = (isset($tool->sendgrades)) ? 1 : 0;
+    $tool->hidepageheader = (isset($tool->hidepageheader)) ? 1 : 0;
+    $tool->hidepagefooter = (isset($tool->hidepagefooter)) ? 1 : 0;
+    $tool->hideleftblocks = (isset($tool->hideleftblocks)) ? 1 : 0;
+    $tool->hiderightblocks = (isset($tool->hiderightblocks)) ? 1 : 0;
+    
     $tool->id = $DB->insert_record('local_ltiprovider', $tool);
 
     return $tool->id;
@@ -79,6 +93,13 @@ function ltiprovider_update_tool($tool) {
     global $DB;
 
     $tool->timemodified = time();
+
+    $tool->sendgrades = (isset($tool->sendgrades)) ? 1 : 0;
+    $tool->hidepageheader = (isset($tool->hidepageheader)) ? 1 : 0;
+    $tool->hidepagefooter = (isset($tool->hidepagefooter)) ? 1 : 0;
+    $tool->hideleftblocks = (isset($tool->hideleftblocks)) ? 1 : 0;
+    $tool->hiderightblocks = (isset($tool->hiderightblocks)) ? 1 : 0;
+
     $DB->update_record('local_ltiprovider', $tool);
 }
 
@@ -105,7 +126,7 @@ function local_ltiprovider_cron() {
     $timenow = time();
     
     mtrace('Running cron for ltiprovider');
-    if ($tools = $DB->get_records('local_ltiprovider', array('disabled' => 0))) {
+    if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND sendgrades = ?', array(0, 1))) {
         foreach ($tools as $tool) {
             if ($tool->lastsync + $synctime < $timenow) {
                 mtrace(" Sync tool id $tool->id course id $tool->courseid");

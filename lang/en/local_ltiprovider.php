@@ -37,13 +37,22 @@ $string['activityroleinstructor'] = 'Activity role for Instructor';
 $string['activityrolelearner'] = 'Activity role for Learner';
 
 $string['tooldisabled'] = 'Access to the tool is disabled';
-$string['tooltobeprovide'] = 'Tool to be provide';
+$string['tooltobeprovide'] = 'Tool to be provided';
 $string['delconfirm'] = 'Are you sure you want to delete this tool?';
 $string['deletetool'] = 'Delete a tool';
 $string['toolsprovided'] = 'List of tools provided';
 $string['name'] = 'Tool name';
 $string['url'] = 'URL';
+$string['layoutandcss'] = 'Layout and CSS';
+$string['hidepageheader'] = 'Hide page header';
+$string['hidepagefooter'] = 'Hide page footer';
+$string['hideleftblocks'] = 'Hide left blocks';
+$string['hiderightblocks'] = 'Hide right blocks';
+$string['customcss'] = 'Custom CSS';
+$string['sendgrades'] = 'Send grades back';
 
 $string['invalidcredentials'] = 'Invalid credentials';
+$string[''] = '';
+$string[''] = '';
 $string[''] = '';
 $string[''] = '';

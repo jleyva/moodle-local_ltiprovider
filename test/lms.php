@@ -48,7 +48,7 @@ require_once("../ims-blti/blti_util.php");
   $endpoint = $_REQUEST["endpoint"];
 
   if ( ! $endpoint ) $endpoint = str_replace("lms.php","tool.php",$cur_url);
-  $endpoint = str_replace("test/tool.php","tool.php?id=1",$endpoint);
+
   $urlformat = $_REQUEST["format"];
   $urlformat = ( $urlformat != 'XML' );
   $tool_consumer_instance_guid = $lmsdata['tool_consumer_instance_guid'];

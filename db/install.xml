@@ -9,20 +9,26 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
 		<FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="contextid"/>
 		<FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="courseid" NEXT="disabled"/>
-		<FIELD NAME="disabled" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="contextid" NEXT="croleinst"/>
-		<FIELD NAME="croleinst" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="disabled" NEXT="crolelearn"/>
+		<FIELD NAME="disabled" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="contextid" NEXT="sendgrades"/>
+        <FIELD NAME="sendgrades" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="disabled" NEXT="croleinst"/>
+		<FIELD NAME="croleinst" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="sendgrades" NEXT="crolelearn"/>
 		<FIELD NAME="crolelearn" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="croleinst" NEXT="aroleinst"/>
 		<FIELD NAME="aroleinst" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="crolelearn" NEXT="arolelearn"/>
 		<FIELD NAME="arolelearn" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="aroleinst" NEXT="secret"/>
 		<FIELD NAME="secret" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="arolelearn" NEXT="encoding"/>
-		<FIELD NAME="encoding" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="secret" NEXT="institution"/>
+		<FIELD NAME="encoding" TYPE="char" LENGTH="32" NOTNULL="false" SEQUENCE="false" PREVIOUS="secret" NEXT="institution"/>
 		<FIELD NAME="institution" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" PREVIOUS="encoding" NEXT="lang"/>
 		<FIELD NAME="lang" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="en" SEQUENCE="false" PREVIOUS="institution" NEXT="timezone"/>
 		<FIELD NAME="timezone" TYPE="char" LENGTH="100" NOTNULL="true" DEFAULT="99" SEQUENCE="false" PREVIOUS="lang" NEXT="maildisplay"/>
 		<FIELD NAME="maildisplay" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="2" SEQUENCE="false" PREVIOUS="timezone" NEXT="city"/>
 		<FIELD NAME="city" TYPE="char" LENGTH="120" NOTNULL="true" SEQUENCE="false" PREVIOUS="maildisplay" NEXT="country"/>
-		<FIELD NAME="country" TYPE="char" LENGTH="2" NOTNULL="true" SEQUENCE="false" PREVIOUS="city" NEXT="timecreated"/>
-		<FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="country" NEXT="lastsync"/>
+		<FIELD NAME="country" TYPE="char" LENGTH="2" NOTNULL="true" SEQUENCE="false" PREVIOUS="city" NEXT="hidepageheader"/>
+        <FIELD NAME="hidepageheader" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="country" NEXT="hidepagefooter"/>
+        <FIELD NAME="hidepagefooter" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="hidepageheader" NEXT="hideleftblocks"/>
+        <FIELD NAME="hideleftblocks" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="hidepagefooter" NEXT="hiderightblocks"/>
+        <FIELD NAME="hiderightblocks" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="hideleftblocks" NEXT="customcss"/>
+        <FIELD NAME="customcss" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="hiderightblocks" NEXT="timecreated"/>
+		<FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="customcss" NEXT="lastsync"/>
         <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="timecreated" NEXT="timemodified"/>
 		<FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="lastsync"/>		
       </FIELDS>
