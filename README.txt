@@ -11,10 +11,11 @@ It can be use to provide access to full courses or activities from remote system
 
 Provide access to full courses or single activities.
 
-Change the navigation block of a course or activity for displaying information and links only regarding to your current course or activity.
+Change the navigation block of a course or activity for displaying information and links only regarding to your current course.
 
 Send backs course or activity final grades to the LTI consumer tool
 
+Modify the course or activity page for hiding the header, footer and left or right blocks
 
 == How it works ==
 
@@ -33,7 +34,7 @@ External student
 
 === Grading ===
 
-A cron job checks periodically activities for sending back grades.
+A cron job checks periodically activities for sending back grades (overall course grade or activity grade).
 
 == Future versions ==
 
