@@ -602,7 +602,7 @@ class OAuthServer {
       $token,
       $signature
     );
-
+    
     if (!$valid_sig) {
       $ex_text = "Invalid signature";
       if ( $OAuth_last_computed_signature ) {

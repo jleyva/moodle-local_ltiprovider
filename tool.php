@@ -26,7 +26,7 @@
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 
-$toolid = required_param('id', PARAM_INT);
+$toolid = required_param('id',PARAM_INT);
 
 if (! ($tool = $DB->get_record('local_ltiprovider', array('id'=>$toolid)))) {
     print_error('invalidtoolid', 'local_ltiprovider');
@@ -35,6 +35,7 @@ if (! ($tool = $DB->get_record('local_ltiprovider', array('id'=>$toolid)))) {
 if ($tool->disabled) {
     print_error('tooldisabled', 'local_ltiprovider');
 }
+
  
 // Do not set session, do not redirect
 $context = new BLTI($tool->secret, false, false);
@@ -62,7 +63,7 @@ if ($context->valid) {
     $username = 'ltiprovider'.md5($context->getUserKey());
     
     // Check if the user exists
-    $user = $DB->get_record('user',array('username',$username));
+    $user = $DB->get_record('user',array('username' => $username));
     if (! $user) {
         $user = new stdClass();
         // clean_param , email username text
@@ -88,7 +89,7 @@ if ($context->valid) {
         
         $user->id = $DB->insert_record('user', $user);
         // Reload full user
-        $user = $DB->get_record('user',array('id', $user->id));
+        $user = $DB->get_record('user',array('id' => $user->id));
     }
 
     // Enrol user in course and activity if needed
@@ -110,8 +111,8 @@ if ($context->valid) {
         print_error("invalidcontext");
     }
     
-    $course = $DB->get_record('course', array('id' => $courseid), MUST_EXIST);
-    
+    $course = $DB->get_record('course', array('id' => $courseid), '*',MUST_EXIST);
+   
     // Enrol the user in the course
     $roles = explode(',', $_POST['roles']);
     $role =(in_array('Instructor', $roles))? 'Instructor' : 'Learner';
@@ -119,7 +120,7 @@ if ($context->valid) {
     $today = time();
     $today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
     $timeend = 0;
-    if($tool->enrolduration){
+    if(isset($tool->enrolduration) and $tool->enrolduration){
         $duration = (int)$tool->enrolduration * 60*60*24; // convert days to seconds
         if ($duration > 0) { // sanity check
             $timeend = $today + $duration;
@@ -132,7 +133,7 @@ if ($context->valid) {
     if ($instances = enrol_get_instances($course->id, false)) {
         foreach ($instances as $instance) {
             if ($instance->enrol === 'manual') {
-                $instance->enrol_user($course->id, $user->id, $roleid, $today, $timeend);
+                $manual->enrol_user($instance, $user->id, $roleid, $today, $timeend);
                 break;
             }
         }
@@ -149,7 +150,7 @@ if ($context->valid) {
     // Login user
     $sourceid = optional_param('lis_result_sourcedid', '', PARAM_RAW);
     
-    if ($userlog = $DB->get_record('local_ltiprovider_user', array('toolid' => $tool->id, 'userid' => $user->id, 'sourceid' => $sourceid))) {
+    if ($userlog = $DB->get_record('local_ltiprovider_user', array('toolid' => $tool->id, 'userid' => $user->id)) and $userlog->sourceid == $sourceid) {
         $DB->set_field('local_ltiprovider_user', 'lastaccess', time(), array('id' => $userlog->id));
     }
     else {
@@ -166,7 +167,7 @@ if ($context->valid) {
         $userlog->lastsync = 0;
         $userlog->lastgrade = 0;
         $userlog->lastaccess = time();
-        $DB->insert('local_ltiprovider_user', $userlog);
+        $DB->insert_record('local_ltiprovider_user', $userlog);
     }
     
     add_to_log(SITEID, 'user', 'login', $urltogo, "ltiprovider login", 0, $user->id);
@@ -174,5 +175,6 @@ if ($context->valid) {
     redirect($urltogo);
 }
 else {
-    print_error('invalidcredentials', 'local_ltiprovider');
+    //print_error('invalidcredentials', 'local_ltiprovider');
+    echo $context->message;
 }

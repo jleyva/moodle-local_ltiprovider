@@ -107,6 +107,7 @@ function signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oau
     $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
 
     $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, $method, $endpoint, $parms);
+
     $acc_req->sign_request($hmac_method, $test_consumer, $test_token);
 
     // Pass this back up "out of band" for debugging
