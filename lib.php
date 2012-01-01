@@ -27,6 +27,8 @@ defined('MOODLE_INTERNAL') or die;
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
 /**
  * Change the navigation block and bar only for external users
+ * Force course or activity navigation and modify CSS also
+ * Please note that this function is only called in pages where the navigation block is present
  * 
  * @global moodle_user $USER
  * @global moodle_database $DB

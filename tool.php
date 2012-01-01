@@ -79,7 +79,7 @@ if ($context->valid) {
         $user->maildisplay = $tool->maildisplay;        
         
         $user->lang = $tool->lang;
-        if(! $user->lang && isset($_POST['launch_presentation_locale'])){
+        if(! $user->lang and isset($_POST['launch_presentation_locale'])){
             $user->lang = optional_param('launch_presentation_locale', '', PARAM_LANG);
         }
         if(! $user->lang){
@@ -141,7 +141,7 @@ if ($context->valid) {
     
     if ($context->contextlevel == CONTEXT_MODULE) {
         // Enrol the user in the activity
-        if(($tool->aroleinst && $role == 'Instructor') || ($tool->arolelearn && $role == 'Learner')){
+        if(($tool->aroleinst and $role == 'Instructor') or ($tool->arolelearn and $role == 'Learner')){
             $roleid = ($role == 'Instructor')? $tool->aroleinst: $tool->arolelearn;
             role_assign($roleid, $user->id, $tool->contextid);
         }
