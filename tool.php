@@ -171,6 +171,7 @@ if ($context->valid) {
     }
     
     add_to_log(SITEID, 'user', 'login', $urltogo, "ltiprovider login", 0, $user->id);
+    $tool->context = $context;
     $SESSION->ltiprovider = $tool;
     complete_user_login($user);
     redirect($urltogo);

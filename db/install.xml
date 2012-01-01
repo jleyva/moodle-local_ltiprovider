@@ -10,8 +10,9 @@
 		<FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="contextid"/>
 		<FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="courseid" NEXT="disabled"/>
 		<FIELD NAME="disabled" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="contextid" NEXT="sendgrades"/>
-        <FIELD NAME="sendgrades" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="disabled" NEXT="croleinst"/>
-		<FIELD NAME="croleinst" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="sendgrades" NEXT="crolelearn"/>
+        <FIELD NAME="sendgrades" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="disabled" NEXT="forcenavigation"/>
+		<FIELD NAME="forcenavigation" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="sendgrades" NEXT="croleinst"/>
+        <FIELD NAME="croleinst" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="forcenavigation" NEXT="crolelearn"/>
 		<FIELD NAME="crolelearn" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="croleinst" NEXT="aroleinst"/>
 		<FIELD NAME="aroleinst" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="crolelearn" NEXT="arolelearn"/>
 		<FIELD NAME="arolelearn" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="aroleinst" NEXT="secret"/>

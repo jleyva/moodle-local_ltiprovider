@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') or die;
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
 /**
  * Change the navigation block and bar only for external users
@@ -36,13 +36,31 @@ function ltiprovider_extends_navigation ($nav) {
     global $USER, $PAGE, $SESSION;
     
     // Check capabilities for tool providers
-    if ($PAGE->course->id && $PAGE->course->id != SITEID && has_capability('local/ltiprovider:view',$PAGE->context)) {
+    if ($PAGE->course->id and $PAGE->course->id != SITEID and has_capability('local/ltiprovider:view',$PAGE->context)) {
+        $ltiurl = new moodle_url('/local/ltiprovider/index.php?courseid='.$PAGE->course->id);
         $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
-        $coursenode->add(get_string('pluginname', 'local_ltiprovider'), new moodle_url('/local/ltiprovider/index.php?courseid='.$PAGE->course->id), $nav::TYPE_SETTING, null, 'ltiprovider'.$PAGE->course->id);
+        $coursenode->add(get_string('pluginname', 'local_ltiprovider'), $ltiurl, $nav::TYPE_SETTING, null, 'ltiprovider'.$PAGE->course->id);
     }
     
     if (isset($USER) and isset($USER->auth) and $USER->auth == 'nologin' and strpos($USER->username, 'ltiprovider') === 0) {
-        // We delete all the navigation nodes except the course one
+        // Force course or activity navigation
+        if (isset($SESSION->ltiprovider) and $SESSION->ltiprovider->forcenavigation) {
+            $context = $SESSION->ltiprovider->context;
+            $urltogo = '';
+            if ($context->contextlevel == CONTEXT_COURSE and $PAGE->course->id != $SESSION->ltiprovider->courseid) {
+                $urltogo = new moodle_url('/course/view.php', array('id' => $SESSION->ltiprovider->courseid));
+            }
+            else if ($context->contextlevel == CONTEXT_MODULE and $PAGE->context->id != $context->id) {
+                $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
+                $urltogo = new moodle_url('/mod/'.$cm->modname.'/view.php', array('id' => $cm->id));
+            }
+            
+            if ($urltogo) {
+                redirect($urltogo);
+            }
+        }
+    
+        // Delete all the navigation nodes except the course one
         $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
         foreach(array('myprofile', 'users', 'site', 'home', 'myhome', 'mycourses', 'courses', '1') as $nodekey) {
             if($node = $nav->get($nodekey)) {
@@ -50,7 +68,11 @@ function ltiprovider_extends_navigation ($nav) {
             }
         }        
         $nav->children->add($coursenode);
-        $PAGE->requires->css(new moodle_url('/local/ltiprovider/styles.php', array('id' => $SESSION->ltiprovider->id)));
+        
+        // Custom CSS
+        if (isset($SESSION->ltiprovider)) {
+            $PAGE->requires->css(new moodle_url('/local/ltiprovider/styles.php', array('id' => $SESSION->ltiprovider->id)));
+        }
     }
 }
 
@@ -74,6 +96,7 @@ function ltiprovider_add_tool($tool) {
     }
     
     $tool->sendgrades = (isset($tool->sendgrades)) ? 1 : 0;
+    $tool->forcenavigation = (isset($tool->forcenavigation)) ? 1 : 0;
     $tool->hidepageheader = (isset($tool->hidepageheader)) ? 1 : 0;
     $tool->hidepagefooter = (isset($tool->hidepagefooter)) ? 1 : 0;
     $tool->hideleftblocks = (isset($tool->hideleftblocks)) ? 1 : 0;
@@ -95,6 +118,7 @@ function ltiprovider_update_tool($tool) {
     $tool->timemodified = time();
 
     $tool->sendgrades = (isset($tool->sendgrades)) ? 1 : 0;
+    $tool->forcenavigation = (isset($tool->forcenavigation)) ? 1 : 0;
     $tool->hidepageheader = (isset($tool->hidepageheader)) ? 1 : 0;
     $tool->hidepagefooter = (isset($tool->hidepagefooter)) ? 1 : 0;
     $tool->hideleftblocks = (isset($tool->hideleftblocks)) ? 1 : 0;

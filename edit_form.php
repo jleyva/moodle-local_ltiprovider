@@ -55,19 +55,26 @@ class edit_form extends moodleform {
         $mform->addElement('checkbox', 'sendgrades', null, get_string('sendgrades', 'local_ltiprovider'));
         $mform->setDefault('sendgrades', 1);
         
+        $mform->addElement('checkbox', 'forcenavigation', null, get_string('forcenavigation', 'local_ltiprovider'));
+        $mform->setDefault('forcenavigation', 1);
+        
         $assignableroles = get_assignable_roles($context);
         
         $mform->addElement('select', 'croleinst', get_string('courseroleinstructor','local_ltiprovider'), $assignableroles);
         $mform->setDefault('croleinst', '3');
+        $mform->setAdvanced('croleinst');
         $mform->addElement('select', 'crolelearn', get_string('courserolelearner','local_ltiprovider'), $assignableroles);
         $mform->setDefault('crolelearn', '5');
+        $mform->setAdvanced('crolelearn');
         
         $mform->addElement('select', 'aroleinst', get_string('activityroleinstructor','local_ltiprovider'), $assignableroles);
-        $mform->disabledIf('aroleinst', 'contextid', 'eq', 0);
+        $mform->disabledIf('aroleinst', 'contextid', 'eq', $context->id);
         $mform->setDefault('aroleinst', '3');
+        $mform->setAdvanced('aroleinst');
         $mform->addElement('select', 'arolelearn', get_string('activityrolelearner','local_ltiprovider'), $assignableroles);
-        $mform->disabledIf('arolelearn', 'contextid', 'eq', 0);
+        $mform->disabledIf('arolelearn', 'contextid', 'eq', $context->id);
         $mform->setDefault('arolelearn', '5');
+        $mform->setAdvanced('arolelearn');
         
         $mform->addElement('header', 'settingsheader', get_string('remotesystem', 'local_ltiprovider'));
         
@@ -116,7 +123,8 @@ class edit_form extends moodleform {
 
         $mform->addElement('text', 'institution', get_string('institution'), 'maxlength="40" size="25"');
         $mform->setType('institution', PARAM_MULTILANG);
-        $mform->setDefault('institution', $templateuser->institution);        
+        $mform->setDefault('institution', $templateuser->institution);
+        $mform->setAdvanced('institution');        
         
         $mform->addElement('header', 'layoutandcss', get_string('layoutandcss', 'local_ltiprovider'));
         

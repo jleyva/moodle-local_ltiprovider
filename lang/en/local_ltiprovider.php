@@ -50,9 +50,10 @@ $string['hideleftblocks'] = 'Hide left blocks';
 $string['hiderightblocks'] = 'Hide right blocks';
 $string['customcss'] = 'Custom CSS';
 $string['sendgrades'] = 'Send grades back';
+$string['forcenavigation'] = 'Force course or activity navigation';
+
 
 $string['invalidcredentials'] = 'Invalid credentials';
-$string[''] = '';
 $string[''] = '';
 $string[''] = '';
 $string[''] = '';
