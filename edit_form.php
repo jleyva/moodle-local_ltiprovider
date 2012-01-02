@@ -76,7 +76,7 @@ class edit_form extends moodleform {
         $mform->setDefault('arolelearn', '5');
         $mform->setAdvanced('arolelearn');
         
-        $mform->addElement('header', 'settingsheader', get_string('remotesystem', 'local_ltiprovider'));
+        $mform->addElement('header', 'remotesystem', get_string('remotesystem', 'local_ltiprovider'));
         
         $mform->addElement('text', 'secret', get_string('secret', 'local_ltiprovider'), 'maxlength="64" size="25"');
         $mform->setType('secret', PARAM_MULTILANG);

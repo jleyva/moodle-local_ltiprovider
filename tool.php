@@ -69,6 +69,7 @@ if ($context->valid) {
         // clean_param , email username text
         $user->auth = 'nologin';
         $user->username = $username;
+        $user->password = md5(uniqid(rand(), 1));
         $user->firstname = optional_param('lis_person_name_given', '', PARAM_TEXT);
         $user->lastname = optional_param('lis_person_name_family', '', PARAM_TEXT);
         $user->email = clean_param($context->getUserEmail(), PARAM_EMAIL);

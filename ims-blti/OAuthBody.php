@@ -1,7 +1,7 @@
 <?php
 
-require_once("ims-blti/OAuth.php");
-require_once("ims-blti/TrivialOAuthDataStore.php");
+require_once("OAuth.php");
+require_once("TrivialOAuthDataStore.php");
 
 function getLastOAuthBodyBaseString() {
     global $LastOAuthBodyBaseString;

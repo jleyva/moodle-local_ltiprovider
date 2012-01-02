@@ -234,6 +234,7 @@ function do_post_request($url, $data, $optional_headers = null)
   $ctx = stream_context_create($params);
   $fp = @fopen($url, 'rb', false, $ctx);
   if (!$fp) {
+    echo @stream_get_contents($fp);
     throw new Exception("Problem with $url, $php_errormsg");
   }
   $response = @stream_get_contents($fp);
