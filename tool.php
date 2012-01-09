@@ -149,7 +149,8 @@ if ($context->valid) {
     // Login user
     $sourceid = optional_param('lis_result_sourcedid', '', PARAM_RAW);
 
-    if ($userlog = $DB->get_record('local_ltiprovider_user', array('toolid' => $tool->id, 'userid' => $user->id)) and $userlog->sourceid == $sourceid) {
+    if ($userlog = $DB->get_record('local_ltiprovider_user', array('toolid' => $tool->id, 'userid' => $user->id))) {
+        $DB->set_field('local_ltiprovider_user', 'sourceid', $sourceid, array('id' => $userlog->id));
         $DB->set_field('local_ltiprovider_user', 'lastaccess', time(), array('id' => $userlog->id));
     } else {
         // These data is needed for sending backup outcomes (aka grades)
