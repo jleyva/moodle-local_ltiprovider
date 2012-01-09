@@ -43,7 +43,7 @@ function ltiprovider_extends_navigation ($nav) {
     if ($PAGE->course->id and $PAGE->course->id != SITEID and has_capability('local/ltiprovider:view', $PAGE->context)) {
         $ltiurl = new moodle_url('/local/ltiprovider/index.php', array('courseid' => $PAGE->course->id));
         $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
-        $coursenode->add(get_string('pluginname', 'local_ltiprovider'), $ltiurl, $nav::TYPE_SETTING, null, 'ltiprovider'.$PAGE->course->id);
+        $coursenode->add(get_string('pluginname', 'local_ltiprovider'), $ltiurl, $nav::TYPE_CONTAINER, null, 'ltiprovider'.$PAGE->course->id);
     }
 
     if (isset($USER) and isset($USER->auth) and $USER->auth == 'nologin' and strpos($USER->username, 'ltiprovider') === 0) {
