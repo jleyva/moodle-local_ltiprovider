@@ -25,7 +25,7 @@
 
 require_once(dirname(__FILE__) . '/../../config.php');
 
-$toolid = required_param('id',PARAM_INT);
+$toolid = required_param('id', PARAM_INT);
 
 if (! ($tool = $DB->get_record('local_ltiprovider', array('id'=>$toolid)))) {
     print_error('invalidtoolid', 'local_ltiprovider');
@@ -79,4 +79,4 @@ header('Content-Type: text/css; charset=utf-8');
 header('Content-Length: '.strlen($css));
 
 echo $css;
-die; 
+die;

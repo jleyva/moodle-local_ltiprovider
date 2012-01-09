@@ -23,8 +23,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(__FILE__) . '/../../config.php'); 
- 
+require_once(dirname(__FILE__) . '/../../config.php');
+
 $courseid = required_param('courseid', PARAM_INT);
 
 if (! ($course = $DB->get_record('course', array('id'=>$courseid)))) {
@@ -49,28 +49,26 @@ echo $OUTPUT->heading(get_string('toolsprovided', 'local_ltiprovider'));
 $tools = $DB->get_records('local_ltiprovider', array('courseid' => $course->id));
 
 $data = array();
-foreach($tools as $tool) {
+foreach ($tools as $tool) {
     $line = array();
     $line[] = print_context_name(get_context_instance_by_id($tool->contextid));
     $line[] = $tool->secret;
     $line[] = new moodle_url('/local/ltiprovider/tool.php', array('id' => $tool->id));
-  
+
     if (has_capability('local/ltiprovider:manage', $context)) {
         $buttons = array();
-        
+
         $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'delete'=>1, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/delete'), 'alt'=>get_string('delete'), 'class'=>'iconsmall')));
         $buttons[] =  html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/edit'), 'alt'=>get_string('edit'), 'class'=>'iconsmall')));
 
         if ($tool->disabled) {
             $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'show'=>1, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/show'), 'alt'=>get_string('show'), 'class'=>'iconsmall')));
-        }
-        else {
+        } else {
             $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'hide'=>1, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/hide'), 'alt'=>get_string('hide'), 'class'=>'iconsmall')));
         }
-        
+
         $line[] = implode(' ', $buttons);
-    }
-    else {
+    } else {
         $line[] = '';
     }
     $data[] = $line;
@@ -78,8 +76,8 @@ foreach($tools as $tool) {
 
 $table = new html_table();
 $table->head  = array(
-    get_string('name', 'local_ltiprovider'), 
-    get_string('secret', 'local_ltiprovider'), 
+    get_string('name', 'local_ltiprovider'),
+    get_string('secret', 'local_ltiprovider'),
     get_string('url', 'local_ltiprovider'),
     get_string('edit'));
 $table->size  = array('20%', '20%', '50%', '10%');

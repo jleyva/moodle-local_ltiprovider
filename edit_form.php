@@ -32,7 +32,7 @@ require_once($CFG->dirroot.'/course/lib.php');
 class edit_form extends moodleform {
 
     // Define the form
-    function definition () {
+    public function definition () {
         global $USER, $CFG, $COURSE;
 
         $mform =& $this->_form;
@@ -40,60 +40,60 @@ class edit_form extends moodleform {
         $context = $this->_customdata['context'];
 
         $mform->addElement('header', 'settingsheader', get_string('toolsettings', 'local_ltiprovider'));
-        
+
         $tools = array();
         $tools[$context->id] = get_string('course');
         get_all_mods($this->_customdata['courseid'], $mods, $modnames, $modnamesplural, $modnamesused);
-        
-        foreach($mods as $mod){
+
+        foreach ($mods as $mod) {
             $tools[$mod->context->id] = format_string($mod->name);
         }
-        
-        $mform->addElement('select', 'contextid', get_string('tooltobeprovide','local_ltiprovider'), $tools);
+
+        $mform->addElement('select', 'contextid', get_string('tooltobeprovide', 'local_ltiprovider'), $tools);
         $mform->setDefault('contextid', $context->id);
-        
+
         $mform->addElement('checkbox', 'sendgrades', null, get_string('sendgrades', 'local_ltiprovider'));
         $mform->setDefault('sendgrades', 1);
-        
+
         $mform->addElement('checkbox', 'forcenavigation', null, get_string('forcenavigation', 'local_ltiprovider'));
         $mform->setDefault('forcenavigation', 1);
-        
+
         $assignableroles = get_assignable_roles($context);
-        
-        $mform->addElement('select', 'croleinst', get_string('courseroleinstructor','local_ltiprovider'), $assignableroles);
+
+        $mform->addElement('select', 'croleinst', get_string('courseroleinstructor', 'local_ltiprovider'), $assignableroles);
         $mform->setDefault('croleinst', '3');
         $mform->setAdvanced('croleinst');
-        $mform->addElement('select', 'crolelearn', get_string('courserolelearner','local_ltiprovider'), $assignableroles);
+        $mform->addElement('select', 'crolelearn', get_string('courserolelearner', 'local_ltiprovider'), $assignableroles);
         $mform->setDefault('crolelearn', '5');
         $mform->setAdvanced('crolelearn');
-        
-        $mform->addElement('select', 'aroleinst', get_string('activityroleinstructor','local_ltiprovider'), $assignableroles);
+
+        $mform->addElement('select', 'aroleinst', get_string('activityroleinstructor', 'local_ltiprovider'), $assignableroles);
         $mform->disabledIf('aroleinst', 'contextid', 'eq', $context->id);
         $mform->setDefault('aroleinst', '3');
         $mform->setAdvanced('aroleinst');
-        $mform->addElement('select', 'arolelearn', get_string('activityrolelearner','local_ltiprovider'), $assignableroles);
+        $mform->addElement('select', 'arolelearn', get_string('activityrolelearner', 'local_ltiprovider'), $assignableroles);
         $mform->disabledIf('arolelearn', 'contextid', 'eq', $context->id);
         $mform->setDefault('arolelearn', '5');
         $mform->setAdvanced('arolelearn');
-        
+
         $mform->addElement('header', 'remotesystem', get_string('remotesystem', 'local_ltiprovider'));
-        
+
         $mform->addElement('text', 'secret', get_string('secret', 'local_ltiprovider'), 'maxlength="64" size="25"');
         $mform->setType('secret', PARAM_MULTILANG);
         $mform->setDefault('secret', md5(uniqid(rand(), 1)));
         $mform->addRule('secret', get_string('required'), 'required');
-        
+
         $textlib = textlib_get_instance();
         $choices = $textlib->get_encodings();
         $mform->addElement('select', 'encoding', get_string('remoteencoding', 'local_ltiprovider'), $choices);
         $mform->setDefault('encoding', 'UTF-8');
-        
+
         $mform->addElement('header', 'defaultheader', get_string('userdefaultvalues', 'local_ltiprovider'));
-        
+
         $choices = array(0 => get_string('emaildisplayno'), 1 => get_string('emaildisplayyes'), 2 => get_string('emaildisplaycourse'));
         $mform->addElement('select', 'maildisplay', get_string('emaildisplay'), $choices);
         $mform->setDefault('maildisplay', 2);
-        
+
         $mform->addElement('text', 'city', get_string('city'), 'maxlength="100" size="25"');
         $mform->setType('city', PARAM_MULTILANG);
         if (empty($CFG->defaultcity)) {
@@ -102,7 +102,7 @@ class edit_form extends moodleform {
             $mform->setDefault('city', $CFG->defaultcity);
         }
         $mform->addRule('city', get_string('required'), 'required');
-        
+
         $mform->addElement('select', 'country', get_string('selectacountry'), get_string_manager()->get_list_of_countries());
         if (empty($CFG->country)) {
             $mform->setDefault('country', $templateuser->country);
@@ -124,32 +124,32 @@ class edit_form extends moodleform {
         $mform->addElement('text', 'institution', get_string('institution'), 'maxlength="40" size="25"');
         $mform->setType('institution', PARAM_MULTILANG);
         $mform->setDefault('institution', $templateuser->institution);
-        $mform->setAdvanced('institution');        
-        
+        $mform->setAdvanced('institution');
+
         $mform->addElement('header', 'layoutandcss', get_string('layoutandcss', 'local_ltiprovider'));
-        
+
         $mform->addElement('checkbox', 'hidepageheader', null, get_string('hidepageheader', 'local_ltiprovider'));
         $mform->addElement('checkbox', 'hidepagefooter', null, get_string('hidepagefooter', 'local_ltiprovider'));
         $mform->addElement('checkbox', 'hideleftblocks', null, get_string('hideleftblocks', 'local_ltiprovider'));
         $mform->addElement('checkbox', 'hiderightblocks', null, get_string('hiderightblocks', 'local_ltiprovider'));
         $mform->setAdvanced('hideleftblocks');
         $mform->setAdvanced('hiderightblocks');
-        
+
         $editoroptions = array();
         $displayoptions = array('rows'=>'4', 'cols'=>'');
         $mform->addElement('textarea', 'customcss', get_string('customcss', 'local_ltiprovider'), $displayoptions, $editoroptions);
         $mform->setAdvanced('customcss');
-        
-        $mform->addElement('hidden','id');
+
+        $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
 
-        $mform->addElement('hidden','courseid');
+        $mform->addElement('hidden', 'courseid');
         $mform->setType('courseid', PARAM_INT);
 
         $this->add_action_buttons();
     }
 
-    function validation($data, $files) {
+    public function validation($data, $files) {
         global $COURSE, $DB, $CFG;
 
         $errors = parent::validation($data, $files);

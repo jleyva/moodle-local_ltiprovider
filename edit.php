@@ -23,10 +23,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(__FILE__) . '/../../config.php'); 
+require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot.'/local/ltiprovider/lib.php');
 require_once($CFG->dirroot.'/local/ltiprovider/edit_form.php');
- 
+
 $id = optional_param('id', -1, PARAM_INT);    // user id; -1 if creating new tool
 $courseid = optional_param('courseid', 0, PARAM_INT);   // course id (defaults to Site)
 $delete    = optional_param('delete', 0, PARAM_BOOL);
@@ -39,8 +39,7 @@ if ($id > 0) {
         print_error('invalidtoolid', 'local_ltiprovider');
     }
     $courseid = $tool->courseid;
-}
-else {
+} else {
     $tool = new stdClass();
     $tool->id = -1;
     $tool->courseid = $courseid;
@@ -75,10 +74,10 @@ if ($delete and $tool->id) {
     $PAGE->navbar->add($strheading);
     $PAGE->set_title($strheading);
     $PAGE->set_heading($COURSE->fullname);
-    
+
     echo $OUTPUT->header();
     echo $OUTPUT->heading($strheading);
-    $yesurl = new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'delete'=>1, 'confirm'=>1,'sesskey'=>sesskey()));
+    $yesurl = new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'delete'=>1, 'confirm'=>1, 'sesskey'=>sesskey()));
     $message = get_string('delconfirm', 'local_ltiprovider');
     echo $OUTPUT->confirm($message, $yesurl, $returnurl);
     echo $OUTPUT->footer();
@@ -100,19 +99,18 @@ $PAGE->navbar->add($strheading);
 $PAGE->set_title($strheading);
 $PAGE->set_heading($course->fullname . ': '.$strheading);
 
-$editform = new edit_form(null, compact('context','courseid'));
+$editform = new edit_form(null, compact('context', 'courseid'));
 $editform->set_data($tool);
 
 if ($editform->is_cancelled()) {
     redirect($returnurl);
 
-} elseif ($data = $editform->get_data()) {
+} else if ($data = $editform->get_data()) {
 
     if ($data->id > 0) {
         // Update
         ltiprovider_update_tool($data);
-    } 
-    else {
+    } else {
         // Create new
         ltiprovider_add_tool($data);
     }
