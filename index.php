@@ -74,6 +74,11 @@ foreach ($tools as $tool) {
     $data[] = $line;
 }
 
+// Moodle 2.2 and onwards
+if (isset($CFG->allowframembedding) and !$CFG->allowframembedding) {
+    echo $OUTPUT->box(get_string('allowframembedding', 'local_ltiprovider'));
+}
+
 $table = new html_table();
 $table->head  = array(
     get_string('name', 'local_ltiprovider'),

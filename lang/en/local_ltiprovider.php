@@ -54,6 +54,6 @@ $string['forcenavigation'] = 'Force course or activity navigation';
 
 
 $string['invalidcredentials'] = 'Invalid credentials';
-$string[''] = '';
+$string['allowframembedding'] = 'In order to avoid problems embedding this site, please enable the allowframembedding setting in Admin -> Security -> HTTP security';
 $string[''] = '';
 $string[''] = '';
