@@ -55,5 +55,5 @@ $string['forcenavigation'] = 'Force course or activity navigation';
 
 $string['invalidcredentials'] = 'Invalid credentials';
 $string['allowframembedding'] = 'In order to avoid problems embedding this site, please enable the allowframembedding setting in Admin -> Security -> HTTP security';
-$string[''] = '';
-$string[''] = '';
+$string['newpopupnotice'] = 'The tool will be opened in a new Window. Please, check that popups for this site are enabled in your browser. You can use the link displayed bellow for opening the tool.';
+$string['opentool'] = 'Open tool in a new window';

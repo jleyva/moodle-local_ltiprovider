@@ -173,7 +173,21 @@ if ($context->valid) {
     $tool->context = $context;
     $SESSION->ltiprovider = $tool;
     complete_user_login($user);
-    redirect($urltogo);
+    
+    // Moodle 2.2 and onwards
+    if (isset($CFG->allowframembedding) and !$CFG->allowframembedding) {
+        echo '<html>
+        <head>
+        </head>
+        <body onload="window.open(\''. $urltogo .'\', \'_blank\');"></body>';
+        echo get_string('newpopupnotice', 'local_ltiprovider');
+        $stropentool = get_string('opentool', 'local_ltiprovider');
+        echo "<p><a href=\"$urltogo\" target=\"_blank\">$stropentool</a></p>";
+        echo "<p>".get_string('allowframembedding', 'local_ltiprovider')."</p>";
+        echo '</html>';
+    } else {
+        redirect($urltogo);
+    }
 } else {
     //print_error('invalidcredentials', 'local_ltiprovider');
     echo $context->message;

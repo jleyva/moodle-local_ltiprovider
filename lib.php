@@ -204,7 +204,7 @@ function local_ltiprovider_cron() {
                                     $DB->set_field('local_ltiprovider_user', 'lastgrade', $grade, array('id' => $user->id));
                                     mtrace("User grade send to remote system. userid: $user->userid grade: $grade");
                                 } else {
-                                    mtrace("User grade send failed: ".$retval);
+                                    mtrace("User grade send failed: ".$response);
                                 }
                             }
                         }
