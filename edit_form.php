@@ -57,6 +57,23 @@ class edit_form extends moodleform {
 
         $mform->addElement('checkbox', 'forcenavigation', null, get_string('forcenavigation', 'local_ltiprovider'));
         $mform->setDefault('forcenavigation', 1);
+        
+        $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'local_ltiprovider'), array('optional' => true, 'defaultunit' => 86400));
+        $mform->setDefault('enrolperiod', 0);
+        $mform->addHelpButton('enrolperiod', 'enrolperiod', 'local_ltiprovider');
+
+        $mform->addElement('date_selector', 'enrolstartdate', get_string('enrolstartdate', 'local_ltiprovider'), array('optional' => true));
+        $mform->setDefault('enrolstartdate', 0);
+        $mform->addHelpButton('enrolstartdate', 'enrolstartdate', 'local_ltiprovider');
+
+        $mform->addElement('date_selector', 'enrolenddate', get_string('enrolenddate', 'local_ltiprovider'), array('optional' => true));
+        $mform->setDefault('enrolenddate', 0);
+        $mform->addHelpButton('enrolenddate', 'enrolenddate', 'local_ltiprovider');
+        
+        $mform->addElement('text', 'maxenrolled', get_string('maxenrolled', 'local_ltiprovider'));
+        $mform->setDefault('maxenrolled', 0);
+        $mform->addHelpButton('maxenrolled', 'maxenrolled', 'local_ltiprovider');
+        $mform->setType('maxenrolled', PARAM_INT);
 
         $assignableroles = get_assignable_roles($context);
 
@@ -153,6 +170,10 @@ class edit_form extends moodleform {
         global $COURSE, $DB, $CFG;
 
         $errors = parent::validation($data, $files);
+        
+        if (!empty($data['enrolenddate']) and $data['enrolenddate'] < $data['enrolstartdate']) {
+            $errors['enrolenddate'] = get_string('enrolenddaterror', 'local_ltiprovider');
+        }
 
         return $errors;
     }

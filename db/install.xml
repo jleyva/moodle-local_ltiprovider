@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/ltiprovider/db" VERSION="20111218" COMMENT="XMLDB file for Moodle local/ltiprovider"
+<XMLDB PATH="local/ltiprovider/db" VERSION="20120123" COMMENT="XMLDB file for Moodle local/ltiprovider"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -28,10 +28,14 @@
         <FIELD NAME="hidepagefooter" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="hidepageheader" NEXT="hideleftblocks"/>
         <FIELD NAME="hideleftblocks" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="hidepagefooter" NEXT="hiderightblocks"/>
         <FIELD NAME="hiderightblocks" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="hideleftblocks" NEXT="customcss"/>
-        <FIELD NAME="customcss" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="hiderightblocks" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="customcss" NEXT="lastsync"/>
-        <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="timecreated" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="lastsync"/>        
+        <FIELD NAME="customcss" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="hiderightblocks" NEXT="enrolstartdate"/>
+        <FIELD NAME="enrolstartdate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="customcss" NEXT="enrolperiod"/>
+        <FIELD NAME="enrolperiod" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="enrolstartdate" NEXT="enrolenddate"/>
+        <FIELD NAME="enrolenddate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="enrolperiod" NEXT="maxenrolled"/>
+        <FIELD NAME="maxenrolled" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="enrolenddate" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="maxenrolled" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="timemodified" NEXT="lastsync"/>
+        <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="timecreated"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -48,7 +52,7 @@
         <FIELD NAME="consumersecret" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="consumerkey" NEXT="lastgrade"/>
         <FIELD NAME="lastgrade" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="last grade" PREVIOUS="consumersecret" NEXT="lastsync"/>
         <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="lastgrade" NEXT="lastaccess"/>
-        <FIELD NAME="lastaccess" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="last access timestamp" PREVIOUS="lastsync"/>        
+        <FIELD NAME="lastaccess" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="last access timestamp" PREVIOUS="lastsync"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

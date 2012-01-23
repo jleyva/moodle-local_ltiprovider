@@ -31,6 +31,20 @@ $string['userdefaultvalues'] = 'User default values';
 $string['remoteencoding'] = 'Remote system encoding';
 $string['secret'] = 'Shared secret';
 $string['toolsettings'] = 'Tool settings';
+
+$string['enrolperiod'] = 'Enrolment duration';
+$string['enrolperiod_desc'] = 'Default length of time that the enrolment is valid (in seconds). If set to zero, the enrolment duration will be unlimited by default.';
+$string['enrolperiod_help'] = 'Length of time that the enrolment is valid, starting with the moment the user enrols themselves from the remote system. If disabled, the enrolment duration will be unlimited.';
+$string['enrolstartdate'] = 'Start date';
+$string['enrolstartdate_help'] = 'If enabled, users can access from this date onward only.';
+$string['enrolenddate'] = 'End date';
+$string['enrolenddate_help'] = 'If enabled, users can access until this date only.';
+$string['enrolenddaterror'] = 'Enrolment end date cannot be earlier than start date';
+
+$string['maxenrolled'] = 'Max enrolled users';
+$string['maxenrolled_help'] = 'Specifies the maximum number of users that can access from the remote system. 0 means no limit.';
+$string['maxenrolledreached'] = 'Maximum number of users allowed to access was already reached.';
+
 $string['courseroleinstructor'] = 'Course role for Instructor';
 $string['courserolelearner'] = 'Course role for Learner';
 $string['activityroleinstructor'] = 'Activity role for Instructor';
@@ -57,3 +71,9 @@ $string['invalidcredentials'] = 'Invalid credentials';
 $string['allowframembedding'] = 'In order to avoid problems embedding this site, please enable the allowframembedding setting in Admin -> Security -> HTTP security';
 $string['newpopupnotice'] = 'The tool will be opened in a new Window. Please, check that popups for this site are enabled in your browser. You can use the link displayed bellow for opening the tool.';
 $string['opentool'] = 'Open tool in a new window';
+
+$string['enrolmentnotstarted'] = 'The enrolment period has not started';
+$string['enrolmentfinished'] = 'The enrolment period has finished';
+$string[''] = '';
+$string[''] = '';
+
