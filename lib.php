@@ -165,6 +165,7 @@ function local_ltiprovider_cron() {
                     foreach ($users as $user) {
                         // This can happen is the sync process has an unexpected error
                         if ($user->lastsync > $tool->lastsync) {
+                            mtrace("Skipping user {$user->id}");
                             continue;
                         }
 
@@ -206,7 +207,11 @@ function local_ltiprovider_cron() {
                                 } else {
                                     mtrace("User grade send failed: ".$response);
                                 }
+                            } else {
+                                mtrace("User grade not send: grade = ".$grade);
                             }
+                        } else {
+                            mtrace("Invalid context: contextid = ".$tool->contextid);
                         }
                     }
                 }
