@@ -65,30 +65,7 @@ class BLTI {
         } else if ( ! is_array($parm) ) {
             $this->message = "Constructor requires a secret or database information.";
             return;
-        } else {
-            $sql = 'SELECT * FROM '.$parm['table'].' WHERE '.
-                ($parm['key_column'] ? $parm['key_column'] : 'oauth_consumer_key').
-                '='.
-                "'".mysql_real_escape_string($oauth_consumer_key)."'";
-            $result = mysql_query($sql);
-            $num_rows = mysql_num_rows($result);
-            if ( $num_rows != 1 ) {
-                $this->message = "Your consumer is not authorized oauth_consumer_key=".$oauth_consumer_key;
-                return;
-            } else {
-                while ($row = mysql_fetch_assoc($result)) {
-                    $secret = $row[$parms['secret_column']?$parms['secret_column']:'secret'];
-                    $context_id = $row[$parms['context_column']?$parms['context_column']:'context_id'];
-                    if ( $context_id ) $this->context_id = $context_id;
-                    $this->row = $row;
-                    break;
-                }
-                if ( ! is_string($secret) ) {
-                    $this->message = "Could not retrieve secret oauth_consumer_key=".$oauth_consumer_key;
-                    return;
-                }
-            }
-        }
+        } 
 
         // Verify the message signature
         $store = new TrivialOAuthDataStore();
