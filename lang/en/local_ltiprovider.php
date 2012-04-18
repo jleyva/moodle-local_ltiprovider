@@ -74,6 +74,6 @@ $string['opentool'] = 'Open tool in a new window';
 
 $string['enrolmentnotstarted'] = 'The enrolment period has not started';
 $string['enrolmentfinished'] = 'The enrolment period has finished';
-$string[''] = '';
-$string[''] = '';
+$string['ltiprovider:manage'] = 'Manage tools (provide)';
+$string['ltiprovider:view'] = 'View tools provided';
 
