@@ -78,6 +78,8 @@ if ($context->valid) {
         $user->institution = $tool->institution;
         $user->timezone = $tool->timezone;
         $user->maildisplay = $tool->maildisplay;
+        $user->mnethostid = $CFG->mnet_localhost_id;
+        $user->confirmed = 1;
 
         $user->lang = $tool->lang;
         if (! $user->lang and isset($_POST['launch_presentation_locale'])) {
