@@ -25,6 +25,9 @@
 
 defined('MOODLE_INTERNAL') or die;
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
+
+use moodle\local\ltiprovider as ltiprovider;
+
 /**
  * Change the navigation block and bar only for external users
  * Force course or activity navigation and modify CSS also
@@ -196,7 +199,7 @@ function local_ltiprovider_cron() {
 
                                 $body = ltiprovider_create_service_body($user->sourceid, $grade);
 
-                                $response = sendOAuthBodyPOST('POST', $user->serviceurl, $user->consumerkey, $user->consumersecret, 'application/xml', $body);
+                                $response = ltiprovider\sendOAuthBodyPOST('POST', $user->serviceurl, $user->consumerkey, $user->consumersecret, 'application/xml', $body);
                                 // TODO - Check for errors in $retval in a correct way (parsing xml)
 
                                 if (strpos(strtolower($response), 'success') !== false) {
