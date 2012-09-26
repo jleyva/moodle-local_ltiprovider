@@ -179,7 +179,7 @@ function local_ltiprovider_cron() {
                             } else if ($context->contextlevel == CONTEXT_MODULE) {
 
                                 $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
-                                $grades = grade_get_grades($cm->course, 'mod', $cm->modname, $cm->id, $user->userid);
+                                $grades = grade_get_grades($cm->course, 'mod', $cm->modname, $cm->instance, $user->userid);
                                 if (empty($grades->items[0]->grades)) {
                                     $grade = false;
                                 } else {
