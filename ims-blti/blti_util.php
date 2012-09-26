@@ -2,6 +2,8 @@
 
 require_once 'OAuth.php';
 
+use moodle\local\ltiprovider as ltiprovider;
+
   // Replace this with some real function that pulls from the LMS.
   function getLMSDummyData() {
     $parms = array( 
@@ -62,7 +64,7 @@ require_once 'OAuth.php';
     return array("launch_url" => $launch_url, "custom" => $custom ) ;
   }
 
-function split_custom_parameters($customstr) {
+function local_ltiprovider_split_custom_parameters($customstr) {
     $lines = preg_split("/[\n;]/",$customstr);
     $retval = array();
     foreach ($lines as $line){
@@ -70,13 +72,13 @@ function split_custom_parameters($customstr) {
         if ( $pos === false || $pos < 1 ) continue;
         $key = trim(substr($line, 0, $pos));
         $val = trim(substr($line, $pos+1));
-        $key = map_keyname($key);
+        $key = local_ltiprovider_map_keyname($key);
         $retval['custom_'.$key] = $val;
     }
     return $retval;
 }
 
-function map_keyname($key) {
+function local_ltiprovider_map_keyname($key) {
     $newkey = "";
     $key = strtolower(trim($key));
     foreach (str_split($key) as $ch) {
@@ -103,10 +105,10 @@ function signParameters($oldparms, $endpoint, $method, $oauth_consumer_key, $oau
 
     $test_token = '';
 
-    $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
-    $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
+    $hmac_method = new ltiprovider\OAuthSignatureMethod_HMAC_SHA1();
+    $test_consumer = new ltiprovider\OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
 
-    $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, $method, $endpoint, $parms);
+    $acc_req = ltiprovider\OAuthRequest::from_consumer_and_token($test_consumer, $test_token, $method, $endpoint, $parms);
 
     $acc_req->sign_request($hmac_method, $test_consumer, $test_token);
 
@@ -125,10 +127,10 @@ function signOnly($oldparms, $endpoint, $method, $oauth_consumer_key, $oauth_con
 
     $test_token = '';
 
-    $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
-    $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
+    $hmac_method = new ltiprovider\OAuthSignatureMethod_HMAC_SHA1();
+    $test_consumer = new ltiprovider\OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
 
-    $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, $method, $endpoint, $parms);
+    $acc_req = ltiprovider\OAuthRequest::from_consumer_and_token($test_consumer, $test_token, $method, $endpoint, $parms);
     $acc_req->sign_request($hmac_method, $test_consumer, $test_token);
 
     // Pass this back up "out of band" for debugging

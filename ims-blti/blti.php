@@ -3,6 +3,8 @@
 require_once 'OAuth.php';
 require_once 'TrivialOAuthDataStore.php';
 
+use moodle\local\ltiprovider as ltiprovider;
+
 // Returns true if this is a Basic LTI message
 // with minimum values to meet the protocol
 function is_basic_lti_request() {
@@ -68,14 +70,14 @@ class BLTI {
         } 
 
         // Verify the message signature
-        $store = new TrivialOAuthDataStore();
+        $store = new ltiprovider\TrivialOAuthDataStore();
         $store->add_consumer($oauth_consumer_key, $secret);
 
-        $server = new OAuthServer($store);
+        $server = new ltiprovider\OAuthServer($store);
 
-        $method = new OAuthSignatureMethod_HMAC_SHA1();
+        $method = new ltiprovider\OAuthSignatureMethod_HMAC_SHA1();
         $server->add_signature_method($method);
-        $request = OAuthRequest::from_request();
+        $request = ltiprovider\OAuthRequest::from_request();
         
         $this->basestring = $request->get_signature_base_string();
 
