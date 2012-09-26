@@ -1,5 +1,7 @@
 <?php
 
+namespace moodle\local\ltiprovider;
+
 /**
  * A Trivial memory-based store - no support for tokens
  */
