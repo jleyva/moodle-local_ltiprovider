@@ -91,6 +91,7 @@ if ($context->valid) {
         }
 
         $user->id = $DB->insert_record('user', $user);
+        events_trigger('user_updated', $user);
         // Reload full user
         $user = $DB->get_record('user', array('id' => $user->id));
     }
