@@ -60,7 +60,12 @@ if ($context->valid) {
     }
 
     // We need an username without extended chars
-    $username = 'ltiprovider'.md5($context->getUserKey());
+    if (empty($context->info['user_id']) || empty($context->info['lis_outcome_service_url'])) {
+        $userid = $context->getUserKey();
+    } else {
+        $userid = $context->info['user_id'] . ':' . $context->info['lis_outcome_service_url'];
+    }
+    $username = 'ltiprovider'.md5($userid);
 
     // Check if the user exists
     $user = $DB->get_record('user', array('username' => $username));
