@@ -177,7 +177,8 @@ function local_ltiprovider_cron() {
                             if ($context->contextlevel == CONTEXT_COURSE) {
 
                                 if ($grade = grade_get_course_grade($user->userid, $tool->courseid)) {
-                                    $grade = $grade->grade;
+                                    $max = $grade->item->grademax;
+                                    $grade = $grade->grade / $max;
                                 }
                             } else if ($context->contextlevel == CONTEXT_MODULE) {
 
@@ -186,16 +187,15 @@ function local_ltiprovider_cron() {
                                 if (empty($grades->items[0]->grades)) {
                                     $grade = false;
                                 } else {
+                                    $max = $grades->items[0]->grademax;
                                     $grade = reset($grades->items[0]->grades);
-                                    $grade = $grade->grade;
+                                    $grade = $grade->grade / $max;
                                 }
                             }
 
                             // We sync with the external system only when the new grade differs with the previous one
                             // TODO - Global setting for check this
-                            // I assume base 100 grades
-                            if ($grade !== false and $grade != $user->lastgrade and $grade > 0 and $grade <= 100) {
-                                $grade = $grade / 100;
+                            if ($grade !== false and $grade != $user->lastgrade and $grade > 0 and $grade <= 1) {
 
                                 $body = ltiprovider_create_service_body($user->sourceid, $grade);
 
