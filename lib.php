@@ -37,7 +37,7 @@ use moodle\local\ltiprovider as ltiprovider;
  * @global moodle_database $DB
  * @param navigation_node $nav Current navigation object
  */
-function ltiprovider_extends_navigation ($nav) {
+function local_ltiprovider_extends_navigation ($nav) {
     global $USER, $PAGE, $SESSION;
 
     // Check capabilities for tool providers
