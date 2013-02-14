@@ -163,10 +163,16 @@ function local_ltiprovider_cron() {
     if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND sendgrades = ?', array(0, 1))) {
         foreach ($tools as $tool) {
             if ($tool->lastsync + $synctime < $timenow) {
-                mtrace(" Sync tool id $tool->id course id $tool->courseid");
+                mtrace(" Starting sync tool id $tool->id course id $tool->courseid");
+                $user_count = 0;
+                $send_count = 0;
+                $error_count = 0;
                 if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id))) {
                     foreach ($users as $user) {
+                        $user_count = $user_count + 1;
                         // This can happen is the sync process has an unexpected error
+                        if ( strlen($user->serviceurl) < 1 ) continue;
+                        if ( strlen($user->sourceid) < 1 ) continue;
                         if ($user->lastsync > $tool->lastsync) {
                             mtrace("Skipping user {$user->id}");
                             continue;
@@ -177,8 +183,8 @@ function local_ltiprovider_cron() {
                             if ($context->contextlevel == CONTEXT_COURSE) {
 
                                 if ($grade = grade_get_course_grade($user->userid, $tool->courseid)) {
-                                    $max = $grade->item->grademax;
-                                    $grade = $grade->grade / $max;
+                                    $grademax = floatval($grade->item->grademax);
+                                    $grade = $grade->grade;
                                 }
                             } else if ($context->contextlevel == CONTEXT_MODULE) {
 
@@ -187,37 +193,58 @@ function local_ltiprovider_cron() {
                                 if (empty($grades->items[0]->grades)) {
                                     $grade = false;
                                 } else {
-                                    $max = $grades->items[0]->grademax;
                                     $grade = reset($grades->items[0]->grades);
-                                    $grade = $grade->grade / $max;
+                                    $grademax = floatval($grade->item->grademax);
+                                    $grade = $grade->grade;
                                 }
                             }
+
+                            if ( $grade === false || $grade === NULL || strlen($grade) < 1) continue;
+
+                            // No need to be dividing by zero
+                            if ( $grademax == 0.0 ) $grademax = 100.0;
+
+                            // TODO: Make lastgrade should be float or string - but it is integer so we truncate
+                            // TODO: Then remove those intval() calls
+
+                            // Don't double send
+                            if ( intval($grade) == $user->lastgrade ) continue;
 
                             // We sync with the external system only when the new grade differs with the previous one
                             // TODO - Global setting for check this
-                            if ($grade !== false and $grade != $user->lastgrade and $grade > 0 and $grade <= 1) {
+                            if ($grade > 0 and $grade <= $grademax) {
+                                $float_grade = $grade / $grademax;
+                                $body = ltiprovider_create_service_body($user->sourceid, $float_grade);
 
-                                $body = ltiprovider_create_service_body($user->sourceid, $grade);
+                                try { 
+                                    $response = ltiprovider\sendOAuthBodyPOST('POST', $user->serviceurl, $user->consumerkey, $user->consumersecret, 'application/xml', $body);
+                                } catch (Exception $e) {
+                                    mtrace(" ".$e->getMessage());
+                                    $error_count = $error_count + 1;
+                                    continue;
+                                }
 
-                                $response = ltiprovider\sendOAuthBodyPOST('POST', $user->serviceurl, $user->consumerkey, $user->consumersecret, 'application/xml', $body);
                                 // TODO - Check for errors in $retval in a correct way (parsing xml)
-
                                 if (strpos(strtolower($response), 'success') !== false) {
 
                                     $DB->set_field('local_ltiprovider_user', 'lastsync', $timenow, array('id' => $user->id));
-                                    $DB->set_field('local_ltiprovider_user', 'lastgrade', $grade, array('id' => $user->id));
-                                    mtrace("User grade send to remote system. userid: $user->userid grade: $grade");
+                                    $DB->set_field('local_ltiprovider_user', 'lastgrade', intval($grade), array('id' => $user->id));
+                                    mtrace(" User grade sent to remote system. userid: $user->userid grade: $float_grade");
+                                    $send_count = $send_count + 1;
                                 } else {
-                                    mtrace("User grade send failed: ".$response);
+                                    mtrace(" User grade send failed: ".$response);
+                                    $error_count = $error_count + 1;
                                 }
                             } else {
-                                mtrace("User grade not send: grade = ".$grade);
+                                mtrace(" User grade out of range: grade = ".$grade);
+                                $error_count = $error_count + 1;
                             }
                         } else {
-                            mtrace("Invalid context: contextid = ".$tool->contextid);
+                            mtrace(" Invalid context: contextid = ".$tool->contextid);
                         }
                     }
                 }
+                mtrace(" Completed sync tool id $tool->id course id $tool->courseid users=$user_count sent=$send_count errors=$error_count");
                 $DB->set_field('local_ltiprovider', 'lastsync', $timenow, array('id' => $tool->id));
             }
         }

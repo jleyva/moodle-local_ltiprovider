@@ -36,6 +36,43 @@ if ($tool->disabled) {
     print_error('tooldisabled', 'local_ltiprovider');
 }
 
+function populate($user,$context,$tool) {
+        global $CFG;
+        $user->firstname = optional_param('lis_person_name_given', '', PARAM_TEXT);
+        $user->lastname = optional_param('lis_person_name_family', '', PARAM_TEXT);
+        $user->email = clean_param($context->getUserEmail(), PARAM_EMAIL);
+        $user->city = $tool->city;
+        $user->country = $tool->country;
+        $user->institution = $tool->institution;
+        $user->timezone = $tool->timezone;
+        $user->maildisplay = $tool->maildisplay;
+        $user->mnethostid = $CFG->mnet_localhost_id;
+        $user->confirmed = 1;
+
+        $user->lang = $tool->lang;
+        if (! $user->lang and isset($_POST['launch_presentation_locale'])) {
+            $user->lang = optional_param('launch_presentation_locale', '', PARAM_LANG);
+        }
+        if (! $user->lang) {
+            // TODO: This should be changed for detect the course lang
+            $user->lang = current_language();
+        }
+}
+
+function user_match($newuser, $olduser) {
+    if ( $newuser->firstname != $olduser->firstname ) return false;
+    if ( $newuser->lastname != $olduser->lastname ) return false;
+    if ( $newuser->email != $olduser->email ) return false;
+    if ( $newuser->city != $olduser->city ) return false;
+    if ( $newuser->country != $olduser->country ) return false;
+    if ( $newuser->institution != $olduser->institution ) return false;
+    if  ($newuser->timezone != $olduser->timezone ) return false;
+    if ( $newuser->maildisplay != $olduser->maildisplay ) return false;
+    if ( $newuser->mnethostid != $olduser->mnethostid ) return false;
+    if ( $newuser->confirmed != $olduser->confirmed ) return false;
+    if ( $newuser->lang != $olduser->lang ) return false;
+    return true;
+}
 
 // Do not set session, do not redirect
 $context = new BLTI($tool->secret, false, false);
@@ -60,40 +97,44 @@ if ($context->valid) {
     }
 
     // We need an username without extended chars
-    $username = 'ltiprovider'.md5($context->getUserKey());
+    // Later accounts add the ConsumerKey - we silently upgrade old accounts
+    // Might want a flag for this -- Chuck
+    $username = 'ltiprovider'.md5($context->getConsumerKey().'::'.$context->getUserKey());
+    $dbuser = $DB->get_record('user', array('username' => $username));
+    if ( ! $dbuser ) {
+        $old_username = 'ltiprovider'.md5($context->getUserKey());
+        $dbuser = $DB->get_record('user', array('username' => $old_username));
+        if ( $dbuser ) {
+            // Probably should log this
+            $DB->set_field('user', 'username', $username, array('id' => $dbuser->id));
+        }
+        $dbuser = $DB->get_record('user', array('username' => $username));
+    }
+
+
 
     // Check if the user exists
-    $user = $DB->get_record('user', array('username' => $username));
-    if (! $user) {
+    $dbuser = $DB->get_record('user', array('username' => $username));
+    if (! $dbuser ) {
         $user = new stdClass();
         // clean_param , email username text
         $user->auth = 'nologin';
         $user->username = $username;
         $user->password = md5(uniqid(rand(), 1));
-        $user->firstname = optional_param('lis_person_name_given', '', PARAM_TEXT);
-        $user->lastname = optional_param('lis_person_name_family', '', PARAM_TEXT);
-        $user->email = clean_param($context->getUserEmail(), PARAM_EMAIL);
-        $user->city = $tool->city;
-        $user->country = $tool->country;
-        $user->institution = $tool->institution;
-        $user->timezone = $tool->timezone;
-        $user->maildisplay = $tool->maildisplay;
-        $user->mnethostid = $CFG->mnet_localhost_id;
-        $user->confirmed = 1;
-
-        $user->lang = $tool->lang;
-        if (! $user->lang and isset($_POST['launch_presentation_locale'])) {
-            $user->lang = optional_param('launch_presentation_locale', '', PARAM_LANG);
-        }
-        if (! $user->lang) {
-            // TODO: This should be changed for detect the course lang
-            $user->lang = current_language();
-        }
-
+        populate($user,$context,$tool);
         $user->id = $DB->insert_record('user', $user);
-        events_trigger('user_updated', $user);
         // Reload full user
         $user = $DB->get_record('user', array('id' => $user->id));
+    } else {
+        $user = new stdClass();
+        populate($user,$context,$tool);
+        if ( user_match($user,$dbuser) ) {
+            $user = $dbuser;
+        } else {
+            $user = $dbuser;
+            populate($user,$context,$tool);
+            $DB->update_record('user', $user);
+        }
     }
 
     // Enrol user in course and activity if needed
@@ -178,9 +219,15 @@ if ($context->valid) {
 
     // Login user
     $sourceid = optional_param('lis_result_sourcedid', '', PARAM_RAW);
+    $serviceurl = optional_param('lis_outcome_service_url', '', PARAM_RAW);
 
     if ($userlog = $DB->get_record('local_ltiprovider_user', array('toolid' => $tool->id, 'userid' => $user->id))) {
-        $DB->set_field('local_ltiprovider_user', 'sourceid', $sourceid, array('id' => $userlog->id));
+        if ( $userlog->sourceid != $sourceid ) {
+            $DB->set_field('local_ltiprovider_user', 'sourceid', $sourceid, array('id' => $userlog->id));
+        }
+        if ( $userlog->serviceurl != $serviceurl ) {
+            $DB->set_field('local_ltiprovider_user', 'serviceurl', $serviceurl, array('id' => $userlog->id));
+        }
         $DB->set_field('local_ltiprovider_user', 'lastaccess', time(), array('id' => $userlog->id));
     } else {
         // These data is needed for sending backup outcomes (aka grades)
@@ -188,7 +235,7 @@ if ($context->valid) {
         $userlog->userid = $user->id;
         $userlog->toolid = $tool->id;
         // TODO Improve these checks
-        $userlog->serviceurl = optional_param('lis_outcome_service_url', '', PARAM_RAW);
+        $userlog->serviceurl = $serviceurl;
         $userlog->sourceid = $sourceid;
         $userlog->consumerkey = optional_param('oauth_consumer_key', '', PARAM_RAW);
         // TODO Do not store secret here
