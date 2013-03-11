@@ -28,6 +28,17 @@ require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
 
 use moodle\local\ltiprovider as ltiprovider;
 
+
+/**
+ * Function for backwards compatibility (<2.4)
+ * For 2.4 and onwards the correct way for calling this hook is local_ltiprovider_extends_navigation
+ *
+ * @param navigation_node $nav Current navigation object
+ */
+function ltiprovider_extends_navigation ($nav) {
+    local_ltiprovider_extends_navigation($nav);
+}
+
 /**
  * Change the navigation block and bar only for external users
  * Force course or activity navigation and modify CSS also
@@ -37,7 +48,7 @@ use moodle\local\ltiprovider as ltiprovider;
  * @global moodle_database $DB
  * @param navigation_node $nav Current navigation object
  */
-function ltiprovider_extends_navigation ($nav) {
+function local_ltiprovider_extends_navigation ($nav) {
     global $USER, $PAGE, $SESSION;
 
     // Check capabilities for tool providers
