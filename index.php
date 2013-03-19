@@ -24,6 +24,7 @@
  */
 
 require_once(dirname(__FILE__) . '/../../config.php');
+require_once($CFG->dirroot.'/local/ltiprovider/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 
@@ -50,8 +51,12 @@ $tools = $DB->get_records('local_ltiprovider', array('courseid' => $course->id))
 
 $data = array();
 foreach ($tools as $tool) {
+    if (!$toolcontext = get_context_instance_by_id($tool->contextid)) {
+        ltiprovider_delete_tool($tool);
+        continue;
+    }
     $line = array();
-    $line[] = print_context_name(get_context_instance_by_id($tool->contextid));
+    $line[] = print_context_name($toolcontext);
     $line[] = $tool->secret;
     $line[] = new moodle_url('/local/ltiprovider/tool.php', array('id' => $tool->id));
 
