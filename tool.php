@@ -125,6 +125,7 @@ if ($context->valid) {
         $user->id = $DB->insert_record('user', $user);
         // Reload full user
         $user = $DB->get_record('user', array('id' => $user->id));
+        events_trigger('user_created', $user);
     } else {
         $user = new stdClass();
         populate($user,$context,$tool);
@@ -134,6 +135,7 @@ if ($context->valid) {
             $user = $dbuser;
             populate($user,$context,$tool);
             $DB->update_record('user', $user);
+            events_trigger('user_updated', $user);
         }
     }
 
