@@ -79,7 +79,7 @@ function local_ltiprovider_extends_navigation ($nav) {
 
         // Delete all the navigation nodes except the course one
         $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
-        foreach (array('myprofile', 'users', 'site', 'home', 'myhome', 'mycourses', 'courses', '1') as $nodekey) {
+        foreach (array('myprofile', 'users', 'site', 'home', 'myhome', 'mycourses', 'courses', '1', 'currentcourse') as $nodekey) {
             if ($node = $nav->get($nodekey)) {
                 $node->remove();
             }
@@ -151,8 +151,8 @@ function ltiprovider_update_tool($tool) {
  */
 function ltiprovider_delete_tool($tool) {
     global $DB;
-    $DB->delete_records('local_ltiprovider_user', array('toolid' => $tool->id));
-    $DB->delete_records('local_ltiprovider', array('id' => $tool->id));
+
+    $DB->delete_records('local_ltiprovider', array('id'=>$tool->id));
 }
 
 /**
@@ -165,96 +165,17 @@ function local_ltiprovider_cron() {
     require_once($CFG->dirroot."/local/ltiprovider/ims-blti/OAuthBody.php");
     require_once($CFG->libdir.'/gradelib.php');
     require_once($CFG->dirroot.'/grade/querylib.php');
+    require_once($CFG->dirroot.'/local/ltiprovider/return_grade.php');
 
     // TODO - Add a global setting for this
-    $synctime = 60*60;  // Every 1 hour grades are sync
+    $synctime = 60*60;  // Every 1 hour grades are sync.  in seconds
     $timenow = time();
 
     mtrace('Running cron for ltiprovider');
     if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND sendgrades = ?', array(0, 1))) {
         foreach ($tools as $tool) {
             if ($tool->lastsync + $synctime < $timenow) {
-                mtrace(" Starting sync tool id $tool->id course id $tool->courseid");
-                $user_count = 0;
-                $send_count = 0;
-                $error_count = 0;
-                if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id))) {
-                    foreach ($users as $user) {
-                        $user_count = $user_count + 1;
-                        // This can happen is the sync process has an unexpected error
-                        if ( strlen($user->serviceurl) < 1 ) continue;
-                        if ( strlen($user->sourceid) < 1 ) continue;
-                        if ($user->lastsync > $tool->lastsync) {
-                            mtrace("Skipping user {$user->id}");
-                            continue;
-                        }
-
-                        $grade = false;
-                        if ($context = $DB->get_record('context', array('id' => $tool->contextid))) {
-                            if ($context->contextlevel == CONTEXT_COURSE) {
-
-                                if ($grade = grade_get_course_grade($user->userid, $tool->courseid)) {
-                                    $grademax = floatval($grade->item->grademax);
-                                    $grade = $grade->grade;
-                                }
-                            } else if ($context->contextlevel == CONTEXT_MODULE) {
-
-                                $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
-                                $grades = grade_get_grades($cm->course, 'mod', $cm->modname, $cm->instance, $user->userid);
-                                if (empty($grades->items[0]->grades)) {
-                                    $grade = false;
-                                } else {
-                                    $grade = reset($grades->items[0]->grades);
-                                    $grademax = floatval($grade->item->grademax);
-                                    $grade = $grade->grade;
-                                }
-                            }
-
-                            if ( $grade === false || $grade === NULL || strlen($grade) < 1) continue;
-
-                            // No need to be dividing by zero
-                            if ( $grademax == 0.0 ) $grademax = 100.0;
-
-                            // TODO: Make lastgrade should be float or string - but it is integer so we truncate
-                            // TODO: Then remove those intval() calls
-
-                            // Don't double send
-                            if ( intval($grade) == $user->lastgrade ) continue;
-
-                            // We sync with the external system only when the new grade differs with the previous one
-                            // TODO - Global setting for check this
-                            if ($grade > 0 and $grade <= $grademax) {
-                                $float_grade = $grade / $grademax;
-                                $body = ltiprovider_create_service_body($user->sourceid, $float_grade);
-
-                                try { 
-                                    $response = ltiprovider\sendOAuthBodyPOST('POST', $user->serviceurl, $user->consumerkey, $user->consumersecret, 'application/xml', $body);
-                                } catch (Exception $e) {
-                                    mtrace(" ".$e->getMessage());
-                                    $error_count = $error_count + 1;
-                                    continue;
-                                }
-
-                                // TODO - Check for errors in $retval in a correct way (parsing xml)
-                                if (strpos(strtolower($response), 'success') !== false) {
-
-                                    $DB->set_field('local_ltiprovider_user', 'lastsync', $timenow, array('id' => $user->id));
-                                    $DB->set_field('local_ltiprovider_user', 'lastgrade', intval($grade), array('id' => $user->id));
-                                    mtrace(" User grade sent to remote system. userid: $user->userid grade: $float_grade");
-                                    $send_count = $send_count + 1;
-                                } else {
-                                    mtrace(" User grade send failed: ".$response);
-                                    $error_count = $error_count + 1;
-                                }
-                            } else {
-                                mtrace(" User grade out of range: grade = ".$grade);
-                                $error_count = $error_count + 1;
-                            }
-                        } else {
-                            mtrace(" Invalid context: contextid = ".$tool->contextid);
-                        }
-                    }
-                }
+                local_ltiprovider_return_grade($tool, null);
                 mtrace(" Completed sync tool id $tool->id course id $tool->courseid users=$user_count sent=$send_count errors=$error_count");
                 $DB->set_field('local_ltiprovider', 'lastsync', $timenow, array('id' => $tool->id));
             }
