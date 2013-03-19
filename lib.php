@@ -151,8 +151,8 @@ function ltiprovider_update_tool($tool) {
  */
 function ltiprovider_delete_tool($tool) {
     global $DB;
-
-    $DB->delete_records('local_ltiprovider', array('id'=>$tool->id));
+    $DB->delete_records('local_ltiprovider_user', array('toolid' => $tool->id));
+    $DB->delete_records('local_ltiprovider', array('id' => $tool->id));
 }
 
 /**
