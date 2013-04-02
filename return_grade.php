@@ -1,7 +1,7 @@
 <?php
 /**
  * function for sync grades
- * @return void
+ *
  */
 defined('MOODLE_INTERNAL') or die;
 use moodle\local\ltiprovider as ltiprovider;
@@ -12,7 +12,7 @@ function local_ltiprovider_return_grade($tool, $single_user) {
 	require_once($CFG->dirroot."/local/ltiprovider/ims-blti/OAuthBody.php");
 	require_once($CFG->libdir.'/gradelib.php');
 	require_once($CFG->dirroot.'/grade/querylib.php');
-
+	mtrace("tool id = " . $tool->id);
 	mtrace('Running return_grade for ltiprovider');
 	if (!$single_user) {
 		mtrace(" No user in call.  Gathering user list for $tool->id");
@@ -30,11 +30,17 @@ function local_ltiprovider_return_grade($tool, $single_user) {
 		foreach ($users as $user) {
 			$user_count = $user_count + 1;
 			// This can happen is the sync process has an unexpected error
-			if ( strlen($user->serviceurl) < 1 ) continue;
-			if ( strlen($user->sourceid) < 1 ) continue;
+			if ( strlen($user->serviceurl) < 1 ) {
+				mtrace("No serviceurl in user object");
+				continue;
+			}
+			if ( strlen($user->sourceid) < 1 ) {
+				mtrace("No sourceid in user object");
+				continue;
+			}
 			if ($user->lastsync > $tool->lastsync  && !$single_user) {
-					mtrace("Skipping user {$user->id}");
-					continue;
+				mtrace("Skipping user {$user->id}");
+				continue;
 			}
 
 			if ($context = $DB->get_record('context', array('id' => $tool->contextid))) {
@@ -57,7 +63,10 @@ function local_ltiprovider_return_grade($tool, $single_user) {
 							}
 					}
 
-					if ( $grade === false || $grade === NULL || strlen($grade) < 1) continue;
+					if ( $grade === false || $grade === NULL || strlen($grade) < 1) {
+						mtrace("No grade to send");
+						continue;
+					}
 
 					// No need to be dividing by zero
 					if ( $grademax == 0.0 ) $grademax = 100.0;
@@ -66,7 +75,11 @@ function local_ltiprovider_return_grade($tool, $single_user) {
 					// TODO: Then remove those intval() calls
 
 					// Don't double send
-					if ( intval($grade) == $user->lastgrade ) continue;
+					// this should be optional.
+					if ( intval($grade) == $user->lastgrade ) {
+						mtrace("Current grade ($grade) is identical to grade previously sent");
+						continue;
+					}
 
 					// We sync with the external system only when the new grade differs with the previous one
 					// TODO - Global setting for check this
@@ -81,10 +94,14 @@ function local_ltiprovider_return_grade($tool, $single_user) {
 									$error_count = $error_count + 1;
 									continue;
 							}
-
-							// TODO - Check for errors in $retval in a correct way (parsing xml)
-							if (strpos(strtolower($response), 'success') !== false) {
-
+							// as of PHP 5.3, simpleXML has... issues...
+							// todo:  Probably need to check more than JUST this stuff...
+							$xml = simplexml_load_string(str_replace('xmlns', 'ns', $response));
+							$imsx_codeMajor = $xml->xpath(
+								'/imsx_POXEnvelopeResponse/imsx_POXHeader' .
+								'/imsx_POXResponseHeaderInfo/imsx_statusInfo/imsx_codeMajor'
+							);
+							if(strtolower($imsx_codeMajor[0]) === 'success') {
 									$DB->set_field('local_ltiprovider_user', 'lastsync', $timenow, array('id' => $user->id));
 									$DB->set_field('local_ltiprovider_user', 'lastgrade', intval($grade), array('id' => $user->id));
 									mtrace(" User grade sent to remote system. userid: $user->userid grade: $float_grade");
@@ -93,6 +110,11 @@ function local_ltiprovider_return_grade($tool, $single_user) {
 									mtrace(" User grade send failed: ".$response.$user->serviceurl);
 									$error_count = $error_count + 1;
 							}
+							$imsx_description = $xml->xpath(
+								'/imsx_POXEnvelopeResponse/imsx_POXHeader' .
+								'/imsx_POXResponseHeaderInfo/imsx_statusInfo/imsx_description'
+							);
+							mtrace(" Remote system description was " . $imsx_description[0]);
 					} else {
 							mtrace(" User grade out of range: grade = ".$grade);
 							$error_count = $error_count + 1;
@@ -100,7 +122,10 @@ function local_ltiprovider_return_grade($tool, $single_user) {
 			} else {
 					mtrace(" Invalid context: contextid = ".$tool->contextid);
 			}
-	}
+		}
+		mtrace(" Completed sync tool id $tool->id course id $tool->courseid users=$user_count sent=$send_count errors=$error_count");
+    $DB->set_field('local_ltiprovider', 'lastsync', $timenow, array('id' => $tool->id));
+		return(array('user_count' => $user_count, 'sent' => $send_count, 'errors' => $error_count));
 	}
 }
 

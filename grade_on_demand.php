@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once('/var/www/moodle/config.php');
+require_once('../../config.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
 require_once($CFG->dirroot.'/local/ltiprovider/return_grade.php');
