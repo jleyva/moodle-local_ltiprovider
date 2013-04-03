@@ -175,8 +175,8 @@ function local_ltiprovider_cron() {
     if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND sendgrades = ?', array(0, 1))) {
         foreach ($tools as $tool) {
             if ($tool->lastsync + $synctime < $timenow) {
-                local_ltiprovider_return_grade($tool, null);
-                mtrace(" Completed sync tool id $tool->id course id $tool->courseid users=$user_count sent=$send_count errors=$error_count");
+                $return = local_ltiprovider_return_grade($tool, null);
+                mtrace(" Completed sync tool id $tool->id course id $tool->courseid users={$return['user_count']} sent={$return['send_count']} errors={$return['error_count']}");
                 $DB->set_field('local_ltiprovider', 'lastsync', $timenow, array('id' => $tool->id));
             }
         }

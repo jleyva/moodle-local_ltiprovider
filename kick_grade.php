@@ -26,17 +26,23 @@ $result = local_ltiprovider_return_grade($SESSION->ltiprovider, $user);?>
 <?php
 	if (
 		// TODO:  This isn't as clean as I'd like it to be.
-		$result['errors'] === 0 //&&
-		//$result['sent'] === 1
+		$result['errors'] === 0
 	) {
-		echo('Your grade has been submitted.  Please click "done" below.');
+		if ($result['sent'] !== 1) {
+			echo(
+				'No grade was sent.  This usually indicates the previous grade sent ' .
+				'matches the current grade within this tool.'
+			);
+		} else {
+			echo('Your grade has been submitted.  Please click "done" below.');
+		}
 	} else {
 		echo(
 			'There was a problem submitting your grade.  ' .
 			'Please email support the following information:<br/>' .
 			'User id: ' . $USER->id . '<br/>' .
 			'Course id: ' . $SESSION->ltiprovider->courseid . '<br/>' .
-			'LTI Provider User id: ' . $SESSION->ltiprovider->id . '<br/>' .
+			'LTI Provider id: ' . $SESSION->ltiprovider->id . '<br/>' .
 			'Server time: ' . date('c')
 		);
 	}
