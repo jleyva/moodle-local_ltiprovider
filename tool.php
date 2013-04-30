@@ -25,6 +25,7 @@
 
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
+require_once($CFG->dirroot.'/local/ltiprovider/lib.php');
 
 $toolid = required_param('id', PARAM_INT);
 
@@ -118,7 +119,7 @@ if ($context->valid) {
     if (! $dbuser ) {
         $user = new stdClass();
         // clean_param , email username text
-        $user->auth = 'nologin';
+        $user->auth = LTIPROVIDER_AUTH_TYPE;
         $user->username = $username;
         $user->password = md5(uniqid(rand(), 1));
         populate($user,$context,$tool);
