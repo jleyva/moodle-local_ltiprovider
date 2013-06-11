@@ -57,7 +57,7 @@ class edit_form extends moodleform {
 
         $mform->addElement('checkbox', 'forcenavigation', null, get_string('forcenavigation', 'local_ltiprovider'));
         $mform->setDefault('forcenavigation', 1);
-        
+
         $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'local_ltiprovider'), array('optional' => true, 'defaultunit' => 86400));
         $mform->setDefault('enrolperiod', 0);
         $mform->addHelpButton('enrolperiod', 'enrolperiod', 'local_ltiprovider');
@@ -69,7 +69,7 @@ class edit_form extends moodleform {
         $mform->addElement('date_selector', 'enrolenddate', get_string('enrolenddate', 'local_ltiprovider'), array('optional' => true));
         $mform->setDefault('enrolenddate', 0);
         $mform->addHelpButton('enrolenddate', 'enrolenddate', 'local_ltiprovider');
-        
+
         $mform->addElement('text', 'maxenrolled', get_string('maxenrolled', 'local_ltiprovider'));
         $mform->setDefault('maxenrolled', 0);
         $mform->addHelpButton('maxenrolled', 'maxenrolled', 'local_ltiprovider');
@@ -106,6 +106,17 @@ class edit_form extends moodleform {
         $mform->setDefault('encoding', 'UTF-8');
 
         $mform->addElement('header', 'defaultheader', get_string('userdefaultvalues', 'local_ltiprovider'));
+
+        $choices = array(0 => get_string('never'), 1 => get_string('always'));
+        $mform->addElement('select', 'userprofileupdate', get_string('userprofileupdate', 'local_ltiprovider'), $choices);
+
+        $userprofileupdate = get_config('local_ltiprovider', 'userprofileupdate');
+        if ($userprofileupdate != -1) {
+            $mform->setDefault('userprofileupdate', $userprofileupdate);
+            $mform->freeze('userprofileupdate');
+        } else {
+            $mform->setDefault('userprofileupdate', 1);
+        }
 
         $choices = array(0 => get_string('emaildisplayno'), 1 => get_string('emaildisplayyes'), 2 => get_string('emaildisplaycourse'));
         $mform->addElement('select', 'maildisplay', get_string('emaildisplay'), $choices);
@@ -170,7 +181,7 @@ class edit_form extends moodleform {
         global $COURSE, $DB, $CFG;
 
         $errors = parent::validation($data, $files);
-        
+
         if (!empty($data['enrolenddate']) and $data['enrolenddate'] < $data['enrolstartdate']) {
             $errors['enrolenddate'] = get_string('enrolenddaterror', 'local_ltiprovider');
         }

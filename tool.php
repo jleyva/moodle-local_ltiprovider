@@ -36,7 +36,7 @@ if ($tool->disabled) {
     print_error('tooldisabled', 'local_ltiprovider');
 }
 
-function populate($user,$context,$tool) {
+function populate($user, $context, $tool) {
         global $CFG;
         $user->firstname = optional_param('lis_person_name_given', '', PARAM_TEXT);
         $user->lastname = optional_param('lis_person_name_family', '', PARAM_TEXT);
@@ -86,7 +86,7 @@ if ($context->valid) {
     } else {
         print_error('nomanualenrol', 'local_ltiprovider');
     }
-    
+
     // Transform to utf8 all the post and get data
     $textlib = textlib_get_instance();
     foreach ($_POST as $key => $value) {
@@ -117,8 +117,15 @@ if ($context->valid) {
     $dbuser = $DB->get_record('user', array('username' => $username));
     if (! $dbuser ) {
         $user = new stdClass();
+
         // clean_param , email username text
-        $user->auth = 'nologin';
+        $auth = get_config('local_ltiprovider', 'defaultauthmethod');
+        if ($auth) {
+            $user->auth = $auth;
+        } else {
+            $user->auth = 'nologin';
+        }
+
         $user->username = $username;
         $user->password = md5(uniqid(rand(), 1));
         populate($user,$context,$tool);
@@ -132,10 +139,17 @@ if ($context->valid) {
         if ( user_match($user,$dbuser) ) {
             $user = $dbuser;
         } else {
-            $user = $dbuser;
-            populate($user,$context,$tool);
-            $DB->update_record('user', $user);
-            events_trigger('user_updated', $user);
+            $userprofileupdate = get_config('local_ltiprovider', 'userprofileupdate');
+            if ($userprofileupdate == -1) {
+                // Check the tool setting.
+                $userprofileupdate = $tool->userprofileupdate;
+            }
+            if ($userprofileupdate) {
+                $user = $dbuser;
+                populate($user,$context,$tool);
+                $DB->update_record('user', $user);
+                events_trigger('user_updated', $user);
+            }
         }
     }
 
@@ -165,10 +179,10 @@ if ($context->valid) {
     $today = time();
     $today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
     $timeend = 0;
-    if ($tool->enrolperiod) {   
-            $timeend = $today + $tool->enrolperiod;        
+    if ($tool->enrolperiod) {
+            $timeend = $today + $tool->enrolperiod;
     }
-    
+
     // Course role id for the Instructor or Learner
     // TODO Do something with lti system admin (urn:lti:sysrole:ims/lis/Administrator)
     $roleid = ($role == 'Instructor')? $tool->croleinst: $tool->crolelearn;
@@ -176,11 +190,11 @@ if ($context->valid) {
     if ($instances = enrol_get_instances($course->id, false)) {
         foreach ($instances as $instance) {
             if ($instance->enrol === 'manual') {
-                
+
                 // Check if the user enrolment exists
                 if (! $ue = $DB->get_record('user_enrolments', array('enrolid'=>$instance->id, 'userid'=>$user->id))) {
                     // This means a new enrolment, so we have to check enroment starts and end limits and also max occupation
-                    
+
                     // First we check if there is a max enrolled limit
                     if($tool->maxenrolled) {
                         // TODO Improve this count because unenrolled users from Moodle admin panel are not sync with this table
@@ -203,9 +217,9 @@ if ($context->valid) {
                         die;
                     }
                     // TODO, delete created users not enrolled
-                    
+
                     $manual->enrol_user($instance, $user->id, $roleid, $today, $timeend);
-                }                
+                }
                 break;
             }
         }
@@ -252,7 +266,7 @@ if ($context->valid) {
     $tool->context = $context;
     $SESSION->ltiprovider = $tool;
     complete_user_login($user);
-    
+
     // Moodle 2.2 and onwards
     if (isset($CFG->allowframembedding) and !$CFG->allowframembedding) {
         echo '<html>

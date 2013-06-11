@@ -40,6 +40,21 @@ function ltiprovider_extends_navigation ($nav) {
 }
 
 /**
+ * Display the LTI settings in the course settings block
+ * For 2.3 and onwards
+ *
+ * @param  settings_navigation $nav     The settings navigatin object
+ * @param  stdclass            $context Course context
+ */
+function local_ltiprovider_extends_settings_navigation(settings_navigation $nav, $context) {
+    if ($context->contextlevel >= CONTEXT_COURSE and ($branch = $nav->get('courseadmin'))
+        and has_capability('local/ltiprovider:view', $context)) {
+        $ltiurl = new moodle_url('/local/ltiprovider/index.php', array('courseid' => $context->instanceid));
+        $branch->add(get_string('pluginname', 'local_ltiprovider'), $ltiurl, $nav::TYPE_CONTAINER, null, 'ltiprovider'.$context->instanceid);
+    }
+}
+
+/**
  * Change the navigation block and bar only for external users
  * Force course or activity navigation and modify CSS also
  * Please note that this function is only called in pages where the navigation block is present
@@ -49,12 +64,12 @@ function ltiprovider_extends_navigation ($nav) {
  * @param navigation_node $nav Current navigation object
  */
 function local_ltiprovider_extends_navigation ($nav) {
-    global $USER, $PAGE, $SESSION;
+    global $CFG, $USER, $PAGE, $SESSION;
 
     // Check capabilities for tool providers
-    // TODO Change this for Moodle 2.3:
-    // use extend_navigation_course and extend_navigation_user
-    if ($PAGE->course->id and $PAGE->course->id != SITEID and has_capability('local/ltiprovider:view', $PAGE->context)) {
+    // Only for Moodle < 2.3 versions
+    if ($CFG->version < 2012062500 and $PAGE->course->id and $PAGE->course->id != SITEID
+        and has_capability('local/ltiprovider:view', $PAGE->context)) {
         $ltiurl = new moodle_url('/local/ltiprovider/index.php', array('courseid' => $PAGE->course->id));
         $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
         $coursenode->add(get_string('pluginname', 'local_ltiprovider'), $ltiurl, $nav::TYPE_CONTAINER, null, 'ltiprovider'.$PAGE->course->id);
@@ -227,7 +242,7 @@ function local_ltiprovider_cron() {
                                 $float_grade = $grade / $grademax;
                                 $body = ltiprovider_create_service_body($user->sourceid, $float_grade);
 
-                                try { 
+                                try {
                                     $response = ltiprovider\sendOAuthBodyPOST('POST', $user->serviceurl, $user->consumerkey, $user->consumersecret, 'application/xml', $body);
                                 } catch (Exception $e) {
                                     mtrace(" ".$e->getMessage());

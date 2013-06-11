@@ -77,3 +77,12 @@ $string['enrolmentfinished'] = 'The enrolment period has finished';
 $string['ltiprovider:manage'] = 'Manage tools (provide)';
 $string['ltiprovider:view'] = 'View tools provided';
 
+$string['globalsharedsecret'] = 'Global Shared Secret';
+$string['defaultauthmethod'] = 'Default auth method';
+$string['defaultauthmethodhelp'] = 'This is the auth method assigned a new users created by the plugin';
+$string['delegate'] = 'Delegate';
+$string['userprofileupdate'] = 'User profile update';
+$string['userprofileupdatehelp'] = 'Never for not update the user profile on every remote access, Delegate to be configured at tool level';
+$string['rolesallowedcreateresources'] = 'Roles allowed to create resources (from the remote syte)';
+
+
