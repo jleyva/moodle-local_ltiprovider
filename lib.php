@@ -114,7 +114,7 @@ function local_ltiprovider_extends_navigation ($nav) {
  * @param  object $tool
  * @return int
  */
-function ltiprovider_add_tool($tool) {
+function local_ltiprovider_add_tool($tool) {
     global $DB;
 
     if (!isset($tool->disabled)) {
@@ -144,7 +144,7 @@ function ltiprovider_add_tool($tool) {
  * @param  object $tool
  * @return void
  */
-function ltiprovider_update_tool($tool) {
+function local_ltiprovider_update_tool($tool) {
     global $DB;
 
     $tool->timemodified = time();
@@ -164,7 +164,7 @@ function ltiprovider_update_tool($tool) {
  * @param  object $tool
  * @return void
  */
-function ltiprovider_delete_tool($tool) {
+function local_ltiprovider_delete_tool($tool) {
     global $DB;
     $DB->delete_records('local_ltiprovider_user', array('toolid' => $tool->id));
     $DB->delete_records('local_ltiprovider', array('id' => $tool->id));
@@ -240,7 +240,7 @@ function local_ltiprovider_cron() {
                             // TODO - Global setting for check this
                             if ($grade > 0 and $grade <= $grademax) {
                                 $float_grade = $grade / $grademax;
-                                $body = ltiprovider_create_service_body($user->sourceid, $float_grade);
+                                $body = local_ltiprovider_create_service_body($user->sourceid, $float_grade);
 
                                 try {
                                     $response = ltiprovider\sendOAuthBodyPOST('POST', $user->serviceurl, $user->consumerkey, $user->consumersecret, 'application/xml', $body);
@@ -283,7 +283,7 @@ function local_ltiprovider_cron() {
  * @param  float $grade User final grade
  * @return string
  */
-function ltiprovider_create_service_body($source, $grade) {
+function loca_ltiprovider_create_service_body($source, $grade) {
     return '<?xml version = "1.0" encoding = "UTF-8"?>
 <imsx_POXEnvelopeRequest xmlns = "http://www.imsglobal.org/lis/oms1p0/pox">
 	<imsx_POXHeader>
@@ -308,4 +308,65 @@ function ltiprovider_create_service_body($source, $grade) {
 		</replaceResultRequest>
 	</imsx_POXBody>
 </imsx_POXEnvelopeRequest>';
+}
+
+/**
+ * Populates a standar user record
+ * @param  stdClass $user    The user record to be populated
+ * @param  stdClass $context The LTI context
+ * @param  stdClass $tool    The tool object
+ */
+function local_ltiprovider_populate($user, $context, $tool) {
+    global $CFG;
+    $user->firstname = optional_param('lis_person_name_given', '', PARAM_TEXT);
+    $user->lastname = optional_param('lis_person_name_family', '', PARAM_TEXT);
+    $user->email = clean_param($context->getUserEmail(), PARAM_EMAIL);
+    $user->city = $tool->city;
+    $user->country = $tool->country;
+    $user->institution = $tool->institution;
+    $user->timezone = $tool->timezone;
+    $user->maildisplay = $tool->maildisplay;
+    $user->mnethostid = $CFG->mnet_localhost_id;
+    $user->confirmed = 1;
+
+    $user->lang = $tool->lang;
+    if (! $user->lang and isset($_POST['launch_presentation_locale'])) {
+        $user->lang = optional_param('launch_presentation_locale', '', PARAM_LANG);
+    }
+    if (! $user->lang) {
+        // TODO: This should be changed for detect the course lang
+        $user->lang = current_language();
+    }
+}
+
+/**
+ * Compares two users
+ * @param  stdClass $newuser    The new user
+ * @param  stdClass $olduser    The old user
+ * @return bolol                True if both users are the same
+ */
+function local_ltiprovider_user_match($newuser, $olduser) {
+    if ( $newuser->firstname != $olduser->firstname )
+        return false;
+    if ( $newuser->lastname != $olduser->lastname )
+        return false;
+    if ( $newuser->email != $olduser->email )
+        return false;
+    if ( $newuser->city != $olduser->city )
+        return false;
+    if ( $newuser->country != $olduser->country )
+        return false;
+    if ( $newuser->institution != $olduser->institution )
+        return false;
+    if  ($newuser->timezone != $olduser->timezone )
+        return false;
+    if ( $newuser->maildisplay != $olduser->maildisplay )
+        return false;
+    if ( $newuser->mnethostid != $olduser->mnethostid )
+        return false;
+    if ( $newuser->confirmed != $olduser->confirmed )
+        return false;
+    if ( $newuser->lang != $olduser->lang )
+        return false;
+    return true;
 }

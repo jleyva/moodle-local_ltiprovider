@@ -83,6 +83,8 @@ $string['defaultauthmethodhelp'] = 'This is the auth method assigned a new users
 $string['delegate'] = 'Delegate';
 $string['userprofileupdate'] = 'User profile update';
 $string['userprofileupdatehelp'] = 'Never for not update the user profile on every remote access, Delegate to be configured at tool level';
-$string['rolesallowedcreateresources'] = 'Roles allowed to create resources (from the remote syte)';
+$string['rolesallowedcreateresources'] = 'Roles allowed to create resources (from the remote site)';
+$string['rolesallowedcreatecontexts'] = 'Roles allowed to create contexts (from the remote site)';
+$string['cantdeterminecontext'] = 'Can\' determine the context, it seems that there are more than one tool provided for this context_id';
 
 

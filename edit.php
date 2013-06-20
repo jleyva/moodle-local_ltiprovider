@@ -67,7 +67,7 @@ $PAGE->set_context($context);
 if ($delete and $tool->id) {
     $PAGE->url->param('delete', 1);
     if ($confirm and confirm_sesskey()) {
-        ltiprovider_delete_tool($tool);
+        local_ltiprovider_delete_tool($tool);
         redirect($returnurl);
     }
     $strheading = get_string('deletetool', 'local_ltiprovider');
@@ -109,10 +109,10 @@ if ($editform->is_cancelled()) {
 
     if ($data->id > 0) {
         // Update
-        ltiprovider_update_tool($data);
+        local_ltiprovider_update_tool($data);
     } else {
         // Create new
-        ltiprovider_add_tool($data);
+        local_ltiprovider_add_tool($data);
     }
     redirect($returnurl);
 }

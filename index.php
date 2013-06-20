@@ -42,7 +42,7 @@ if (!$context = get_context_instance(CONTEXT_COURSE, $course->id)) {
 require_login($course);
 require_capability('local/ltiprovider:view', $context);
 
-//$PAGE->navbar->add(get_string('toolsprovided', 'local_ltiprovider'));
+// $PAGE->navbar->add(get_string('toolsprovided', 'local_ltiprovider'));
 echo $OUTPUT->header();
 
 echo $OUTPUT->heading(get_string('toolsprovided', 'local_ltiprovider'));
@@ -52,7 +52,7 @@ $tools = $DB->get_records('local_ltiprovider', array('courseid' => $course->id))
 $data = array();
 foreach ($tools as $tool) {
     if (!$toolcontext = get_context_instance_by_id($tool->contextid)) {
-        ltiprovider_delete_tool($tool);
+        local_ltiprovider_delete_tool($tool);
         continue;
     }
     $line = array();

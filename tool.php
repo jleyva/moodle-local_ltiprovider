@@ -24,61 +24,144 @@
  */
 
 require_once(dirname(__FILE__) . '/../../config.php');
+require_once($CFG->dirroot.'/local/ltiprovider/lib.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 
-$toolid = required_param('id', PARAM_INT);
+$toolid                 = optional_param('id', 0, PARAM_INT);
+$lticontextid           = optional_param('contextid', false, PARAM_RAW);
+$custom_create_context  = optional_param('custom_create_context', false, PARAM_BOOL);
 
-if (! ($tool = $DB->get_record('local_ltiprovider', array('id'=>$toolid)))) {
+if (!$toolid and !$lticontextid) {
     print_error('invalidtoolid', 'local_ltiprovider');
 }
 
-if ($tool->disabled) {
-    print_error('tooldisabled', 'local_ltiprovider');
+if (!$toolid and $lticontextid) {
+    // Check if there is more that one course for this LTI context id.
+    if ($DB->count_records('course', array('idnumber' => $lticontextid)) > 1) {
+        print_error('cantdeterminecontext', 'local_ltiprovider');
+    }
+    if ($course = $DB->get_record('course', array('idnumber' => $lticontextid))) {
+        // Look for a course created for this LTI context id.
+        if ($coursecontext = get_context_instance(CONTEXT_COURSE, $course->id)) {
+            if ($DB->count_records('local_ltiprovider', array('contextid' => $coursecontext->id)) > 1) {
+                print_error('cantdeterminecontext', 'local_ltiprovider');
+            }
+            $toolid = $DB->get_field('local_ltiprovider', 'id', array('contextid' => $coursecontext->id));
+        }
+    }
 }
 
-function populate($user, $context, $tool) {
-        global $CFG;
-        $user->firstname = optional_param('lis_person_name_given', '', PARAM_TEXT);
-        $user->lastname = optional_param('lis_person_name_family', '', PARAM_TEXT);
-        $user->email = clean_param($context->getUserEmail(), PARAM_EMAIL);
-        $user->city = $tool->city;
-        $user->country = $tool->country;
-        $user->institution = $tool->institution;
-        $user->timezone = $tool->timezone;
-        $user->maildisplay = $tool->maildisplay;
-        $user->mnethostid = $CFG->mnet_localhost_id;
-        $user->confirmed = 1;
-
-        $user->lang = $tool->lang;
-        if (! $user->lang and isset($_POST['launch_presentation_locale'])) {
-            $user->lang = optional_param('launch_presentation_locale', '', PARAM_LANG);
-        }
-        if (! $user->lang) {
-            // TODO: This should be changed for detect the course lang
-            $user->lang = current_language();
-        }
+$secret = '';
+// We may expect a valid tool / context id or custom parameters.
+if ($tool = $DB->get_record('local_ltiprovider', array('id'=>$toolid))) {
+    if ($tool->disabled) {
+        print_error('tooldisabled', 'local_ltiprovider');
+    }
+    $secret = $tool->secret;
+} else if ($custom_create_context) {
+    $secret = get_config('local_ltiprovider', 'globalsharedsecret');
 }
 
-function user_match($newuser, $olduser) {
-    if ( $newuser->firstname != $olduser->firstname ) return false;
-    if ( $newuser->lastname != $olduser->lastname ) return false;
-    if ( $newuser->email != $olduser->email ) return false;
-    if ( $newuser->city != $olduser->city ) return false;
-    if ( $newuser->country != $olduser->country ) return false;
-    if ( $newuser->institution != $olduser->institution ) return false;
-    if  ($newuser->timezone != $olduser->timezone ) return false;
-    if ( $newuser->maildisplay != $olduser->maildisplay ) return false;
-    if ( $newuser->mnethostid != $olduser->mnethostid ) return false;
-    if ( $newuser->confirmed != $olduser->confirmed ) return false;
-    if ( $newuser->lang != $olduser->lang ) return false;
-    return true;
+if (!$secret) {
+    print_error('invalidtoolid', 'local_ltiprovider');
 }
 
 // Do not set session, do not redirect
-$context = new BLTI($tool->secret, false, false);
+$context = new BLTI($secret, false, false);
 
 // Correct launch request
 if ($context->valid) {
+
+    // Are we creating a new context (that means a new course tool)?
+    if ($custom_create_context) {
+
+        require_once("$CFG->dirroot/course/lib.php");
+        $newcourse = new stdClass();
+        $newcourse->fullname  = $context->info['context_title'];
+        $newcourse->shortname = $context->info['context_label'];
+        $newcourse->idnumber  = $context->info['context_id'];
+        $course = create_course($newcourse);
+
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+
+        // Create the tool that provide the full course.
+        $tool = new stdClass();
+        $tool->courseid = $course->id;
+        $tool->contextid = $coursecontext->id;
+        $tool->disabled = 0;
+        $tool->sendgrades = 1;
+        $tool->forcenavigation = 0;
+        $tool->croleinst = 3;
+        $tool->crolelearn = 5;
+        $tool->aroleinst = 3;
+        $tool->arolelearn = 5;
+        $tool->secret = get_config('local_ltiprovider', 'globalsharedsecret');
+        $tool->encoding = 'UTF-8';
+        $tool->institution = "";
+        $tool->lang = $CFG->lang;
+        $tool->timezone = 99;
+        $tool->maildisplay = 2;
+        $tool->city = "mycity";
+        $tool->country = ES;
+        $tool->hidepageheader = 0;
+        $tool->hidepagefooter = 0;
+        $tool->hideleftblocks = 0;
+        $tool->hiderightblocks = 0;
+        $tool->customcss = '';
+        $tool->enrolstartdate = 0;
+        $tool->enrolperiod = 0;
+        $tool->enrolenddate = 0;
+        $tool->maxenrolled = 0;
+        $tool->userprofileupdate = 1;
+        $tool->timemodified = time();
+        $tool->timecreated = time();
+        $tool->lastsync = 0;
+
+        $toolid = $DB->insert_record('local_ltiprovider', $tool);
+        $tool->id = $toolid;
+
+        // Are we using another course as template?
+        // We have a setting for storing courses to be restored when the cron job is executed.
+        $custom_context_template  = optional_param('custom_context_template', false, PARAM_RAW_TRIMMED);
+        if ($custom_context_template and ($tplcourse = $DB->get_record('course', array('idnumber' => $custom_context_template), IGNORE_MULTIPLE))) {
+
+            $newcourse = new stdClass();
+            $newcouse->id = $tplcourse->id;
+            $newcourse->destinationid = $course->id;
+            $newcourse->restorestart = 0;
+            $aid = $newcourse->id . "-" . $newcourse->destinationid;
+
+            if ($croncourses = get_config('local_ltiprovider', 'croncourses')) {
+                $croncourses = unserialize($croncourses);
+                if (is_array($croncourses)) {
+                    $croncourses[$aid] = $newcourse;
+                } else {
+                    $croncourses = array($aid => $newcourse);
+                }
+            } else {
+                $croncourses = array($aid => $newcourse);
+            }
+
+            $croncourses = serialize($croncourses);
+            set_config('croncourses', $croncourses, 'local_ltiprovider');
+
+            // Add the waiting label.
+            $section = new stdClass();
+            $section->course = $course->id;
+            $section->section = 0;
+            $section->name = "";
+            $section->summary = get_string("coursebeingrestored", "local_ltiprovider");
+            $section->summaryformat = 1;
+            $section->sequence = 10;
+            $section->visible = 1;
+            $section->availablefrom = 0;
+            $section->availableuntil = 0;
+            $section->showavailability = 0;
+            $section->groupingid = 0;
+            $DB->insert_record('course_sections', $section);
+            rebuild_course_cache($course->id);
+        }
+    }
 
     // Check that we can perform enrolments
     if (enrol_is_enabled('manual')) {
@@ -128,15 +211,15 @@ if ($context->valid) {
 
         $user->username = $username;
         $user->password = md5(uniqid(rand(), 1));
-        populate($user,$context,$tool);
+        local_ltiprovider_populate($user, $context, $tool);
         $user->id = $DB->insert_record('user', $user);
         // Reload full user
         $user = $DB->get_record('user', array('id' => $user->id));
         events_trigger('user_created', $user);
     } else {
         $user = new stdClass();
-        populate($user,$context,$tool);
-        if ( user_match($user,$dbuser) ) {
+        local_ltiprovider_populate($user, $context, $tool);
+        if ( local_ltiprovider_user_match($user, $dbuser) ) {
             $user = $dbuser;
         } else {
             $userprofileupdate = get_config('local_ltiprovider', 'userprofileupdate');
@@ -146,7 +229,7 @@ if ($context->valid) {
             }
             if ($userprofileupdate) {
                 $user = $dbuser;
-                populate($user,$context,$tool);
+                local_ltiprovider_populate($user, $context, $tool);
                 $DB->update_record('user', $user);
                 events_trigger('user_updated', $user);
             }
@@ -173,8 +256,8 @@ if ($context->valid) {
     $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
     // Enrol the user in the course
-    $roles = explode(',', $_POST['roles']);
-    $role =(in_array('Instructor', $roles))? 'Instructor' : 'Learner';
+    $roles = explode(',', strtolower($_POST['roles']));
+    $role =(in_array('instructor', $roles))? 'Instructor' : 'Learner';
 
     $today = time();
     $today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
@@ -196,7 +279,7 @@ if ($context->valid) {
                     // This means a new enrolment, so we have to check enroment starts and end limits and also max occupation
 
                     // First we check if there is a max enrolled limit
-                    if($tool->maxenrolled) {
+                    if ($tool->maxenrolled) {
                         // TODO Improve this count because unenrolled users from Moodle admin panel are not sync with this table
                         if ($DB->count_records('local_ltiprovider_user', array('toolid'=>$tool->id)) > $tool->maxenrolled) {
                             // We do not use print_error for the iframe issue allowframembedding
@@ -255,7 +338,7 @@ if ($context->valid) {
         $userlog->sourceid = $sourceid;
         $userlog->consumerkey = optional_param('oauth_consumer_key', '', PARAM_RAW);
         // TODO Do not store secret here
-        $userlog->consumersecret = $tool->secret;
+        $userlog->consumersecret = $secret;
         $userlog->lastsync = 0;
         $userlog->lastgrade = 0;
         $userlog->lastaccess = time();
@@ -282,6 +365,6 @@ if ($context->valid) {
         redirect($urltogo);
     }
 } else {
-    //print_error('invalidcredentials', 'local_ltiprovider');
+    // print_error('invalidcredentials', 'local_ltiprovider');
     echo $context->message;
 }

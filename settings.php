@@ -26,6 +26,11 @@
 defined('MOODLE_INTERNAL') || die;
 
 if ($hassiteconfig) { // needs this condition or there is error on login page
+
+    $ADMIN->add('root', new admin_category('ltiprovider', get_string('pluginname', 'local_ltiprovider')));
+    $ADMIN->add('ltiprovider', new admin_externalpage('ltiprovidersettings', get_string('settings'),
+            $CFG->wwwroot.'/admin/settings.php?section=local_ltiprovider', 'local/ltiprovider:manage'));
+
     $settings = new admin_settingpage('local_ltiprovider', 'LTI Provider');
     $ADMIN->add('localplugins', $settings);
 
@@ -46,6 +51,24 @@ if ($hassiteconfig) { // needs this condition or there is error on login page
     $settings->add(new admin_setting_configselect('local_ltiprovider/defaultauthmethod', get_string('defaultauthmethod',
         'local_ltiprovider'), get_string('defaultauthmethodhelp', 'local_ltiprovider'), 'nologin', $authmethods));
 
+    $settings->add(new admin_setting_configmultiselect('local_ltiprovider/rolesallowedcreatecontexts', get_string('rolesallowedcreatecontexts', 'local_ltiprovider'),
+                   '', array('Administrator'),
+                       array(
+                           'Student' => 'Student',
+                           'Faculty' => 'Faculty',
+                           'Member' => 'Member',
+                           'Learner' => 'Learner',
+                           'Instructor' => 'Instructor',
+                           'Mentor' => 'Mentor',
+                           'Staff' => 'Staff',
+                           'Alumni' => 'Alumni',
+                           'ProspectiveStudent' => 'ProspectiveStudent',
+                           'Guest' => 'Guest',
+                           'Other' => 'Other',
+                           'Administrator' => 'Administrator',
+                           'Observer' => 'Observer',
+                           'None' => 'None'
+                       )));
 
     $settings->add(new admin_setting_configmultiselect('local_ltiprovider/rolesallowedcreateresources', get_string('rolesallowedcreateresources', 'local_ltiprovider'),
                    '', array('Administrator'),
