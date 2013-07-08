@@ -66,7 +66,6 @@ $string['customcss'] = 'Custom CSS';
 $string['sendgrades'] = 'Send grades back';
 $string['forcenavigation'] = 'Force course or activity navigation';
 
-
 $string['invalidcredentials'] = 'Invalid credentials';
 $string['allowframembedding'] = 'In order to avoid problems embedding this site, please enable the allowframembedding setting in Admin -> Security -> HTTP security';
 $string['newpopupnotice'] = 'The tool will be opened in a new Window. Please, check that popups for this site are enabled in your browser. You can use the link displayed bellow for opening the tool.';
@@ -87,4 +86,4 @@ $string['rolesallowedcreateresources'] = 'Roles allowed to create resources (fro
 $string['rolesallowedcreatecontexts'] = 'Roles allowed to create contexts (from the remote site)';
 $string['cantdeterminecontext'] = 'Can\' determine the context, it seems that there are more than one tool provided for this context_id';
 
-
+$string['invalidtplcourse'] = 'Invalid course template id';
