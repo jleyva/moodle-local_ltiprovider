@@ -305,7 +305,7 @@ if ($context->valid) {
 
                             // create the module
                             if ($modinfo = create_module($moduleinfo)) {
-                                $urltogo = new moodle_url('/mod/' . $moduleinfo->modulename . '/view.php', array('id' => $modinfo->coursemodule));
+                                $urltogo = new moodle_url('/course/modedit.php', array('update' => $modinfo->coursemodule));
                             }
                         }
                     }
