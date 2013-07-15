@@ -30,6 +30,7 @@ require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 $toolid                 = optional_param('id', 0, PARAM_INT);
 $lticontextid           = optional_param('contextid', false, PARAM_RAW);
 $custom_create_context  = optional_param('custom_create_context', false, PARAM_BOOL);
+$resource_link_id       = optional_param('resource_link_id', false, PARAM_RAW);
 
 if (!$toolid and !$lticontextid) {
     print_error('invalidtoolid', 'local_ltiprovider');
@@ -244,6 +245,14 @@ if ($context->valid) {
     if ($context->contextlevel == CONTEXT_COURSE) {
         $courseid = $context->instanceid;
         $urltogo = $CFG->wwwroot.'/course/view.php?id='.$courseid;
+        // Check if we have to redirect to a specific module in the course.
+        if ($resource_link_id) {
+            if ($cm = $DB->get_record('course_modules', array('idnumber' => $resource_link_id, 'course' => $courseid))) {
+                if ($cm = get_coursemodule_from_id(false, $cm->id, $courseid)) {
+                    $urltogo = new moodle_url('/mod/' .$cm->modname. '/view.php', array('id' => $cm->id));
+                }
+            }
+        }
     } else if ($context->contextlevel == CONTEXT_MODULE) {
         $cmid = $context->instanceid;
         $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
