@@ -252,6 +252,65 @@ if ($context->valid) {
                     $urltogo = new moodle_url('/mod/' .$cm->modname. '/view.php', array('id' => $cm->id));
                 }
             }
+            // Detect it we must create the resource.
+            if (!$cm) {
+                $resource_link_title        = optional_param('resource_link_title', '', PARAM_RAW);
+                $resource_link_description  = optional_param('resource_link_description', '', PARAM_RAW);
+                $resource_link_type         = optional_param('custom_resource_link_type', '', PARAM_RAW);
+                if (!$resource_link_title) {
+                    $resource_link_title  = optional_param('custom_resource_link_title', '', PARAM_RAW);
+                }
+                if (!$resource_link_description) {
+                    $resource_link_description  = optional_param('custom_resource_link_description', '', PARAM_RAW);
+                }
+
+                // Minimun for creating a module, title and type.
+                if ($resource_link_title and $resource_link_type) {
+
+                    // Check if the remote user can create modules, checking the remote role.
+                    $rolesallowedcreateresources = get_config('local_ltiprovider', 'rolesallowedcreateresources');
+                    if ($rolesallowedcreateresources) {
+                        $rolesallowedcreateresources = explode(',', strtolower($rolesallowedcreateresources));
+                        $roles = explode(',', strtolower($_POST['roles']));
+                        $cancreate = false;
+
+                        foreach ($roles as $rol) {
+                            if (in_array($rol, $rolesallowedcreateresources)) {
+                                $cancreate = true;
+                                break;
+                            }
+                        }
+
+                        if ($cancreate) {
+                            require_once($CFG->dirroot . '/course/lib.php');
+                            $moduleinfo = new stdClass();
+
+                            // Always mandatory generic values to any module
+                            // TODO, check for valid types.
+                            $moduleinfo->modulename = $resource_link_type;
+                            $moduleinfo->section= 1;
+                            $moduleinfo->course= $courseid;
+                            $moduleinfo->visible= true;
+                            $moduleinfo->cmidnumber = $resource_link_id;
+
+                            // Sometimes optional generic values for some modules
+                            $moduleinfo->name= $resource_link_title;
+
+                            // Optional intro editor (depends of module)
+                            if ($resource_link_description) {
+                                $draftid_editor = 0;
+                                file_prepare_draft_area($draftid_editor, null, null, null, null);
+                                $moduleinfo->introeditor = array('text'=> $resource_link_description, 'format'=>FORMAT_HTML, 'itemid'=>$draftid_editor);
+                            }
+
+                            // create the module
+                            if ($modinfo = create_module($moduleinfo)) {
+                                $urltogo = new moodle_url('/mod/' . $moduleinfo->modulename . '/view.php', array('id' => $modinfo->coursemodule));
+                            }
+                        }
+                    }
+                }
+            }
         }
     } else if ($context->contextlevel == CONTEXT_MODULE) {
         $cmid = $context->instanceid;
