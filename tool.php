@@ -27,10 +27,11 @@ require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot.'/local/ltiprovider/locallib.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 
-$toolid                 = optional_param('id', 0, PARAM_INT);
-$lticontextid           = optional_param('contextid', false, PARAM_RAW);
-$custom_create_context  = optional_param('custom_create_context', false, PARAM_BOOL);
-$resource_link_id       = optional_param('resource_link_id', false, PARAM_RAW);
+$toolid                         = optional_param('id', 0, PARAM_INT);
+$lticontextid                   = optional_param('contextid', false, PARAM_RAW);
+$custom_create_context          = optional_param('custom_create_context', false, PARAM_BOOL);
+$resource_link_id               = optional_param('resource_link_id', false, PARAM_RAW);
+$custom_resource_link_copy_id   = optional_param('custom_resource_link_copy_id', false, PARAM_RAW);
 
 if (!$toolid and !$lticontextid) {
     print_error('invalidtoolid', 'local_ltiprovider');
@@ -312,6 +313,15 @@ if ($context->valid) {
                 }
             }
         }
+
+        // Duplicate an existing resource on SSO.
+        if ($custom_resource_link_copy_id) {
+            if (!$cm = $DB->get_record('course_modules', array('idnumber' => $custom_resource_link_copy_id), '*', IGNORE_MULTIPLE)) {
+                print_error('invalidresourcecopyid', 'local_ltiprovider');
+            }
+            local_ltiprovider_duplicate_module($cm->id, $courseid);
+        }
+
     } else if ($context->contextlevel == CONTEXT_MODULE) {
         $cmid = $context->instanceid;
         $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
@@ -415,10 +425,34 @@ if ($context->valid) {
 
     add_to_log(SITEID, 'user', 'login', $urltogo, "ltiprovider login", 0, $user->id);
     $tool->context = $context;
+
+    // Overrida some settings.
+    if ($custom_force_navigation = optional_param('custom_force_navigation', false, PARAM_BOOL)) {
+        $tool->forcenavigation = 1;
+    }
+    if ($custom_hide_left_blocks = optional_param('custom_hide_left_blocks', false, PARAM_BOOL)) {
+        $tool->hideleftblocks = 1;
+    }
+    if ($custom_hide_right_blocks = optional_param('custom_hide_right_blocks', false, PARAM_BOOL)) {
+        $tool->hiderightblocks = 1;
+    }
+    if ($custom_hide_page_header = optional_param('custom_hide_page_header', false, PARAM_BOOL)) {
+        $tool->hidepageheader = 1;
+    }
+    if ($custom_hide_page_footer = optional_param('custom_hide_page_footer', false, PARAM_BOOL)) {
+        $tool->hidepagefooter = 1;
+    }
+    if ($custom_custom_css = optional_param('custom_custom_css', false, PARAM_BOOL)) {
+        $tool->customcss = 1;
+    }
+    if ($custom_show_blocks = optional_param('custom_show_blocks', false, PARAM_RAW)) {
+        $tool->showblocks = $custom_show_blocks;
+    }
+
     $SESSION->ltiprovider = $tool;
     complete_user_login($user);
 
-    // Moodle 2.2 and onwards
+    // Moodle 2.2 and onwards.
     if (isset($CFG->allowframembedding) and !$CFG->allowframembedding) {
         echo '<html>
         <head>
