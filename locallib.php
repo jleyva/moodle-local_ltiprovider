@@ -135,8 +135,14 @@ function local_ltiprovider_user_match($newuser, $olduser) {
  */
  function local_ltiprovider_duplicate_course($courseid, $fullname, $shortname, $categoryid, $visible = 1, $options = array()) {
     global $CFG, $USER, $DB;
+
     require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
     require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
+
+    if (empty($USER)) {
+        // Emulate session.
+        cron_setup_user();
+    }
 
     // Context validation.
 
@@ -266,4 +272,83 @@ function local_ltiprovider_user_match($newuser, $olduser) {
     $file->delete();
 
     return $course;
+}
+
+/**
+ * Duplicates a Moodle module in an existing course
+ * @param  int $cmid     Course module id
+ * @param  int $courseid Course id
+ * @return int           New course module id
+ */
+function local_ltiprovider_duplicate_module($cmid, $courseid) {
+    global $CFG, $DB, $USER;
+
+    require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
+    require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
+    require_once($CFG->libdir . '/filelib.php');
+
+    if (empty($USER)) {
+        // Emulate session.
+        cron_setup_user();
+    }
+
+    $course     = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+    $cm         = get_coursemodule_from_id('', $cmid, $course->id, true, MUST_EXIST);
+    $cmcontext  = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $context    = get_context_instance(CONTEXT_COURSE, $course->id);
+
+
+    if (!plugin_supports('mod', $cm->modname, FEATURE_BACKUP_MOODLE2)) {
+        $url = course_get_url($course, $cm->sectionnum, array('sr' => $sectionreturn));
+        print_error('duplicatenosupport', 'error', $url, $a);
+    }
+
+    // backup the activity
+
+    $bc = new backup_controller(backup::TYPE_1ACTIVITY, $cm->id, backup::FORMAT_MOODLE,
+            backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
+
+    $backupid       = $bc->get_backupid();
+    $backupbasepath = $bc->get_plan()->get_basepath();
+
+    $bc->execute_plan();
+
+    $bc->destroy();
+
+    // restore the backup immediately
+
+    $rc = new restore_controller($backupid, $courseid,
+            backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
+
+    if (!$rc->execute_precheck()) {
+        $precheckresults = $rc->get_precheck_results();
+        if (is_array($precheckresults) && !empty($precheckresults['errors'])) {
+            if (empty($CFG->keeptempdirectoriesonbackup)) {
+                fulldelete($backupbasepath);
+            }
+            print_r($precheckresults);
+            die();
+        }
+    }
+
+    $rc->execute_plan();
+
+    $newcmid = null;
+    $tasks = $rc->get_plan()->get_tasks();
+    foreach ($tasks as $task) {
+        if (is_subclass_of($task, 'restore_activity_task')) {
+            if ($task->get_old_contextid() == $cmcontext->id) {
+                $newcmid = $task->get_moduleid();
+                break;
+            }
+        }
+    }
+
+    $rc->destroy();
+
+    if (empty($CFG->keeptempdirectoriesonbackup)) {
+        fulldelete($backupbasepath);
+    }
+    return $newcmid;
+
 }

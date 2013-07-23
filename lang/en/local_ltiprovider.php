@@ -87,3 +87,7 @@ $string['rolesallowedcreatecontexts'] = 'Roles allowed to create contexts (from 
 $string['cantdeterminecontext'] = 'Can\' determine the context, it seems that there are more than one tool provided for this context_id';
 
 $string['invalidtplcourse'] = 'Invalid course template id';
+$string['missingrequiredtool'] = 'For duplicating a resource, you must point the request to an existing resource type course';
+$string['invalidtypetool'] = 'For duplicating a resource, you must point the request to a resource type course';
+$string['invalidresourcecopyid'] = 'Invalid resource to be copied identifier';
+

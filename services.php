@@ -125,6 +125,29 @@ if ($context->valid) {
         local_ltiprovider_duplicate_course($tplcourse->id, $course->fullname, $course->shortname, $tplcourse->category, 1,
                                             $options = array(array('name'   => 'users',
                                                                     'value' => 1)));
+    } else if ($service == 'duplicate_resource') {
+        $idnumber = required_param('custom_resource_link_copy_id', PARAM_RAW);
+
+        if (!$tool) {
+            print_error('missingrequiredtool', 'local_ltiprovider');
+        }
+
+        if (! $context = $DB->get_record('context', array('id' => $tool->contextid))) {
+            print_error("invalidcontext");
+        }
+
+        if ($context->contextlevel != CONTEXT_COURSE) {
+            print_error('invalidtypetool', 'local_ltiprovider');
+        }
+
+        if (!$cm = $DB->get_record('course_modules', array('idnumber' => $idnumber), '*', IGNORE_MULTIPLE)) {
+            print_error('invalidresourcecopyid', 'local_ltiprovider');
+        }
+
+        $courseid = $context->instanceid;
+
+        local_ltiprovider_duplicate_module($cm->id, $courseid);
+
     }
 
 } else {
