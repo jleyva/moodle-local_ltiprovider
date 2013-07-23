@@ -317,20 +317,71 @@ function local_ltiprovider_cron() {
                                 if(strpos(strtolower($data->statusinfo->codemajor), 'success') !== false) {
                                     $members = $data->memberships->member;
                                     mtrace(count($members) . ' members received');
+                                    $currentusers = array();
                                     foreach ($members as $member) {
                                         $username = local_ltiprovider_create_username($user->consumerkey, $member->user_id);
                                         if ($user = $DB->get_record('user', array('username' => $username))) {
+                                            $currentusers[] = $user->id;
                                             $user->firstname = clean_param($member->person_name_given, PARAM_TEXT);
                                             $user->lastname = clean_param($member->person_name_family, PARAM_TEXT);
                                             $user->email = clean_param($member->person_contact_email_primary, PARAM_EMAIL);
                                             $DB->update_record('user', $user);
-                                            // 1 -> Enrol and unenrol, 2 -> enrol
-                                            if ($tool->syncmode == 1 or $tool->syncmode == 2) {
-                                                // Enroll the user in the course.
-                                                local_ltiprovider_enrol_user($tool, $user);
-                                            }
+                                            events_trigger('user_updated', $user);
                                         } else {
+                                            // New members.
+                                            if ($tool->syncmode == 1 or $tool->syncmode == 2) {
+                                                // We have to enrol new members so we have to create it.
+                                                $user = new stdClass();
+                                                // clean_param , email username text
+                                                $auth = get_config('local_ltiprovider', 'defaultauthmethod');
+                                                if ($auth) {
+                                                    $user->auth = $auth;
+                                                } else {
+                                                    $user->auth = 'nologin';
+                                                }
 
+                                                $username = local_ltiprovider_create_username($user->consumerkey, $member->user_id);
+                                                $user->username = $username;
+                                                $user->password = md5(uniqid(rand(), 1));
+                                                $user->firstname = clean_param($member->person_name_given, PARAM_TEXT);
+                                                $user->lastname = clean_param($member->person_name_family, PARAM_TEXT);
+                                                $user->email = clean_param($member->person_contact_email_primary, PARAM_EMAIL);
+                                                $user->city = $tool->city;
+                                                $user->country = $tool->country;
+                                                $user->institution = $tool->institution;
+                                                $user->timezone = $tool->timezone;
+                                                $user->maildisplay = $tool->maildisplay;
+                                                $user->mnethostid = $CFG->mnet_localhost_id;
+                                                $user->confirmed = 1;
+                                                $user->lang = $tool->lang;
+                                                if (! $user->lang) {
+                                                    // TODO: This should be changed for detect the course lang
+                                                    $user->lang = current_language();
+                                                }
+
+                                                $user->id = $DB->insert_record('user', $user);
+                                                // Reload full user
+                                                $user = $DB->get_record('user', array('id' => $user->id));
+                                                events_trigger('user_created', $user);
+                                                $currentusers[] = $user->id;
+                                            }
+                                        }
+                                        // 1 -> Enrol and unenrol, 2 -> enrol
+                                        if ($tool->syncmode == 1 or $tool->syncmode == 2) {
+                                            // Enroll the user in the course. We don't know if it was previously unenrolled.
+                                            $roles = explode(',', strtolower($member->roles))
+                                            local_ltiprovider_enrol_user($tool, $user, $roles, true);
+                                        }
+                                    }
+                                    // Now we check if we have to unenrol users for keep both systems sync.
+                                    if ($tool->syncmode == 1 or $tool->syncmode == 3) {
+                                        // Unenrol users also.
+                                        $context = get_context_instance(CONTEXT_COURSE, $tool->courseid);
+                                        $users = get_enrolled_users($context);
+                                        foreach ($users as $user) {
+                                            if (!in_array($user->id, $currentusers)) {
+                                                local_ltiprovider_unenrol_user($tool, $user);
+                                            }
                                         }
                                     }
                                 } else {

@@ -334,7 +334,8 @@ if ($context->valid) {
     $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
     // Enrol the user in the course
-    local_ltiprovider_enrol_user($tool, $user);
+    $roles = explode(',', strtolower($_POST['roles']))
+    local_ltiprovider_enrol_user($tool, $user, $roles);
 
     if ($context->contextlevel == CONTEXT_MODULE) {
         // Enrol the user in the activity
@@ -370,6 +371,8 @@ if ($context->valid) {
         $userlog->lastsync = 0;
         $userlog->lastgrade = 0;
         $userlog->lastaccess = time();
+        $userlog->membershipsurl = optional_param('ext_ims_lis_memberships_url', '', PARAM_RAW);
+        $userlog->membershipsid = optional_param('ext_ims_lis_memberships_id', '', PARAM_RAW);
         $DB->insert_record('local_ltiprovider_user', $userlog);
     }
 

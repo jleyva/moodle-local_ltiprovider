@@ -61,6 +61,12 @@ function loca_ltiprovider_create_service_body($source, $grade) {
 </imsx_POXEnvelopeRequest>';
 }
 
+/**
+ * Creates an unique username
+ * @param  string $consumerkey Consumer key
+ * @param  string $ltiuserid   External tool user id
+ * @return string              The new username
+ */
 function local_ltiprovider_create_username($consumerkey, $ltiuserid) {
 
     if ( strlen($id) > 0 and strlen($oauth) > 0 ) {
@@ -72,13 +78,43 @@ function local_ltiprovider_create_username($consumerkey, $ltiuserid) {
     return 'ltiprovider' . md5($consumerkey . '::' . $userkey);
 }
 
-function local_ltiprovider_enrol_user($tool, $user, $return = false) {
+/**
+ * Unenrol an user from a course
+ * @param  stdclass $tool Tool object
+ * @param  stdclass $user User object
+ * @return bool       True on unenroll
+ */
+function local_ltiprovider_unenrol_user($tool, $user) {
+    global $DB;
+
+    $course = $DB->get_record('course', array('id' => $tool->courseid), '*', MUST_EXIST);
+    $manual = enrol_get_plugin('manual');
+
+    if ($instances = enrol_get_instances($course->id, false)) {
+        foreach ($instances as $instance) {
+            if ($instance->enrol === 'manual') {
+                $manual->unenrol_user($instance, $user->id);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Enrol a user in a course
+ * @param  stdclass  $tool   The tool object
+ * @param  stdclass  $user   The user object
+ * @param  array  $roles  Roles of the current user
+ * @param  boolean $return If we should return information
+ * @return mix          Boolean if $return is set to true
+ */
+function local_ltiprovider_enrol_user($tool, $user, $roles, $return = false) {
     global $DB;
 
     $course = $DB->get_record('course', array('id' => $tool->courseid), '*', MUST_EXIST);
 
     $manual = enrol_get_plugin('manual');
-    $roles = explode(',', strtolower($_POST['roles']));
     $role =(in_array('instructor', $roles))? 'Instructor' : 'Learner';
 
     $today = time();
@@ -136,12 +172,15 @@ function local_ltiprovider_enrol_user($tool, $user, $return = false) {
                     // TODO, delete created users not enrolled
 
                     $manual->enrol_user($instance, $user->id, $roleid, $today, $timeend);
+                    if ($return) {
+                        return true;
+                    }
                 }
                 break;
             }
         }
     }
-    return true;
+    return false;
 }
 
 /**
