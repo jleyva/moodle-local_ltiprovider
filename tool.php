@@ -184,7 +184,7 @@ if ($context->valid) {
     // We need an username without extended chars
     // Later accounts add the ConsumerKey - we silently upgrade old accounts
     // Might want a flag for this -- Chuck
-    $username = 'ltiprovider'.md5($context->getConsumerKey().'::'.$context->getUserKey());
+    $username = local_ltiprovider_create_username($context->info['oauth_consumer_key'], $context->info['user_id']);
     $dbuser = $DB->get_record('user', array('username' => $username));
     if ( ! $dbuser ) {
         $old_username = 'ltiprovider'.md5($context->getUserKey());
@@ -334,57 +334,7 @@ if ($context->valid) {
     $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
     // Enrol the user in the course
-    $roles = explode(',', strtolower($_POST['roles']));
-    $role =(in_array('instructor', $roles))? 'Instructor' : 'Learner';
-
-    $today = time();
-    $today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
-    $timeend = 0;
-    if ($tool->enrolperiod) {
-            $timeend = $today + $tool->enrolperiod;
-    }
-
-    // Course role id for the Instructor or Learner
-    // TODO Do something with lti system admin (urn:lti:sysrole:ims/lis/Administrator)
-    $roleid = ($role == 'Instructor')? $tool->croleinst: $tool->crolelearn;
-
-    if ($instances = enrol_get_instances($course->id, false)) {
-        foreach ($instances as $instance) {
-            if ($instance->enrol === 'manual') {
-
-                // Check if the user enrolment exists
-                if (! $ue = $DB->get_record('user_enrolments', array('enrolid'=>$instance->id, 'userid'=>$user->id))) {
-                    // This means a new enrolment, so we have to check enroment starts and end limits and also max occupation
-
-                    // First we check if there is a max enrolled limit
-                    if ($tool->maxenrolled) {
-                        // TODO Improve this count because unenrolled users from Moodle admin panel are not sync with this table
-                        if ($DB->count_records('local_ltiprovider_user', array('toolid'=>$tool->id)) > $tool->maxenrolled) {
-                            // We do not use print_error for the iframe issue allowframembedding
-                            echo get_string('maxenrolledreached', 'local_ltiprovider');
-                            die;
-                        }
-                    }
-
-                    $timenow = time();
-                    if ($tool->enrolstartdate and $timenow < $tool->enrolstartdate) {
-                        // We do not use print_error for the iframe issue allowframembedding
-                        echo get_string('enrolmentnotstarted', 'local_ltiprovider');
-                        die;
-                    }
-                    if ($tool->enrolenddate and $timenow > $tool->enrolenddate) {
-                        // We do not use print_error for the iframe issue allowframembedding
-                        echo get_string('enrolmentfinished', 'local_ltiprovider');
-                        die;
-                    }
-                    // TODO, delete created users not enrolled
-
-                    $manual->enrol_user($instance, $user->id, $roleid, $today, $timeend);
-                }
-                break;
-            }
-        }
-    }
+    local_ltiprovider_enrol_user($tool, $user);
 
     if ($context->contextlevel == CONTEXT_MODULE) {
         // Enrol the user in the activity

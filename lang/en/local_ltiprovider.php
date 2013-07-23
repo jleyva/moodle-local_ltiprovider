@@ -91,3 +91,6 @@ $string['missingrequiredtool'] = 'For duplicating a resource, you must point the
 $string['invalidtypetool'] = 'For duplicating a resource, you must point the request to a resource type course';
 $string['invalidresourcecopyid'] = 'Invalid resource to be copied identifier';
 
+$string['membershipsettings'] = 'Memberships service settings';
+$string['enablememberssync'] = 'Enable members synchronization';
+

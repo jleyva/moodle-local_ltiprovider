@@ -275,5 +275,77 @@ function local_ltiprovider_cron() {
             }
         }
     }
+    // Membership service.
+    $timenow = time();
+    if ($tools = $DB->get_records('local_ltiprovider', array('disabled' => 0, 'syncmembers' => 1))) {
+        mtrace('Starting sync of member using the memberships service');
+        $consumers = array();
+
+        foreach ($tools as $tool) {
+            $lastsync = get_config('local_ltiprovider', 'membershipslastsync-' . $tool->id);
+            if (!$lastsync) {
+                $lastsync = 0;
+            }
+            if ($lastsync + $tool->syncperiod < $timenow) {
+                mtrace('Starting sync of tool: ' . $tool->id);
+                // We check for all the users, notice that users can access the same tool from different consumers.
+                if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id), 'lastaccess DESC')) {
+                    $response = "";
+
+                    foreach ($users as $user) {
+                        if (!$user->membershipsurl or !$user->membershipsid) {
+                            continue;
+                        }
+
+                        $consumer = md5($user->membershipsurl . ':' . $user->membershipsid . ':' . $user->consumerkey . ':' . $user->consumersecret);
+                        if (in_array($consumer, $consumers)) {
+                            // We had syncrhonized with this consumer yet.
+                            continue;
+                        }
+                        $consumers[] = $consumer;
+
+                        $body = "lti_message_type=" . urlencode('basic-lis-readmembershipsforcontext') . "&id=" . urlencode($user->membershipsid);
+                        mtrace('Calling memberships url: ' . $user->membershipsurl . ' with body: ' . $body);
+
+                        $response = ltiprovider\sendOAuthBodyPOST('POST', $user->membershipsurl, $user->consumerkey, $user->consumersecret,
+                                                                'application/x-www-form-urlencoded', $body);
+                        if ($response) {
+                            $data = new SimpleXMLElement($response);
+                            if(!empty($data->statusinfo)) {
+                                if(strpos(strtolower($data->statusinfo->codemajor), 'success') !== false) {
+                                    $members = $data->memberships->member;
+                                    mtrace(count($members) . ' members received');
+                                    foreach ($members as $member) {
+                                        $username = local_ltiprovider_create_username($user->consumerkey, $member->user_id);
+                                        if ($user = $DB->get_record('user', array('username' => $username))) {
+                                            $user->firstname = clean_param($member->person_name_given, PARAM_TEXT);
+                                            $user->lastname = clean_param($member->person_name_family, PARAM_TEXT);
+                                            $user->email = clean_param($member->person_contact_email_primary, PARAM_EMAIL);
+                                            $DB->update_record('user', $user);
+                                            // 1 -> Enrol and unenrol, 2 -> enrol
+                                            if ($tool->syncmode == 1 or $tool->syncmode == 2) {
+                                                // Enroll the user in the course.
+                                                local_ltiprovider_enrol_user($tool, $user);
+                                            }
+                                        } else {
+
+                                        }
+                                    }
+                                } else {
+                                    mtrace('Error recived from the remote system: ' . $data->statusinfo->codemajor . ' ' . $data->statusinfo->severity . ' ' . $data->statusinfo->codeminor);
+                                }
+                            } else {
+                                mtrace('Error parsing the XML received' . substr($response, 0, 125) . '... (Displaying only 125 chars)');
+                            }
+                        } else {
+                            mtrace('No response received from ' . $user->membershipsurl);
+                        }
+                    }
+                }
+            }
+            set_config('membershipslastsync-' . $tool->id, $timenow, 'local_ltiprovider');
+            mtrace('Finished sync of member using the memberships service');
+        }
+    }
 }
 

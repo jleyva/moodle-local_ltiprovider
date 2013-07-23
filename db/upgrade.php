@@ -65,6 +65,29 @@ function xmldb_local_ltiprovider_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
+        $field = new xmldb_field('syncmembers', XMLDB_TYPE_INTEGER, 1, XMLDB_UNSIGNED, XMLDB_NOTNULL, null, 0, 'userprofileupdate');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('syncmode', XMLDB_TYPE_INTEGER, 2, XMLDB_UNSIGNED, XMLDB_NOTNULL, null, 0, 'syncmembers');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('syncperiod', XMLDB_TYPE_INTEGER, 10, XMLDB_UNSIGNED, XMLDB_NOTNULL, null, 0, 'syncmode');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $table = new xmldb_table('local_ltiprovider_user');
+
+        $field = new xmldb_field('membershipsurl', XMLDB_TYPE_TEXT, "small", null, null, null, null, 'lastaccess');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('membershipsid', XMLDB_TYPE_TEXT, "small", null, null, null, null, 'membershipsurl');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
 
         upgrade_plugin_savepoint(true, 2011121707, 'local', 'ltiprovider');
     }

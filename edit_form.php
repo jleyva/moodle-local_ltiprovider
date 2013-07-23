@@ -154,6 +154,9 @@ class edit_form extends moodleform {
         $mform->setDefault('institution', $templateuser->institution);
         $mform->setAdvanced('institution');
 
+        $mform->addElement('header', 'memberships', get_string('membershipsettings', 'local_ltiprovider'));
+        $mform->addElement('checkbox', 'syncmembers', null, get_string('enablememberssync', 'local_ltiprovider'));
+
         $mform->addElement('header', 'layoutandcss', get_string('layoutandcss', 'local_ltiprovider'));
 
         $mform->addElement('checkbox', 'hidepageheader', null, get_string('hidepageheader', 'local_ltiprovider'));
