@@ -93,4 +93,9 @@ $string['invalidresourcecopyid'] = 'Invalid resource to be copied identifier';
 
 $string['membershipsettings'] = 'Memberships service settings';
 $string['enablememberssync'] = 'Enable members synchronization';
+$string['syncperiod'] = 'Synchronization period';
+$string['syncmode'] = 'Synchronization mode';
+$string['enrolandunenrol'] = 'Enrol new and unenrol missing members';
+$string['enrolnew'] = 'Enrol new members';
+$string['unenrolmissing'] = 'Unenrol missing members';
 

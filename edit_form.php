@@ -156,6 +156,27 @@ class edit_form extends moodleform {
 
         $mform->addElement('header', 'memberships', get_string('membershipsettings', 'local_ltiprovider'));
         $mform->addElement('checkbox', 'syncmembers', null, get_string('enablememberssync', 'local_ltiprovider'));
+        $mform->disabledIf('syncmembers', 'contextid', 'neq', $context->id);
+
+        $options = array();
+        $options[30*60]     = '30 ' . get_string('minutes');
+        $options[60*60]     = '1 ' . get_string('hour');
+        $options[2*60*60]   = '2 ' . get_string('hours');
+        $options[6*60*60]   = '6 ' . get_string('hours');
+        $options[12*60*60]  = '12 ' . get_string('hours');
+        $options[24*60*60]  = '24 ' . get_string('hours');
+        $mform->addElement('select', 'syncperiod', get_string('syncperiod', 'local_ltiprovider'), $options);
+        $mform->setDefault('syncperiod', 30*60);
+        $mform->disabledIf('syncperiod', 'contextid', 'neq', $context->id);
+
+        $options = array();
+        $options[1] = get_string('enrolandunenrol' , 'local_ltiprovider');
+        $options[2] = get_string('enrolnew' , 'local_ltiprovider');
+        $options[3] = get_string('unenrolmissing' , 'local_ltiprovider');
+        $mform->addElement('select', 'syncmode', get_string('syncmode', 'local_ltiprovider'), $options);
+        $mform->setDefault('syncmode', 1);
+        $mform->disabledIf('syncmode', 'contextid', 'neq', $context->id);
+
 
         $mform->addElement('header', 'layoutandcss', get_string('layoutandcss', 'local_ltiprovider'));
 

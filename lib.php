@@ -133,6 +133,7 @@ function local_ltiprovider_add_tool($tool) {
     $tool->hidepagefooter = (isset($tool->hidepagefooter)) ? 1 : 0;
     $tool->hideleftblocks = (isset($tool->hideleftblocks)) ? 1 : 0;
     $tool->hiderightblocks = (isset($tool->hiderightblocks)) ? 1 : 0;
+    $tool->syncmembers = (isset($tool->syncmembers)) ? 1 : 0;
 
     $tool->id = $DB->insert_record('local_ltiprovider', $tool);
 
@@ -155,6 +156,7 @@ function local_ltiprovider_update_tool($tool) {
     $tool->hidepagefooter = (isset($tool->hidepagefooter)) ? 1 : 0;
     $tool->hideleftblocks = (isset($tool->hideleftblocks)) ? 1 : 0;
     $tool->hiderightblocks = (isset($tool->hiderightblocks)) ? 1 : 0;
+    $tool->syncmembers = (isset($tool->syncmembers)) ? 1 : 0;
 
     $DB->update_record('local_ltiprovider', $tool);
 }
