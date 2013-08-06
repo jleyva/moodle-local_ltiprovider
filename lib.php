@@ -281,6 +281,8 @@ function local_ltiprovider_cron() {
             }
         }
     }
+
+
     // Membership service.
     $timenow = time();
     if ($tools = $DB->get_records('local_ltiprovider', array('disabled' => 0, 'syncmembers' => 1))) {
@@ -402,6 +404,40 @@ function local_ltiprovider_cron() {
             }
             set_config('membershipslastsync-' . $tool->id, $timenow, 'local_ltiprovider');
             mtrace('Finished sync of member using the memberships service');
+        }
+    }
+
+    $timenow = time();
+    // Automatic course restaurations.
+    if ($croncourses = get_config('local_ltiprovider', 'croncourses')) {
+        $croncourses = unserialize($croncourses);
+        if (is_array($croncourses)) {
+            mtrace('Starting restauration of pending courses');
+
+            foreach ($concourses as $key => $course) {
+                mtrace('Starting restoration of ' . $key);
+
+                // We limit the backups to 1 hour, then retry.
+                if ($course->restorestart and ($timenow < $course->restorestart + 3600)) {
+                    mtrace('Skipping restoration in process for: ' . $key);
+                    continue;
+                }
+
+                $course->restorestart = time();
+                $croncourses[$key] = $course;
+                $croncoursessafe = serialize($croncourses);
+                set_config('croncourses', $croncoursessafe, 'local_ltiprovider');
+
+                // Duplicate course + users.
+                local_ltiprovider_duplicate_course($course->id, $course->destinationid, 1,
+                                                    $options = array(array('name'   => 'users',
+                                                                            'value' => 1)));
+                mtrace('Restoration for ' .$key. ' finished');
+
+                unset($croncourses[$key]);
+                $croncoursessafe = serialize($croncourses);
+                set_config('croncourses', $croncoursessafe, 'local_ltiprovider');
+            }
         }
     }
 }
