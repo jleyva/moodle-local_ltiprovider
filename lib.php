@@ -222,7 +222,11 @@ function local_ltiprovider_cron() {
                                     $grade = false;
                                 } else {
                                     $grade = reset($grades->items[0]->grades);
-                                    $grademax = floatval($grade->item->grademax);
+                                    if (!empty($grade->item)) {
+                                        $grademax = floatval($grade->item->grademax);
+                                    } else {
+                                        $grademax = floatval($grades->items[0]->grademax);
+                                    }
                                     $grade = $grade->grade;
                                 }
                             }
@@ -369,7 +373,7 @@ function local_ltiprovider_cron() {
                                         // 1 -> Enrol and unenrol, 2 -> enrol
                                         if ($tool->syncmode == 1 or $tool->syncmode == 2) {
                                             // Enroll the user in the course. We don't know if it was previously unenrolled.
-                                            $roles = explode(',', strtolower($member->roles))
+                                            $roles = explode(',', strtolower($member->roles));
                                             local_ltiprovider_enrol_user($tool, $user, $roles, true);
                                         }
                                     }
