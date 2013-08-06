@@ -29,13 +29,14 @@ require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 
 $service                = required_param('service', PARAM_RAW_TRIMMED);
 $toolid                 = optional_param('id', 0, PARAM_INT);
-$lticontextid           = optional_param('contextid', false, PARAM_RAW);
+$lticontextid           = optional_param('context_id', false, PARAM_RAW);
 
 if (!$toolid and $lticontextid) {
     // Check if there is more that one course for this LTI context id.
     if ($DB->count_records('course', array('idnumber' => $lticontextid)) > 1) {
         print_error('cantdeterminecontext', 'local_ltiprovider');
     }
+
     if ($course = $DB->get_record('course', array('idnumber' => $lticontextid))) {
         // Look for a course created for this LTI context id.
         if ($coursecontext = get_context_instance(CONTEXT_COURSE, $course->id)) {
@@ -70,9 +71,9 @@ if ($context->valid) {
 
     // Are we creating a new context (that means a new course tool)?
     if ($service == 'create_context') {
-        $custom_create_context  = optional_param('custom_create_context', false, PARAM_BOOL);
+        $custom_context_template  = optional_param('custom_context_template', false, PARAM_RAW_TRIMMED);
 
-        if (!$tplcourse = $DB->get_record('course', array('idnumber' => $custom_context_template), IGNORE_MULTIPLE)) {
+        if (!$tplcourse = $DB->get_record('course', array('idnumber' => $custom_context_template), '*', IGNORE_MULTIPLE)) {
             print_error('invalidtplcourse', 'local_ltiprovider');
         }
 
@@ -81,6 +82,11 @@ if ($context->valid) {
         $newcourse->fullname  = $context->info['context_title'];
         $newcourse->shortname = $context->info['context_label'];
         $newcourse->idnumber  = $context->info['context_id'];
+
+        $categories = $DB->get_records('course_categories', null, '', 'id', 0, 1);
+        $category = array_shift($categories);
+        $newcourse->category  = $category->id;
+
         $course = create_course($newcourse);
 
         $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
@@ -103,7 +109,7 @@ if ($context->valid) {
         $tool->timezone = 99;
         $tool->maildisplay = 2;
         $tool->city = "mycity";
-        $tool->country = ES;
+        $tool->country = "ES";
         $tool->hidepageheader = 0;
         $tool->hidepagefooter = 0;
         $tool->hideleftblocks = 0;
@@ -122,9 +128,11 @@ if ($context->valid) {
         $tool->id = $toolid;
 
         // Duplicate course + users.
-        local_ltiprovider_duplicate_course($tplcourse->id, $course->fullname, $course->shortname, $tplcourse->category, 1,
+        $course = local_ltiprovider_duplicate_course($tplcourse->id, $course->id, 1,
                                             $options = array(array('name'   => 'users',
                                                                     'value' => 1)));
+        echo json_encode($course);
+
     } else if ($service == 'duplicate_resource') {
         $idnumber = required_param('custom_resource_link_copy_id', PARAM_RAW);
 
@@ -146,8 +154,10 @@ if ($context->valid) {
 
         $courseid = $context->instanceid;
 
-        local_ltiprovider_duplicate_module($cm->id, $courseid);
-
+        $cmid = local_ltiprovider_duplicate_module($cm->id, $courseid);
+        if ($cm = get_coursemodule_from_id(false, $cmid)) {
+            echo json_encode($cm);
+        }
     }
 
 } else {

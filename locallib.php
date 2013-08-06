@@ -69,7 +69,7 @@ function loca_ltiprovider_create_service_body($source, $grade) {
  */
 function local_ltiprovider_create_username($consumerkey, $ltiuserid) {
 
-    if ( strlen($id) > 0 and strlen($oauth) > 0 ) {
+    if ( strlen($ltiuserid) > 0 and strlen($consumerkey) > 0 ) {
         $userkey = $consumerkey . ':' . $ltiuserid;
     } else {
         $userkey = false;
@@ -249,13 +249,11 @@ function local_ltiprovider_user_match($newuser, $olduser) {
  *
  * @param int $courseid
  * @param string $fullname Duplicated course fullname
- * @param string $shortname Duplicated course shortname
- * @param int $categoryid Duplicated course parent category id
- * @param int $visible Duplicated course availability
+ * @param int $newcourseid Destination course
  * @param array $options List of backup options
  * @return stdClass New course info
  */
- function local_ltiprovider_duplicate_course($courseid, $fullname, $shortname, $categoryid, $visible = 1, $options = array()) {
+ function local_ltiprovider_duplicate_course($courseid, $newcourseid, $visible = 1, $options = array()) {
     global $CFG, $USER, $DB;
 
     require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
@@ -304,20 +302,12 @@ function local_ltiprovider_user_match($newuser, $olduser) {
         }
     }
 
-    // Check if the shortname is used.
-    if ($foundcourses = $DB->get_records('course', array('shortname'=>$shortname))) {
-        foreach ($foundcourses as $foundcourse) {
-            $foundcoursenames[] = $foundcourse->fullname;
-        }
-
-        $foundcoursenamestring = implode(',', $foundcoursenames);
-        throw new moodle_exception('shortnametaken', '', '', $foundcoursenamestring);
-    }
 
     // Backup the course.
+    $admin = get_admin();
 
     $bc = new backup_controller(backup::TYPE_1COURSE, $course->id, backup::FORMAT_MOODLE,
-    backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $USER->id);
+    backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $admin->id);
 
     foreach ($backupsettings as $name => $value) {
         $bc->get_plan()->get_setting($name)->set_value($value);
@@ -339,11 +329,8 @@ function local_ltiprovider_user_match($newuser, $olduser) {
         $file->extract_to_pathname(get_file_packer(), $backupbasepath);
     }
 
-    // Create new course.
-    $newcourseid = restore_dbops::create_new_course($fullname, $shortname, $categoryid);
-
     $rc = new restore_controller($backupid, $newcourseid,
-            backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $USER->id, backup::TARGET_NEW_COURSE);
+            backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $admin->id, backup::TARGET_NEW_COURSE);
 
     foreach ($backupsettings as $name => $value) {
         $setting = $rc->get_plan()->get_setting($name);
@@ -379,8 +366,6 @@ function local_ltiprovider_user_match($newuser, $olduser) {
     $rc->destroy();
 
     $course = $DB->get_record('course', array('id' => $newcourseid), '*', MUST_EXIST);
-    $course->fullname = $fullname;
-    $course->shortname = $shortname;
     $course->visible = $visible;
 
     // Set shortname and fullname back.
@@ -415,7 +400,7 @@ function local_ltiprovider_duplicate_module($cmid, $courseid) {
     }
 
     $course     = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
-    $cm         = get_coursemodule_from_id('', $cmid, $course->id, true, MUST_EXIST);
+    $cm         = get_coursemodule_from_id('', $cmid, 0, true, MUST_EXIST);
     $cmcontext  = get_context_instance(CONTEXT_MODULE, $cm->id);
     $context    = get_context_instance(CONTEXT_COURSE, $course->id);
 
@@ -426,9 +411,10 @@ function local_ltiprovider_duplicate_module($cmid, $courseid) {
     }
 
     // backup the activity
+    $admin = get_admin();
 
     $bc = new backup_controller(backup::TYPE_1ACTIVITY, $cm->id, backup::FORMAT_MOODLE,
-            backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id);
+            backup::INTERACTIVE_NO, backup::MODE_IMPORT, $admin->id);
 
     $backupid       = $bc->get_backupid();
     $backupbasepath = $bc->get_plan()->get_basepath();
@@ -440,7 +426,7 @@ function local_ltiprovider_duplicate_module($cmid, $courseid) {
     // restore the backup immediately
 
     $rc = new restore_controller($backupid, $courseid,
-            backup::INTERACTIVE_NO, backup::MODE_IMPORT, $USER->id, backup::TARGET_CURRENT_ADDING);
+            backup::INTERACTIVE_NO, backup::MODE_IMPORT, $admin->id, backup::TARGET_CURRENT_ADDING);
 
     if (!$rc->execute_precheck()) {
         $precheckresults = $rc->get_precheck_results();

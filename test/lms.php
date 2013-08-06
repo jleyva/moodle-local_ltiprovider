@@ -32,6 +32,18 @@ require_once("../ims-blti/blti_util.php");
       "context_label" => "SI182",
       "tool_consumer_instance_guid" => "lmsng.school.edu",
       "tool_consumer_instance_description" => "University of School (LMSng)",
+      "custom_create_context" => "0",
+      "custom_context_template" => "",
+      "custom_resource_link_type" => "",
+      "custom_resource_link_copy_id" => "",
+      "service" => "",
+      "custom_force_navigation" => "",
+      "custom_hide_left_blocks" => "",
+      "custom_hide_right_blocks" => "",
+      "custom_hide_page_header" => "",
+      "custom_hide_page_footer" => "",
+      "custom_custom_css" => "",
+      "custom_show_blocks" => ""
       );
 
   foreach ($lmsdata as $k => $val ) {
@@ -47,7 +59,7 @@ require_once("../ims-blti/blti_util.php");
   if ( ! $secret ) $secret = "secret";
   $endpoint = $_REQUEST["endpoint"];
 
-  if ( ! $endpoint ) $endpoint = str_replace("lms.php","tool.php",$cur_url);
+  if ( ! $endpoint ) $endpoint = str_replace("test/lms.php","tool.php",$cur_url);
 
   $urlformat = $_REQUEST["format"];
   $urlformat = ( $urlformat != 'XML' );

@@ -28,7 +28,7 @@ require_once($CFG->dirroot.'/local/ltiprovider/locallib.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 
 $toolid                         = optional_param('id', 0, PARAM_INT);
-$lticontextid                   = optional_param('contextid', false, PARAM_RAW);
+$lticontextid                   = optional_param('context_id', false, PARAM_RAW);
 $custom_create_context          = optional_param('custom_create_context', false, PARAM_BOOL);
 $resource_link_id               = optional_param('resource_link_id', false, PARAM_RAW);
 $custom_resource_link_copy_id   = optional_param('custom_resource_link_copy_id', false, PARAM_RAW);
@@ -77,11 +77,36 @@ if ($context->valid) {
     // Are we creating a new context (that means a new course tool)?
     if ($custom_create_context) {
 
+        // Check if the remote user can create contexts, checking the remote role.
+        $cancreate = false;
+        $rolesallowedcreatecontexts = get_config('local_ltiprovider', 'rolesallowedcreatecontexts');
+        if ($rolesallowedcreatecontexts) {
+            $rolesallowedcreatecontexts = explode(',', strtolower($rolesallowedcreatecontexts));
+            $roles = explode(',', strtolower($_POST['roles']));
+
+            foreach ($roles as $rol) {
+                if (in_array($rol, $rolesallowedcreatecontexts)) {
+                    $cancreate = true;
+                    break;
+                }
+            }
+
+        }
+
+        if (!$cancreate) {
+            print_error('rolecannotcreatecontexts', 'local_ltiprovider');
+        }
+
         require_once("$CFG->dirroot/course/lib.php");
         $newcourse = new stdClass();
         $newcourse->fullname  = $context->info['context_title'];
         $newcourse->shortname = $context->info['context_label'];
         $newcourse->idnumber  = $context->info['context_id'];
+
+        $categories = $DB->get_records('course_categories', null, '', 'id', 0, 1);
+        $category = array_shift($categories);
+        $newcourse->category  = $category->id;
+
         $course = create_course($newcourse);
 
         $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
@@ -104,7 +129,7 @@ if ($context->valid) {
         $tool->timezone = 99;
         $tool->maildisplay = 2;
         $tool->city = "mycity";
-        $tool->country = ES;
+        $tool->country = 'ES';
         $tool->hidepageheader = 0;
         $tool->hidepagefooter = 0;
         $tool->hideleftblocks = 0;
@@ -125,10 +150,13 @@ if ($context->valid) {
         // Are we using another course as template?
         // We have a setting for storing courses to be restored when the cron job is executed.
         $custom_context_template  = optional_param('custom_context_template', false, PARAM_RAW_TRIMMED);
-        if ($custom_context_template and ($tplcourse = $DB->get_record('course', array('idnumber' => $custom_context_template), IGNORE_MULTIPLE))) {
+        $tplcourse = $DB->get_record('course', array('idnumber' => $custom_context_template), '*', IGNORE_MULTIPLE);
+
+        if ($custom_context_template and $tplcourse) {
+
 
             $newcourse = new stdClass();
-            $newcouse->id = $tplcourse->id;
+            $newcourse->id = $tplcourse->id;
             $newcourse->destinationid = $course->id;
             $newcourse->restorestart = 0;
             $aid = $newcourse->id . "-" . $newcourse->destinationid;
@@ -160,7 +188,12 @@ if ($context->valid) {
             $section->availableuntil = 0;
             $section->showavailability = 0;
             $section->groupingid = 0;
-            $DB->insert_record('course_sections', $section);
+            if ($section = $DB->get_record('course_sections', array('course' => $course->id, 'section' => 0))) {
+                $section->summary = get_string("coursebeingrestored", "local_ltiprovider");
+                $DB->update_record('course_sections', $section);
+            } else {
+                $DB->insert_record('course_sections', $section);
+            }
             rebuild_course_cache($course->id);
         }
     }
@@ -173,7 +206,13 @@ if ($context->valid) {
     }
 
     // Transform to utf8 all the post and get data
-    $textlib = textlib_get_instance();
+    
+    if (class_exists('textlib')) {
+        $textlib = new textlib();
+    } else {
+        $textlib = textlib_get_instance();
+    }
+
     foreach ($_POST as $key => $value) {
         $_POST[$key] = $textlib->convert($value, $tool->encoding);
     }
@@ -224,13 +263,13 @@ if ($context->valid) {
         if ( local_ltiprovider_user_match($user, $dbuser) ) {
             $user = $dbuser;
         } else {
+            $user = $dbuser;
             $userprofileupdate = get_config('local_ltiprovider', 'userprofileupdate');
             if ($userprofileupdate == -1) {
                 // Check the tool setting.
                 $userprofileupdate = $tool->userprofileupdate;
             }
             if ($userprofileupdate) {
-                $user = $dbuser;
                 local_ltiprovider_populate($user, $context, $tool);
                 $DB->update_record('user', $user);
                 events_trigger('user_updated', $user);
@@ -248,7 +287,7 @@ if ($context->valid) {
         $urltogo = $CFG->wwwroot.'/course/view.php?id='.$courseid;
         // Check if we have to redirect to a specific module in the course.
         if ($resource_link_id) {
-            if ($cm = $DB->get_record('course_modules', array('idnumber' => $resource_link_id, 'course' => $courseid))) {
+            if ($cm = $DB->get_record('course_modules', array('idnumber' => $resource_link_id, 'course' => $courseid), '*', IGNORE_MULTIPLE)) {
                 if ($cm = get_coursemodule_from_id(false, $cm->id, $courseid)) {
                     $urltogo = new moodle_url('/mod/' .$cm->modname. '/view.php', array('id' => $cm->id));
                 }
@@ -300,6 +339,7 @@ if ($context->valid) {
                             // Optional intro editor (depends of module)
                             if ($resource_link_description) {
                                 $draftid_editor = 0;
+                                $USER = $user;
                                 file_prepare_draft_area($draftid_editor, null, null, null, null);
                                 $moduleinfo->introeditor = array('text'=> $resource_link_description, 'format'=>FORMAT_HTML, 'itemid'=>$draftid_editor);
                             }
@@ -319,7 +359,10 @@ if ($context->valid) {
             if (!$cm = $DB->get_record('course_modules', array('idnumber' => $custom_resource_link_copy_id), '*', IGNORE_MULTIPLE)) {
                 print_error('invalidresourcecopyid', 'local_ltiprovider');
             }
-            local_ltiprovider_duplicate_module($cm->id, $courseid);
+            $newcmid = local_ltiprovider_duplicate_module($cm->id, $courseid);
+            if ($cm = get_coursemodule_from_id(false, $newcmid)) {
+                $urltogo = new moodle_url('/mod/' .$cm->modname. '/view.php', array('id' => $cm->id));
+            }
         }
 
     } else if ($context->contextlevel == CONTEXT_MODULE) {
@@ -334,7 +377,7 @@ if ($context->valid) {
     $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
     // Enrol the user in the course
-    $roles = explode(',', strtolower($_POST['roles']))
+    $roles = explode(',', strtolower($_POST['roles']));
     local_ltiprovider_enrol_user($tool, $user, $roles);
 
     if ($context->contextlevel == CONTEXT_MODULE) {
@@ -403,6 +446,7 @@ if ($context->valid) {
     }
 
     $SESSION->ltiprovider = $tool;
+
     complete_user_login($user);
 
     // Moodle 2.2 and onwards.

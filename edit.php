@@ -100,6 +100,12 @@ $PAGE->set_title($strheading);
 $PAGE->set_heading($course->fullname . ': '.$strheading);
 
 $editform = new edit_form(null, compact('context', 'courseid'));
+
+$userprofileupdate = get_config('local_ltiprovider', 'userprofileupdate');
+if ($userprofileupdate != -1) {
+    $tool->userprofileupdate = $userprofileupdate;
+}
+
 $editform->set_data($tool);
 
 if ($editform->is_cancelled()) {
