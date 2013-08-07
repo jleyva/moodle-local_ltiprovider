@@ -82,7 +82,7 @@ if ($context->valid) {
         $rolesallowedcreatecontexts = get_config('local_ltiprovider', 'rolesallowedcreatecontexts');
         if ($rolesallowedcreatecontexts) {
             $rolesallowedcreatecontexts = explode(',', strtolower($rolesallowedcreatecontexts));
-            $roles = explode(',', strtolower($_POST['roles']));
+            $roles = explode(',', strtolower($context->info['roles']));
 
             foreach ($roles as $rol) {
                 if (in_array($rol, $rolesallowedcreatecontexts)) {
@@ -311,7 +311,7 @@ if ($context->valid) {
                     $rolesallowedcreateresources = get_config('local_ltiprovider', 'rolesallowedcreateresources');
                     if ($rolesallowedcreateresources) {
                         $rolesallowedcreateresources = explode(',', strtolower($rolesallowedcreateresources));
-                        $roles = explode(',', strtolower($_POST['roles']));
+                        $roles = explode(',', strtolower($context->info['roles']));
                         $cancreate = false;
 
                         foreach ($roles as $rol) {
@@ -348,8 +348,10 @@ if ($context->valid) {
                             if ($modinfo = create_module($moduleinfo)) {
                                 $urltogo = new moodle_url('/course/modedit.php', array('update' => $modinfo->coursemodule));
                             }
+                        } else {
+                            print_error('rolecannotcreateresources', 'local_ltiprovider'); 
                         }
-                    }
+                    } 
                 }
             }
         }
@@ -377,7 +379,7 @@ if ($context->valid) {
     $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
     // Enrol the user in the course
-    $roles = explode(',', strtolower($_POST['roles']));
+    $roles = explode(',', strtolower($context->info['roles']));
     local_ltiprovider_enrol_user($tool, $user, $roles);
 
     if ($context->contextlevel == CONTEXT_MODULE) {

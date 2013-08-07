@@ -178,6 +178,7 @@ function local_ltiprovider_delete_tool($tool) {
  */
 function local_ltiprovider_cron() {
     global $DB, $CFG;
+    require_once($CFG->dirroot."/local/ltiprovider/locallib.php");
     require_once($CFG->dirroot."/local/ltiprovider/ims-blti/OAuth.php");
     require_once($CFG->dirroot."/local/ltiprovider/ims-blti/OAuthBody.php");
     require_once($CFG->libdir.'/gradelib.php');
@@ -414,7 +415,7 @@ function local_ltiprovider_cron() {
         if (is_array($croncourses)) {
             mtrace('Starting restauration of pending courses');
 
-            foreach ($concourses as $key => $course) {
+            foreach ($croncourses as $key => $course) {
                 mtrace('Starting restoration of ' . $key);
 
                 // We limit the backups to 1 hour, then retry.

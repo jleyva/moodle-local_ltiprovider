@@ -27,7 +27,7 @@ require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot.'/local/ltiprovider/locallib.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 
-$service                = required_param('service', PARAM_RAW_TRIMMED);
+$service                = required_param('custom_service', PARAM_RAW_TRIMMED);
 $toolid                 = optional_param('id', 0, PARAM_INT);
 $lticontextid           = optional_param('context_id', false, PARAM_RAW);
 
