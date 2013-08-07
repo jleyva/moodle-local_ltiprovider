@@ -314,6 +314,9 @@ function local_ltiprovider_cron() {
                         $consumers[] = $consumer;
 
                         $body = "lti_message_type=" . urlencode('basic-lis-readmembershipsforcontext') . "&id=" . urlencode($user->membershipsid);
+                        $body .= "&lti_version=" . urlencode("LTI-1p0");
+                        $body .= "&oauth_consumer_key=" . urlencode($user->consumerkey);
+
                         mtrace('Calling memberships url: ' . $user->membershipsurl . ' with body: ' . $body);
 
                         $response = ltiprovider\sendOAuthBodyPOST('POST', $user->membershipsurl, $user->consumerkey, $user->consumersecret,
