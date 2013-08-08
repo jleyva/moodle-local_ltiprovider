@@ -107,8 +107,11 @@ function sendOAuthBodyPOST($method, $endpoint, $oauth_consumer_key, $oauth_consu
 function sendOAuthParamsPOST($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $params)
 {
 
-    $body = OAuthUtil::urlencode_rfc3986($params);
-    $body = implode('&', $body);
+    if (is_array($params)) {
+        $body = http_build_query($params, '', '&');
+    } else {
+        $body = $params;
+    }
 
     $hash = base64_encode(sha1($body, TRUE));
 
