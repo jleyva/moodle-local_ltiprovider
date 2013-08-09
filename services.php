@@ -31,6 +31,11 @@ $service                = required_param('custom_service', PARAM_RAW_TRIMMED);
 $toolid                 = optional_param('id', 0, PARAM_INT);
 $lticontextid           = optional_param('context_id', false, PARAM_RAW);
 
+if (isset($newinfo['custom_lti_message_encoded_base64']) and $newinfo['custom_lti_message_encoded_base64'] == 1) {
+    $lticontextid = base64_decode($lticontextid);
+    $service = base64_decode($service);
+}
+
 if (!$toolid and $lticontextid) {
     // Check if there is more that one course for this LTI context id.
     if ($DB->count_records('course', array('idnumber' => $lticontextid)) > 1) {
@@ -69,9 +74,12 @@ $context = new BLTI($secret, false, false);
 // Correct launch request.
 if ($context->valid) {
 
+    set_time_limit(0);
+    raise_memory_limit(MEMORY_EXTRA);
+
     // Are we creating a new context (that means a new course tool)?
     if ($service == 'create_context') {
-        $custom_context_template  = optional_param('custom_context_template', false, PARAM_RAW_TRIMMED);
+        $custom_context_template  = $context->info['custom_context_template'];
 
         if (!$tplcourse = $DB->get_record('course', array('idnumber' => $custom_context_template), '*', IGNORE_MULTIPLE)) {
             print_error('invalidtplcourse', 'local_ltiprovider');
@@ -134,7 +142,7 @@ if ($context->valid) {
         echo json_encode($course);
 
     } else if ($service == 'duplicate_resource') {
-        $idnumber = required_param('custom_resource_link_copy_id', PARAM_RAW);
+        $idnumber = $context->info['custom_resource_link_copy_id'];
 
         if (!$tool) {
             print_error('missingrequiredtool', 'local_ltiprovider');

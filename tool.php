@@ -29,9 +29,12 @@ require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 
 $toolid                         = optional_param('id', 0, PARAM_INT);
 $lticontextid                   = optional_param('context_id', false, PARAM_RAW);
-$custom_create_context          = optional_param('custom_create_context', false, PARAM_BOOL);
-$resource_link_id               = optional_param('resource_link_id', false, PARAM_RAW);
-$custom_resource_link_copy_id   = optional_param('custom_resource_link_copy_id', false, PARAM_RAW);
+$custom_create_context          = optional_param('custom_create_context', false, PARAM_RAW);
+
+if (isset($newinfo['custom_lti_message_encoded_base64']) and $newinfo['custom_lti_message_encoded_base64'] == 1) {
+    $lticontextid = base64_decode($lticontextid);
+    $custom_create_context = base64_decode($custom_create_context);
+}
 
 if (!$toolid and !$lticontextid) {
     print_error('invalidtoolid', 'local_ltiprovider');
@@ -149,7 +152,7 @@ if ($context->valid) {
 
         // Are we using another course as template?
         // We have a setting for storing courses to be restored when the cron job is executed.
-        $custom_context_template  = optional_param('custom_context_template', false, PARAM_RAW_TRIMMED);
+        $custom_context_template  = $context->info['custom_context_template'];
         $tplcourse = $DB->get_record('course', array('idnumber' => $custom_context_template), '*', IGNORE_MULTIPLE);
 
         if ($custom_context_template and $tplcourse) {
@@ -206,7 +209,7 @@ if ($context->valid) {
     }
 
     // Transform to utf8 all the post and get data
-    
+
     if (class_exists('textlib')) {
         $textlib = new textlib();
     } else {
@@ -286,6 +289,7 @@ if ($context->valid) {
         $courseid = $context->instanceid;
         $urltogo = $CFG->wwwroot.'/course/view.php?id='.$courseid;
         // Check if we have to redirect to a specific module in the course.
+        $resource_link_id               = $context->info['resource_link_id'];
         if ($resource_link_id) {
             if ($cm = $DB->get_record('course_modules', array('idnumber' => $resource_link_id, 'course' => $courseid), '*', IGNORE_MULTIPLE)) {
                 if ($cm = get_coursemodule_from_id(false, $cm->id, $courseid)) {
@@ -294,14 +298,14 @@ if ($context->valid) {
             }
             // Detect it we must create the resource.
             if (!$cm) {
-                $resource_link_title        = optional_param('resource_link_title', '', PARAM_RAW);
-                $resource_link_description  = optional_param('resource_link_description', '', PARAM_RAW);
-                $resource_link_type         = optional_param('custom_resource_link_type', '', PARAM_RAW);
+                $resource_link_title        = $context->info['resource_link_title'];
+                $resource_link_description  = $context->info['resource_link_description'];
+                $resource_link_type         = $context->info['custom_resource_link_type'];
                 if (!$resource_link_title) {
-                    $resource_link_title  = optional_param('custom_resource_link_title', '', PARAM_RAW);
+                    $resource_link_title  = $context->info['custom_resource_link_title'];
                 }
                 if (!$resource_link_description) {
-                    $resource_link_description  = optional_param('custom_resource_link_description', '', PARAM_RAW);
+                    $resource_link_description  = $context->info['custom_resource_link_description'];
                 }
 
                 // Minimun for creating a module, title and type.
@@ -349,14 +353,15 @@ if ($context->valid) {
                                 $urltogo = new moodle_url('/course/modedit.php', array('update' => $modinfo->coursemodule));
                             }
                         } else {
-                            print_error('rolecannotcreateresources', 'local_ltiprovider'); 
+                            print_error('rolecannotcreateresources', 'local_ltiprovider');
                         }
-                    } 
+                    }
                 }
             }
         }
 
         // Duplicate an existing resource on SSO.
+        $custom_resource_link_copy_id   = $context->info['custom_resource_link_copy_id'];
         if ($custom_resource_link_copy_id) {
             if (!$cm = $DB->get_record('course_modules', array('idnumber' => $custom_resource_link_copy_id), '*', IGNORE_MULTIPLE)) {
                 print_error('invalidresourcecopyid', 'local_ltiprovider');
@@ -391,8 +396,8 @@ if ($context->valid) {
     }
 
     // Login user
-    $sourceid = optional_param('lis_result_sourcedid', '', PARAM_RAW);
-    $serviceurl = optional_param('lis_outcome_service_url', '', PARAM_RAW);
+    $sourceid = $context->info['lis_result_sourcedid'];
+    $serviceurl = $context->info['lis_outcome_service_url'];
 
     if ($userlog = $DB->get_record('local_ltiprovider_user', array('toolid' => $tool->id, 'userid' => $user->id))) {
         if ( $userlog->sourceid != $sourceid ) {
@@ -410,14 +415,14 @@ if ($context->valid) {
         // TODO Improve these checks
         $userlog->serviceurl = $serviceurl;
         $userlog->sourceid = $sourceid;
-        $userlog->consumerkey = optional_param('oauth_consumer_key', '', PARAM_RAW);
+        $userlog->consumerkey = $context->info['oauth_consumer_key'];
         // TODO Do not store secret here
         $userlog->consumersecret = $secret;
         $userlog->lastsync = 0;
         $userlog->lastgrade = 0;
         $userlog->lastaccess = time();
-        $userlog->membershipsurl = optional_param('ext_ims_lis_memberships_url', '', PARAM_RAW);
-        $userlog->membershipsid = optional_param('ext_ims_lis_memberships_id', '', PARAM_RAW);
+        $userlog->membershipsurl = $context->info['ext_ims_lis_memberships_url'];
+        $userlog->membershipsid = $context->info['ext_ims_lis_memberships_id'];
         $DB->insert_record('local_ltiprovider_user', $userlog);
     }
 
@@ -425,25 +430,25 @@ if ($context->valid) {
     $tool->context = $context;
 
     // Overrida some settings.
-    if ($custom_force_navigation = optional_param('custom_force_navigation', false, PARAM_BOOL)) {
+    if ($custom_force_navigation = $context->info['custom_force_navigation']) {
         $tool->forcenavigation = 1;
     }
-    if ($custom_hide_left_blocks = optional_param('custom_hide_left_blocks', false, PARAM_BOOL)) {
+    if ($custom_hide_left_blocks = $context->info['custom_hide_left_blocks']) {
         $tool->hideleftblocks = 1;
     }
-    if ($custom_hide_right_blocks = optional_param('custom_hide_right_blocks', false, PARAM_BOOL)) {
+    if ($custom_hide_right_blocks = $context->info['custom_hide_right_blocks']) {
         $tool->hiderightblocks = 1;
     }
-    if ($custom_hide_page_header = optional_param('custom_hide_page_header', false, PARAM_BOOL)) {
+    if ($custom_hide_page_header = $context->info['custom_hide_page_header']) {
         $tool->hidepageheader = 1;
     }
-    if ($custom_hide_page_footer = optional_param('custom_hide_page_footer', false, PARAM_BOOL)) {
+    if ($custom_hide_page_footer = $context->info['custom_hide_page_footer']) {
         $tool->hidepagefooter = 1;
     }
-    if ($custom_custom_css = optional_param('custom_custom_css', false, PARAM_BOOL)) {
+    if ($custom_custom_css = $context->info['custom_custom_css']) {
         $tool->customcss = 1;
     }
-    if ($custom_show_blocks = optional_param('custom_show_blocks', false, PARAM_RAW)) {
+    if ($custom_show_blocks = $context->info['custom_show_blocks']) {
         $tool->showblocks = $custom_show_blocks;
     }
 

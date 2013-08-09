@@ -32,7 +32,7 @@ class BLTI {
         // If this request is not an LTI Launch, either
         // give up or try to retrieve the context from session
         if ( ! is_basic_lti_request() ) {
-            if ( $usesession === false ) return;  
+            if ( $usesession === false ) return;
             if ( strlen(session_id()) > 0 ) {
                 $row = $_SESSION['_basiclti_lti_row'];
                 if ( isset($row) ) $this->row = $row;
@@ -67,7 +67,7 @@ class BLTI {
         } else if ( ! is_array($parm) ) {
             $this->message = "Constructor requires a secret or database information.";
             return;
-        } 
+        }
 
         // Verify the message signature
         $store = new ltiprovider\TrivialOAuthDataStore();
@@ -78,7 +78,7 @@ class BLTI {
         $method = new ltiprovider\OAuthSignatureMethod_HMAC_SHA1();
         $server->add_signature_method($method);
         $request = ltiprovider\OAuthRequest::from_request();
-        
+
         $this->basestring = $request->get_signature_base_string();
 
         try {
@@ -103,7 +103,13 @@ class BLTI {
             }
         }
 
+        //Added abertranb to decode base 64 20120801
+        if (isset($newinfo['custom_lti_message_encoded_base64']) && $newinfo['custom_lti_message_encoded_base64']==1){
+            $newinfo = $this->decodeBase64($newinfo);
+        }
+
         $this->info = $newinfo;
+
         if ( $usesession == true and strlen(session_id()) > 0 ) {
              $_SESSION['_basic_lti_context'] = $this->info;
              unset($_SESSION['_basiclti_lti_row']);
@@ -157,7 +163,7 @@ class BLTI {
         if ( strlen($familyname) > 0 ) return $familyname;
         return $this->getUserName();
     }
-  
+
     function getUserName() {
         $givenname = $this->info['lis_person_name_given'];
         $familyname = $this->info['lis_person_name_family'];
@@ -233,7 +239,7 @@ class BLTI {
             header("Location: $location");
     }
 
-    function dump() { 
+    function dump() {
         if ( ! $this->valid or $this->info == false ) return "Context not valid\n";
         $ret = "";
         if ( $this->isInstructor() ) {
@@ -253,6 +259,21 @@ class BLTI {
         $ret .= "getConsumerKey() = ".$this->getConsumerKey()."\n";
         return $ret;
     }
+
+    /**
+     * Data submitter are in base64 then we have to decode
+     * @author Antoni Bertran (antoni@tresipunt.com)
+     * @param $info array
+     * @date 20120801
+     */
+     function decodeBase64($info) {
+         $keysNoEncode = array("lti_version", "lti_message_type", "tool_consumer_instance_description", "tool_consumer_instance_guid", "oauth_consumer_key", "custom_lti_message_encoded_base64", "oauth_nonce", "oauth_version", "oauth_callback", "oauth_timestamp", "basiclti_submit", "oauth_signature_method", "ext_ims_lis_memberships_id", "ext_ims_lis_memberships_url");
+         foreach ($info as $key => $item){
+             if (!in_array($key, $keysNoEncode))
+                $info[$key] = base64_decode($item);
+         }
+        return $info;
+     }
 
 }
 
