@@ -41,7 +41,7 @@ $mycontext['oauth_consumer_key'] = optional_param('oauth_consumer_key', false, P
 if (optional_param('custom_lti_message_encoded_base64', 0, PARAM_INT) == 1) {
     $lticontextid = base64_decode($lticontextid);
     $custom_create_context = base64_decode($custom_create_context);
-    $mycontext = decodeBase64($mycontext);
+    $mycontext = BLTI::decodeBase64($mycontext);
 }
 
 if (!$toolid and !$lticontextid) {

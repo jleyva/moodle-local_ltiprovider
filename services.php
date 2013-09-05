@@ -95,7 +95,6 @@ if ($context->valid) {
         $category = array_shift($categories);
         $newcourse->category  = $category->id;
 
-        print_r($newcourse);
         $course = create_course($newcourse);
 
         $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);

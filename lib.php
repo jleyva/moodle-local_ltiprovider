@@ -315,7 +315,8 @@ function local_ltiprovider_cron() {
 
                         $params = array(
                             'lti_message_type' => 'basic-lis-readmembershipsforcontext',
-                            'id' => $user->membershipsid
+                            'id' => $user->membershipsid,
+                            'lti_version' => 'LTI-1p0'
                         );
 
                         mtrace('Calling memberships url: ' . $user->membershipsurl . ' with body: ' . serialize($params));
