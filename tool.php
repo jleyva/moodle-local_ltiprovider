@@ -31,9 +31,17 @@ $toolid                         = optional_param('id', 0, PARAM_INT);
 $lticontextid                   = optional_param('context_id', false, PARAM_RAW);
 $custom_create_context          = optional_param('custom_create_context', false, PARAM_RAW);
 
-if (isset($newinfo['custom_lti_message_encoded_base64']) and $newinfo['custom_lti_message_encoded_base64'] == 1) {
+// Temporary context.
+$mycontext = array();
+$mycontext['context_id'] = optional_param('context_id', false, PARAM_RAW);
+$mycontext['context_title'] = optional_param('context_title', false, PARAM_RAW);
+$mycontext['context_label'] = optional_param('context_label', false, PARAM_RAW);
+$mycontext['oauth_consumer_key'] = optional_param('oauth_consumer_key', false, PARAM_RAW);
+
+if (optional_param('custom_lti_message_encoded_base64', 0, PARAM_INT) == 1) {
     $lticontextid = base64_decode($lticontextid);
     $custom_create_context = base64_decode($custom_create_context);
+    $mycontext = decodeBase64($mycontext);
 }
 
 if (!$toolid and !$lticontextid) {
@@ -42,10 +50,12 @@ if (!$toolid and !$lticontextid) {
 
 if (!$toolid and $lticontextid) {
     // Check if there is more that one course for this LTI context id.
-    if ($DB->count_records('course', array('idnumber' => $lticontextid)) > 1) {
+    $idnumber = local_ltiprovider_get_new_course_info('idnumber', $mycontext);
+
+    if ($DB->count_records('course', array('idnumber' => $idnumber)) > 1) {
         print_error('cantdeterminecontext', 'local_ltiprovider');
     }
-    if ($course = $DB->get_record('course', array('idnumber' => $lticontextid))) {
+    if ($course = $DB->get_record('course', array('idnumber' => $idnumber))) {
         // Look for a course created for this LTI context id.
         if ($coursecontext = get_context_instance(CONTEXT_COURSE, $course->id)) {
             if ($DB->count_records('local_ltiprovider', array('contextid' => $coursecontext->id)) > 1) {
@@ -102,9 +112,9 @@ if ($context->valid) {
 
         require_once("$CFG->dirroot/course/lib.php");
         $newcourse = new stdClass();
-        $newcourse->fullname  = $context->info['context_title'];
-        $newcourse->shortname = $context->info['context_label'];
-        $newcourse->idnumber  = $context->info['context_id'];
+        $newcourse->fullname  = local_ltiprovider_get_new_course_info('fullname', $context);
+        $newcourse->shortname = local_ltiprovider_get_new_course_info('shortname', $context);
+        $newcourse->idnumber  = local_ltiprovider_get_new_course_info('idnumber', $context);
 
         $categories = $DB->get_records('course_categories', null, '', 'id', 0, 1);
         $category = array_shift($categories);
@@ -281,12 +291,12 @@ if ($context->valid) {
     }
 
     // Enrol user in course and activity if needed
-    if (! $context = $DB->get_record('context', array('id' => $tool->contextid))) {
+    if (! $moodlecontext = $DB->get_record('context', array('id' => $tool->contextid))) {
         print_error("invalidcontext");
     }
 
-    if ($context->contextlevel == CONTEXT_COURSE) {
-        $courseid = $context->instanceid;
+    if ($moodlecontext->contextlevel == CONTEXT_COURSE) {
+        $courseid = $moodlecontext->instanceid;
         $urltogo = $CFG->wwwroot.'/course/view.php?id='.$courseid;
         // Check if we have to redirect to a specific module in the course.
         $resource_link_id               = $context->info['resource_link_id'];
@@ -299,8 +309,8 @@ if ($context->valid) {
             // Detect it we must create the resource.
             if (!$cm) {
                 $resource_link_title        = $context->info['resource_link_title'];
-                $resource_link_description  = $context->info['resource_link_description'];
-                $resource_link_type         = $context->info['custom_resource_link_type'];
+                $resource_link_description  = (isset($context->info['resource_link_description'])) ? $context->info['resource_link_description'] : false;
+                $resource_link_type         = (isset($context->info['custom_resource_link_type'])) ? $context->info['custom_resource_link_type'] : false;
                 if (!$resource_link_title) {
                     $resource_link_title  = $context->info['custom_resource_link_title'];
                 }
@@ -372,9 +382,9 @@ if ($context->valid) {
             }
         }
 
-    } else if ($context->contextlevel == CONTEXT_MODULE) {
-        $cmid = $context->instanceid;
-        $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
+    } else if ($moodlecontext->contextlevel == CONTEXT_MODULE) {
+        $cmid = $moodlecontext->instanceid;
+        $cm = get_coursemodule_from_id(false, $moodlecontext->instanceid, 0, false, MUST_EXIST);
         $courseid = $cm->course;
         $urltogo = $CFG->wwwroot.'/mod/'.$cm->modname.'/view.php?id='.$cm->id;
     } else {
@@ -387,7 +397,7 @@ if ($context->valid) {
     $roles = explode(',', strtolower($context->info['roles']));
     local_ltiprovider_enrol_user($tool, $user, $roles);
 
-    if ($context->contextlevel == CONTEXT_MODULE) {
+    if ($moodlecontext->contextlevel == CONTEXT_MODULE) {
         // Enrol the user in the activity
         if (($tool->aroleinst and $role == 'Instructor') or ($tool->arolelearn and $role == 'Learner')) {
             $roleid = ($role == 'Instructor')? $tool->aroleinst: $tool->arolelearn;
@@ -427,7 +437,7 @@ if ($context->valid) {
     }
 
     add_to_log(SITEID, 'user', 'login', $urltogo, "ltiprovider login", 0, $user->id);
-    $tool->context = $context;
+    $tool->context = $moodlecontext;
 
     // Overrida some settings.
     if ($custom_force_navigation = $context->info['custom_force_navigation']) {

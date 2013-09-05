@@ -51,6 +51,17 @@ if ($hassiteconfig) { // needs this condition or there is error on login page
     $settings->add(new admin_setting_configselect('local_ltiprovider/defaultauthmethod', get_string('defaultauthmethod',
         'local_ltiprovider'), get_string('defaultauthmethodhelp', 'local_ltiprovider'), 'nologin', $authmethods));
 
+    $options = array('context_id', 'context_title' , 'context_label', 'consumer_key : context_id', 'consumer_key : context_title' , 'consumer_key : context_label');
+
+    $settings->add(new admin_setting_configselect('local_ltiprovider/fullnameformat', get_string('fullnameformat',
+        'local_ltiprovider'), get_string('genericformathelp', 'local_ltiprovider'), 1, $options));
+
+    $settings->add(new admin_setting_configselect('local_ltiprovider/shortnameformat', get_string('shortnameformat',
+        'local_ltiprovider'), get_string('genericformathelp', 'local_ltiprovider'), 2, $options));
+
+    $settings->add(new admin_setting_configselect('local_ltiprovider/idnumberformat', get_string('idnumberformat',
+        'local_ltiprovider'), get_string('genericformathelp', 'local_ltiprovider'), 0, $options));
+
     $settings->add(new admin_setting_configmultiselect('local_ltiprovider/rolesallowedcreatecontexts', get_string('rolesallowedcreatecontexts', 'local_ltiprovider'),
                    '', array('Administrator'),
                        array(

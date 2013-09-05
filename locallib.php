@@ -191,8 +191,8 @@ function local_ltiprovider_enrol_user($tool, $user, $roles, $return = false) {
  */
 function local_ltiprovider_populate($user, $context, $tool) {
     global $CFG;
-    $user->firstname = optional_param('lis_person_name_given', '', PARAM_TEXT);
-    $user->lastname = optional_param('lis_person_name_family', '', PARAM_TEXT);
+    $user->firstname = isset($context->info['lis_person_name_given'])? $context->info['lis_person_name_given'] : $context->getUserEmail();
+    $user->lastname = isset($context->info['lis_person_name_family'])? $context->info['lis_person_name_family']: '';
     $user->email = clean_param($context->getUserEmail(), PARAM_EMAIL);
     $user->city = $tool->city;
     $user->country = $tool->country;
@@ -245,15 +245,70 @@ function local_ltiprovider_user_match($newuser, $olduser) {
 }
 
 /**
+ * For new created courses we get the fullname, shortname or idnumber according global settings
+ * @param  string $field   The course field to get (fullname, shortname or idnumber)
+ * @param  stdClass $context The global LTI context
+ * @return string          The field
+ */
+function local_ltiprovider_get_new_course_info($field, $context) {
+    global $DB;
+
+    $info = '';
+
+    $setting = get_config('local_ltiprovider', $field . "format");
+
+    switch ($setting) {
+        case 0:
+            $info = $context->info['context_id'];
+            break;
+        case '1':
+            $info = $context->info['context_title'];
+            break;
+        case '2':
+            $info = $context->info['context_label'];
+            break;
+        case '3':
+            $info = $context->info['oauth_consumer_key'] . ':' . $context->info['context_id'];
+            break;
+        case '4':
+            $info = $context->info['oauth_consumer_key'] . ':' . $context->info['context_title'];
+            break;
+        case '5':
+            $info = $context->info['oauth_consumer_key'] . ':' . $context->info['context_label'];
+            break;
+    }
+
+    // Special case.
+    if ($field == 'shortname') {
+        // Add or increase the number at the final of the shortname.
+        if ($course = $DB->get_record('course', array ('shortname' => $info))) {
+            if ($samecourses = $DB->get_records('course', array ('fullname' => $course->fullname), 'id DESC', 'shortname', '0', '1')) {
+                $samecourse = array_shift($samecourses);
+                $parts = explode(' ', $samecourse->shortname);
+                $number = array_pop($parts);
+                if (is_numeric($number)) {
+                    $parts[] = $number + 1;
+                } else {
+                    $parts[] = $number . ' 1';
+                }
+                $info = implode(' ', $parts);
+            }
+        }
+    }
+
+    return $info;
+}
+
+/**
  * Duplicate a course
  *
  * @param int $courseid
  * @param string $fullname Duplicated course fullname
- * @param int $newcourseid Destination course
+ * @param int $newcourse Destination course
  * @param array $options List of backup options
  * @return stdClass New course info
  */
- function local_ltiprovider_duplicate_course($courseid, $newcourseid, $visible = 1, $options = array()) {
+ function local_ltiprovider_duplicate_course($courseid, $newcourse, $visible = 1, $options = array()) {
     global $CFG, $USER, $DB;
 
     require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
@@ -329,7 +384,7 @@ function local_ltiprovider_user_match($newuser, $olduser) {
         $file->extract_to_pathname(get_file_packer(), $backupbasepath);
     }
 
-    $rc = new restore_controller($backupid, $newcourseid,
+    $rc = new restore_controller($backupid, $newcourse->id,
             backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $admin->id, backup::TARGET_NEW_COURSE);
 
     foreach ($backupsettings as $name => $value) {
@@ -365,8 +420,11 @@ function local_ltiprovider_user_match($newuser, $olduser) {
     $rc->execute_plan();
     $rc->destroy();
 
-    $course = $DB->get_record('course', array('id' => $newcourseid), '*', MUST_EXIST);
+    $course = $DB->get_record('course', array('id' => $newcourse->id), '*', MUST_EXIST);
     $course->visible = $visible;
+    $course->fullname = $newcourse->fullname;
+    $course->shortname = $newcourse->shortname;
+    $course->idnumber = $newcourse->idnumber;
 
     // Set shortname and fullname back.
     $DB->update_record('course', $course);

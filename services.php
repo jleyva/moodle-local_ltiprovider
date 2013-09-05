@@ -87,14 +87,15 @@ if ($context->valid) {
 
         require_once("$CFG->dirroot/course/lib.php");
         $newcourse = new stdClass();
-        $newcourse->fullname  = $context->info['context_title'];
-        $newcourse->shortname = $context->info['context_label'];
-        $newcourse->idnumber  = $context->info['context_id'];
+        $newcourse->fullname  = local_ltiprovider_get_new_course_info('fullname', $context);
+        $newcourse->shortname = local_ltiprovider_get_new_course_info('shortname', $context);
+        $newcourse->idnumber  = local_ltiprovider_get_new_course_info('idnumber', $context);
 
         $categories = $DB->get_records('course_categories', null, '', 'id', 0, 1);
         $category = array_shift($categories);
         $newcourse->category  = $category->id;
 
+        print_r($newcourse);
         $course = create_course($newcourse);
 
         $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
@@ -136,7 +137,7 @@ if ($context->valid) {
         $tool->id = $toolid;
 
         // Duplicate course + users.
-        $course = local_ltiprovider_duplicate_course($tplcourse->id, $course->id, 1,
+        $course = local_ltiprovider_duplicate_course($tplcourse->id, $course, 1,
                                             $options = array(array('name'   => 'users',
                                                                     'value' => 1)));
         echo json_encode($course);

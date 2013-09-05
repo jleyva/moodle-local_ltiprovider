@@ -36,7 +36,7 @@ require_once("../ims-blti/blti_util.php");
       "custom_context_template" => "",
       "custom_resource_link_type" => "",
       "custom_resource_link_copy_id" => "",
-      "service" => "",
+      "custom_service" => "",
       "custom_force_navigation" => "",
       "custom_hide_left_blocks" => "",
       "custom_hide_right_blocks" => "",
@@ -71,8 +71,8 @@ require_once("../ims-blti/blti_util.php");
   $xmldesc = str_replace("\\\"","\"",$_REQUEST["xmldesc"]);
   if ( ! $xmldesc ) $xmldesc = $default_desc;
 ?>
-<script language="javascript"> 
-  //<![CDATA[ 
+<script language="javascript">
+  //<![CDATA[
 function lmsdataToggle() {
     var ele = document.getElementById("lmsDataForm");
     if(ele.style.display == "block") {
@@ -81,8 +81,8 @@ function lmsdataToggle() {
     else {
         ele.style.display = "block";
     }
-} 
-  //]]> 
+}
+  //]]>
 </script>
 <a id="displayText" href="javascript:lmsdataToggle();">Toggle Resource and Launch Data</a>
 <?php
@@ -141,17 +141,17 @@ function lmsdataToggle() {
 
   $parms = signParameters($parms, $endpoint, "POST", $key, $secret, "Press to Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
 
-  $content = postLaunchHTML($parms, $endpoint, true, 
+  $content = postLaunchHTML($parms, $endpoint, true,
      "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" transparency");
   print($content);
 
 ?>
 <hr>
 <p>
-Note: Unpublished drafts of IMS Specifications are only available to 
+Note: Unpublished drafts of IMS Specifications are only available to
 IMS members and any software based on an unpublished draft is subject to change.
 Sample code is provided to help developers understand the specification more quickly.
-Simply interoperating with this sample implementation code does not 
+Simply interoperating with this sample implementation code does not
 allow one to claim compliance with a specification.
 <p>
 <a href=http://www.imsglobal.org/toolsinteroperability2.cfm>IMS Learning Tools Interoperability Working Group</a> <br/>
