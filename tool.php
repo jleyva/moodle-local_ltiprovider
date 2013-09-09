@@ -32,16 +32,18 @@ $lticontextid                   = optional_param('context_id', false, PARAM_RAW)
 $custom_create_context          = optional_param('custom_create_context', false, PARAM_RAW);
 
 // Temporary context.
-$mycontext = array();
-$mycontext['context_id'] = optional_param('context_id', false, PARAM_RAW);
-$mycontext['context_title'] = optional_param('context_title', false, PARAM_RAW);
-$mycontext['context_label'] = optional_param('context_label', false, PARAM_RAW);
-$mycontext['oauth_consumer_key'] = optional_param('oauth_consumer_key', false, PARAM_RAW);
+$mycontext = new stdClass();
+$mycontext->info = array();
+$mycontext->info['context_id'] = optional_param('context_id', false, PARAM_RAW);
+$mycontext->info['context_title'] = optional_param('context_title', false, PARAM_RAW);
+$mycontext->info['context_label'] = optional_param('context_label', false, PARAM_RAW);
+$mycontext->info['oauth_consumer_key'] = optional_param('oauth_consumer_key', false, PARAM_RAW);
 
 if (optional_param('custom_lti_message_encoded_base64', 0, PARAM_INT) == 1) {
     $lticontextid = base64_decode($lticontextid);
     $custom_create_context = base64_decode($custom_create_context);
-    $mycontext = BLTI::decodeBase64($mycontext);
+    $blti = new BLTI(false, false, false);
+    $mycontext->info = $blti->decodeBase64($mycontext->info);
 }
 
 if (!$toolid and !$lticontextid) {
@@ -51,7 +53,6 @@ if (!$toolid and !$lticontextid) {
 if (!$toolid and $lticontextid) {
     // Check if there is more that one course for this LTI context id.
     $idnumber = local_ltiprovider_get_new_course_info('idnumber', $mycontext);
-
     if ($DB->count_records('course', array('idnumber' => $idnumber)) > 1) {
         print_error('cantdeterminecontext', 'local_ltiprovider');
     }

@@ -1,64 +1,64 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/ltiprovider/db" VERSION="20130723" COMMENT="XMLDB file for Moodle local/ltiprovider"
+<XMLDB PATH="local/ltiprovider/db" VERSION="20130909" COMMENT="XMLDB file for Moodle local/ltiprovider"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="local_ltiprovider" COMMENT="List of tools provided to the remote system">
+    <TABLE NAME="local_ltiprovider" COMMENT="List of tools provided to the remote system" NEXT="local_ltiprovider_user">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="disabled" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="sendgrades" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
-        <FIELD NAME="forcenavigation" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false"/>
-        <FIELD NAME="croleinst" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="crolelearn" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="aroleinst" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="arolelearn" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="secret" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="encoding" TYPE="char" LENGTH="32" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="institution" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="lang" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="en" SEQUENCE="false"/>
-        <FIELD NAME="timezone" TYPE="char" LENGTH="100" NOTNULL="true" DEFAULT="99" SEQUENCE="false"/>
-        <FIELD NAME="maildisplay" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="2" SEQUENCE="false"/>
-        <FIELD NAME="city" TYPE="char" LENGTH="120" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="country" TYPE="char" LENGTH="2" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="hidepageheader" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="hidepagefooter" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="hideleftblocks" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="hiderightblocks" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="customcss" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="enrolstartdate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="enrolperiod" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="enrolenddate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="maxenrolled" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="userprofileupdate" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="1" SEQUENCE="false"/>
-        <FIELD NAME="syncmembers" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="syncmode" TYPE="int" LENGTH="2" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="syncperiod" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last sync timestamp"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="contextid"/>
+        <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="courseid" NEXT="disabled"/>
+        <FIELD NAME="disabled" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="contextid" NEXT="sendgrades"/>
+        <FIELD NAME="sendgrades" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="disabled" NEXT="forcenavigation"/>
+        <FIELD NAME="forcenavigation" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="sendgrades" NEXT="croleinst"/>
+        <FIELD NAME="croleinst" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="forcenavigation" NEXT="crolelearn"/>
+        <FIELD NAME="crolelearn" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="croleinst" NEXT="aroleinst"/>
+        <FIELD NAME="aroleinst" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="crolelearn" NEXT="arolelearn"/>
+        <FIELD NAME="arolelearn" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="aroleinst" NEXT="secret"/>
+        <FIELD NAME="secret" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="arolelearn" NEXT="encoding"/>
+        <FIELD NAME="encoding" TYPE="char" LENGTH="32" NOTNULL="false" SEQUENCE="false" PREVIOUS="secret" NEXT="institution"/>
+        <FIELD NAME="institution" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" PREVIOUS="encoding" NEXT="lang"/>
+        <FIELD NAME="lang" TYPE="char" LENGTH="30" NOTNULL="true" DEFAULT="en" SEQUENCE="false" PREVIOUS="institution" NEXT="timezone"/>
+        <FIELD NAME="timezone" TYPE="char" LENGTH="100" NOTNULL="true" DEFAULT="99" SEQUENCE="false" PREVIOUS="lang" NEXT="maildisplay"/>
+        <FIELD NAME="maildisplay" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="2" SEQUENCE="false" PREVIOUS="timezone" NEXT="city"/>
+        <FIELD NAME="city" TYPE="char" LENGTH="120" NOTNULL="true" SEQUENCE="false" PREVIOUS="maildisplay" NEXT="country"/>
+        <FIELD NAME="country" TYPE="char" LENGTH="2" NOTNULL="true" SEQUENCE="false" PREVIOUS="city" NEXT="hidepageheader"/>
+        <FIELD NAME="hidepageheader" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="country" NEXT="hidepagefooter"/>
+        <FIELD NAME="hidepagefooter" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="hidepageheader" NEXT="hideleftblocks"/>
+        <FIELD NAME="hideleftblocks" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="hidepagefooter" NEXT="hiderightblocks"/>
+        <FIELD NAME="hiderightblocks" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="hideleftblocks" NEXT="customcss"/>
+        <FIELD NAME="customcss" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="hiderightblocks" NEXT="enrolstartdate"/>
+        <FIELD NAME="enrolstartdate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="customcss" NEXT="enrolperiod"/>
+        <FIELD NAME="enrolperiod" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="enrolstartdate" NEXT="enrolenddate"/>
+        <FIELD NAME="enrolenddate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="enrolperiod" NEXT="maxenrolled"/>
+        <FIELD NAME="maxenrolled" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="enrolenddate" NEXT="userprofileupdate"/>
+        <FIELD NAME="userprofileupdate" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="1" SEQUENCE="false" PREVIOUS="maxenrolled" NEXT="syncmembers"/>
+        <FIELD NAME="syncmembers" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="userprofileupdate" NEXT="syncmode"/>
+        <FIELD NAME="syncmode" TYPE="int" LENGTH="2" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="syncmembers" NEXT="syncperiod"/>
+        <FIELD NAME="syncperiod" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="syncmode" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="syncperiod" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="timemodified" NEXT="lastsync"/>
+        <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="timecreated"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="local_ltiprovider_user" COMMENT="User access log and gradeback data">
+    <TABLE NAME="local_ltiprovider_user" COMMENT="User access log and gradeback data" PREVIOUS="local_ltiprovider">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="toolid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="serviceurl" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="sourceid" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="consumerkey" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="consumersecret" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="lastgrade" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last grade"/>
-        <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last sync timestamp"/>
-        <FIELD NAME="lastaccess" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last access timestamp"/>
-        <FIELD NAME="membershipsurl" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="membershipsid" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="toolid"/>
+        <FIELD NAME="toolid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="userid" NEXT="serviceurl"/>
+        <FIELD NAME="serviceurl" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="toolid" NEXT="sourceid"/>
+        <FIELD NAME="sourceid" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="serviceurl" NEXT="consumerkey"/>
+        <FIELD NAME="consumerkey" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="sourceid" NEXT="consumersecret"/>
+        <FIELD NAME="consumersecret" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="consumerkey" NEXT="lastgrade"/>
+        <FIELD NAME="lastgrade" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last grade" PREVIOUS="consumersecret" NEXT="lastsync"/>
+        <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="lastgrade" NEXT="lastaccess"/>
+        <FIELD NAME="lastaccess" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last access timestamp" PREVIOUS="lastsync" NEXT="membershipsurl"/>
+        <FIELD NAME="membershipsurl" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="lastaccess" NEXT="membershipsid"/>
+        <FIELD NAME="membershipsid" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="membershipsurl"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
