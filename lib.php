@@ -64,7 +64,7 @@ function local_ltiprovider_extends_settings_navigation(settings_navigation $nav,
  * @param navigation_node $nav Current navigation object
  */
 function local_ltiprovider_extends_navigation ($nav) {
-    global $CFG, $USER, $PAGE, $SESSION;
+    global $CFG, $USER, $PAGE, $SESSION, $ME;
 
     // Check capabilities for tool providers
     // Only for Moodle < 2.3 versions
@@ -85,6 +85,11 @@ function local_ltiprovider_extends_navigation ($nav) {
             } else if ($context->contextlevel == CONTEXT_MODULE and $PAGE->context->id != $context->id) {
                 $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
                 $urltogo = new moodle_url('/mod/'.$cm->modname.'/view.php', array('id' => $cm->id));
+            }
+
+            // Special case, user policy, we don't have to do nothing to avoid infinites loops.
+            if (strpos($ME, 'user/policy.php')) {
+                return;
             }
 
             if ($urltogo) {
@@ -388,7 +393,7 @@ function local_ltiprovider_cron() {
                                     // Now we check if we have to unenrol users for keep both systems sync.
                                     if ($tool->syncmode == 1 or $tool->syncmode == 3) {
                                         // Unenrol users also.
-                                        $context = get_context_instance(CONTEXT_COURSE, $tool->courseid);
+                                        $context = context_course::instance($tool->courseid);
                                         $eusers = get_enrolled_users($context);
                                         foreach ($eusers as $euser) {
                                             if (!in_array($euser->id, $currentusers)) {
