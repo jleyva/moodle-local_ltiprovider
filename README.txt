@@ -38,6 +38,77 @@ Send backs course or activity final grades to the LTI consumer tool
 
 Modify the course or activity page for hiding the header, footer and left or right blocks
 
+== Plugin version 2.4 and above features ==
+
+=== The plugin settings link is displayed in the settings block, instead the course one ===
+
+=== Several new settings for control different features of the plugin: ===
+- How the user profile is updated
+- Default authentication method
+- Format of the course shortname, fullname and idnumber (using LTI variables)
+- Roles allowed to create new contexts
+- Roles allowed to create new resources
+
+=== The remote tool can be opened using the context_id ===
+
+The tool can be opened using also the context_id instead the current internal Moodle id
+
+=== Support for context memberships service ===
+
+See http://developers.imsglobal.org/ext_membership.html
+
+=== LTI custom parameters to force settings on SSO ===
+
+See https://tracker.moodle.org/browse/CONTRIB-4502
+
+=== Service for context (course) creation, using other courses as template ===
+
+Service URL local/ltiprovider/services.php
+
+Custom parameters:
+
+custom_service = create_context
+
+custom_context_template = Moodle idnumber for a course to be used as a template (the course will be duplicate)
+
+The course will be created populating the fullname, shortname and idnumber configured in the plugin settings
+
+=== Service for resources duplication ===
+
+Service URL local/ltiprovider/services.php
+
+Custom parameters:
+
+custom_service = duplicate_resource
+
+custom_resource_link_copy_id = Moodle idnumber of the activity to be duplicated in the current context
+
+=== SSO to resources ===
+
+If the context resource_link_id matches to an activity idnumber, the user will be redirect to that activity in Moodle
+
+=== Automatic creation of resources (moodle activities) ===
+
+If this additional parameter is present in the request custom_resource_link_type (mod_forum, etc...)  and also resource_link_title and resource_link_description a new moodle activity will be created
+
+See: https://tracker.moodle.org/browse/CONTRIB-4409
+
+=== Automatic creation of contexts on SSO ===
+
+Two additional request parameters are required:
+
+custom_create_context (0 or 1)
+
+custom_context_template (Moodle course idnumber)
+
+
+=== Resources duplication on SSO ==
+
+Additional parameter required:
+
+custom_resource_link_copy_id = Moodle idnumber of the activity to be duplicated in the current context
+
+
 == Installing and configuring ==
 
 Follow instructions here: http://moodle.org/plugins/pluginversions.php?plugin=local_ltiprovider
@@ -95,13 +166,6 @@ In order to work correctly, your php.ini settings file needs to have the followi
 
 allow_url_fopen = On
 
-== Future versions ==
-
-* Handle authentication with a custom auth plugin for Moodle (for handling logout, etc...)
-* Add options for automatically add remote users to course groups.
-* Add options for automatically add remote users to system cohorts.
-* Add options for enabling duration time for enrolments
-* Add support for consumer keys
 
 == Credits ==
 
