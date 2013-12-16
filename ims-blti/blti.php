@@ -9,7 +9,7 @@ use moodle\local\ltiprovider as ltiprovider;
 // with minimum values to meet the protocol
 function is_basic_lti_request() {
    $good_message_type = $_REQUEST["lti_message_type"] == "basic-lti-launch-request";
-   $good_lti_version = $_REQUEST["lti_version"] == "LTI-1p0";
+   $good_lti_version = ($_REQUEST["lti_version"] == "LTI-1p0" or $_REQUEST["lti_version"] == "LTI-1.0");
    $resource_link_id = $_REQUEST["resource_link_id"];
    if ($good_message_type and $good_lti_version and isset($resource_link_id) ) return(true);
    return false;
@@ -29,10 +29,13 @@ class BLTI {
 
     function __construct($parm=false, $usesession=true, $doredirect=true) {
 
+
         // If this request is not an LTI Launch, either
         // give up or try to retrieve the context from session
         if ( ! is_basic_lti_request() ) {
+
             if ( $usesession === false ) return;
+
             if ( strlen(session_id()) > 0 ) {
                 $row = $_SESSION['_basiclti_lti_row'];
                 if ( isset($row) ) $this->row = $row;
