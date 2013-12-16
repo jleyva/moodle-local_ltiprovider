@@ -26,6 +26,8 @@ You can use this plugin to share activities and courses between Moodle installat
 
 You can also share activities and courses with other LTI consumer tools like Sakai
 
+You have a detailed view of this plugin possibilities in [http://www.somerandomthoughts.com/blog/2012/01/08/review-lti-provider-for-moodle-2-2/ this post by Gavin Henrik]
+
 == Main feautres ==
 
 Provide access to full courses or single activities.
@@ -39,6 +41,12 @@ Modify the course or activity page for hiding the header, footer and left or rig
 == Installing and configuring ==
 
 Follow instructions here: http://moodle.org/plugins/pluginversions.php?plugin=local_ltiprovider
+
+'''Important''' If you are using Moodle 2.2 or above, please, be sure that this option:
+
+ Home / > Site administration / > Security / > HTTP security Allow frame embedding
+
+Is checked, if you leave this option unchecked your provider site will not be "embedable" via an iframe in other sites.
 
 Once installed, a new link called "LTI Provider" will be displayed in the course navigation block .
 
@@ -56,13 +64,17 @@ Once added a tool, you will need to use two settings in your consumer tool:
 
 * Launch URL
 
+Your consumer tool will ask you for a consumer private key, you can use a random string (please, do not use the shared secret as the private key)
+
 Configure your consumer tool with these two settings. That's all
+
+For a more detailed view of the plugin options see [http://www.somerandomthoughts.com/blog/2012/01/08/review-lti-provider-for-moodle-2-2/ this detailed review of the plugin by Gavin Henrik]
 
 == How it works ==
 
 === User authentication ===
 
-* Users are created automatically in their first access to the system. 
+* Users are created automatically in their first access to the system.
 * Users are created with a hashed username and also with an auth method that disable direct login to Moodle.
 * Users are allways enrolled in the course where the activities are.
 
@@ -79,12 +91,17 @@ If you are going to have courses with local and remote users enrolled, I recomme
 
 A cron job checks periodically activities for sending back grades (overall course grade or activity grade).
 
+In order to work correctly, your php.ini settings file needs to have the following setting enabled:
+
+allow_url_fopen = On
+
 == Future versions ==
 
 * Handle authentication with a custom auth plugin for Moodle (for handling logout, etc...)
 * Add options for automatically add remote users to course groups.
 * Add options for automatically add remote users to system cohorts.
 * Add options for enabling duration time for enrolments
+* Add support for consumer keys
 
 == Credits ==
 
@@ -93,6 +110,8 @@ Juan Leyva <http://twitter.com/#!/jleyvadelgado>
 http://moodle.org/user/profile.php?id=49568
 
 == See also ==
+
+[http://www.somerandomthoughts.com/blog/2012/01/08/review-lti-provider-for-moodle-2-2/ Review: LTI Provider by Gavin Henrik]
 
 [http://moodle.org/plugins/pluginversions.php?plugin=local_ltiprovider Plugin entry]
 
