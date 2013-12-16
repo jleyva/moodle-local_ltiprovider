@@ -55,14 +55,14 @@ if ($tool->hidepagefooter or $SESSION->ltiprovider->hidepagefooter) {
 }
 if ($tool->hideleftblocks or $SESSION->ltiprovider->hideleftblocks) {
     $css .= '
-    #region-pre{
+    #region-pre, #block-region-side-pre{
      display: none;
     }
     ';
 }
 if ($tool->hiderightblocks or $SESSION->ltiprovider->hiderightblocks) {
     $css .= '
-    #region-post{
+    #region-post, #block-region-side-post {
      display: none;
     }
     ';
