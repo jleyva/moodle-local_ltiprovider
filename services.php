@@ -44,7 +44,7 @@ if (!$toolid and $lticontextid) {
 
     if ($course = $DB->get_record('course', array('idnumber' => $lticontextid))) {
         // Look for a course created for this LTI context id.
-        if ($coursecontext = get_context_instance(CONTEXT_COURSE, $course->id)) {
+        if ($coursecontext = context_course::instance($course->id)) {
             if ($DB->count_records('local_ltiprovider', array('contextid' => $coursecontext->id)) > 1) {
                 print_error('cantdeterminecontext', 'local_ltiprovider');
             }
@@ -97,7 +97,7 @@ if ($context->valid) {
 
         $course = create_course($newcourse);
 
-        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+        $coursecontext = context_course::instance($course->id);
 
         // Create the tool that provide the full course.
         $tool = new stdClass();

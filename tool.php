@@ -58,7 +58,7 @@ if (!$toolid and $lticontextid) {
     }
     if ($course = $DB->get_record('course', array('idnumber' => $idnumber))) {
         // Look for a course created for this LTI context id.
-        if ($coursecontext = get_context_instance(CONTEXT_COURSE, $course->id)) {
+        if ($coursecontext = context_course::instance($course->id)) {
             if ($DB->count_records('local_ltiprovider', array('contextid' => $coursecontext->id)) > 1) {
                 print_error('cantdeterminecontext', 'local_ltiprovider');
             }
@@ -123,7 +123,7 @@ if ($context->valid) {
 
         $course = create_course($newcourse);
 
-        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+        $coursecontext = context_course::instance($course->id);
 
         // Create the tool that provide the full course.
         $tool = new stdClass();
@@ -372,7 +372,7 @@ if ($context->valid) {
         }
 
         // Duplicate an existing resource on SSO.
-        $custom_resource_link_copy_id   = $context->info['custom_resource_link_copy_id'];
+        $custom_resource_link_copy_id = (!empty($context->info['custom_resource_link_copy_id'])) ? $context->info['custom_resource_link_copy_id'] : false;
         if ($custom_resource_link_copy_id) {
             if (!$cm = $DB->get_record('course_modules', array('idnumber' => $custom_resource_link_copy_id), '*', IGNORE_MULTIPLE)) {
                 print_error('invalidresourcecopyid', 'local_ltiprovider');
@@ -407,8 +407,8 @@ if ($context->valid) {
     }
 
     // Login user
-    $sourceid = $context->info['lis_result_sourcedid'];
-    $serviceurl = $context->info['lis_outcome_service_url'];
+    $sourceid =     (!empty($context->info['lis_result_sourcedid'])) ? $context->info['lis_result_sourcedid'] : '';
+    $serviceurl =   (!empty($context->info['lis_outcome_service_url'])) ? $context->info['lis_outcome_service_url'] : '';
 
     if ($userlog = $DB->get_record('local_ltiprovider_user', array('toolid' => $tool->id, 'userid' => $user->id))) {
         if ( $userlog->sourceid != $sourceid ) {
@@ -432,13 +432,22 @@ if ($context->valid) {
         $userlog->lastsync = 0;
         $userlog->lastgrade = 0;
         $userlog->lastaccess = time();
-        $userlog->membershipsurl = $context->info['ext_ims_lis_memberships_url'];
-        $userlog->membershipsid = $context->info['ext_ims_lis_memberships_id'];
+        $userlog->membershipsurl = (!empty($context->info['ext_ims_lis_memberships_url'])) ? $context->info['ext_ims_lis_memberships_url']: '';
+        $userlog->membershipsid =  (!empty($context->info['ext_ims_lis_memberships_id']))  ? $context->info['ext_ims_lis_memberships_id'] : '';
         $DB->insert_record('local_ltiprovider_user', $userlog);
     }
 
     add_to_log(SITEID, 'user', 'login', $urltogo, "ltiprovider login", 0, $user->id);
     $tool->context = $moodlecontext;
+
+    $indexes = array('custom_force_navigation', 'custom_hide_left_blocks', 'custom_hide_right_blocks',
+                        'custom_hide_page_header', 'custom_hide_page_footer', 'custom_custom_css', 'custom_show_blocks' );
+
+    foreach ($indexes as $i) {
+        if (empty($context->info[$i])) {
+            $context->info[$i] = '';
+        }
+    }
 
     // Overrida some settings.
     if ($custom_force_navigation = $context->info['custom_force_navigation']) {

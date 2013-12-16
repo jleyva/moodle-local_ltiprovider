@@ -34,8 +34,8 @@ if (! ($course = $DB->get_record('course', array('id'=>$courseid)))) {
 
 $PAGE->set_url('/local/ltiprovider/index.php', array('courseid' => $courseid));
 
-preload_course_contexts($course->id);
-if (!$context = get_context_instance(CONTEXT_COURSE, $course->id)) {
+context_helper::preload_course($course->id);
+if (!$context = context_course::instance($course->id)) {
     print_error('nocontext');
 }
 
@@ -51,12 +51,12 @@ $tools = $DB->get_records('local_ltiprovider', array('courseid' => $course->id))
 
 $data = array();
 foreach ($tools as $tool) {
-    if (!$toolcontext = get_context_instance_by_id($tool->contextid)) {
+    if (!$toolcontext = context::instance_by_id($tool->contextid)) {
         local_ltiprovider_delete_tool($tool);
         continue;
     }
     $line = array();
-    $line[] = print_context_name($toolcontext);
+    $line[] = $toolcontext->get_context_name();
     $line[] = $tool->secret;
     $line[] = new moodle_url('/local/ltiprovider/tool.php', array('id' => $tool->id));
 

@@ -51,8 +51,8 @@ if (! ($course = $DB->get_record('course', array('id'=>$courseid)))) {
 
 $PAGE->set_url('/local/ltiprovider/edit.php', array('id' => $id, 'courseid' => $courseid));
 
-preload_course_contexts($course->id);
-if (!$context = get_context_instance(CONTEXT_COURSE, $course->id)) {
+context_helper::preload_course($course->id);
+if (!$context = context_course::instance($course->id)) {
     print_error('nocontext');
 }
 

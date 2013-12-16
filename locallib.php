@@ -25,6 +25,7 @@
 
 defined('MOODLE_INTERNAL') or die;
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
+require_once($CFG->dirroot.'/course/lib.php');
 
 use moodle\local\ltiprovider as ltiprovider;
 
@@ -459,8 +460,8 @@ function local_ltiprovider_duplicate_module($cmid, $courseid) {
 
     $course     = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
     $cm         = get_coursemodule_from_id('', $cmid, 0, true, MUST_EXIST);
-    $cmcontext  = get_context_instance(CONTEXT_MODULE, $cm->id);
-    $context    = get_context_instance(CONTEXT_COURSE, $course->id);
+    $cmcontext  = context_module::instance($cm->id);
+    $context    = context_course::instance($course->id);
 
 
     if (!plugin_supports('mod', $cm->modname, FEATURE_BACKUP_MOODLE2)) {

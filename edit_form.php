@@ -43,7 +43,9 @@ class edit_form extends moodleform {
 
         $tools = array();
         $tools[$context->id] = get_string('course');
-        get_all_mods($this->_customdata['courseid'], $mods, $modnames, $modnamesplural, $modnamesused);
+
+        $modinfo = get_fast_modinfo($this->_customdata['courseid']);
+        $mods = $modinfo->get_cms();
 
         foreach ($mods as $mod) {
             $tools[$mod->context->id] = format_string($mod->name);
