@@ -75,7 +75,7 @@ function local_ltiprovider_extends_navigation ($nav) {
         $coursenode->add(get_string('pluginname', 'local_ltiprovider'), $ltiurl, $nav::TYPE_CONTAINER, null, 'ltiprovider'.$PAGE->course->id);
     }
 
-    if (isset($USER) and isset($USER->auth) and $USER->auth == 'nologin' and strpos($USER->username, 'ltiprovider') === 0) {
+    if (isset($USER) and isset($USER->auth) and strpos($USER->username, 'ltiprovider') === 0) {
         // Force course or activity navigation
         if (isset($SESSION->ltiprovider) and $SESSION->ltiprovider->forcenavigation) {
             $context = $SESSION->ltiprovider->context;
