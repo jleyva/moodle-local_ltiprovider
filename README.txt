@@ -173,6 +173,8 @@ Juan Leyva <http://twitter.com/#!/jleyvadelgado>
 
 http://moodle.org/user/profile.php?id=49568
 
+The Universitat Oberta de Catalunya (UOC) <http://www.uoc.edu/> has sponsored the version 2.3 of this plugin
+
 == See also ==
 
 [http://www.somerandomthoughts.com/blog/2012/01/08/review-lti-provider-for-moodle-2-2/ Review: LTI Provider by Gavin Henrik]
