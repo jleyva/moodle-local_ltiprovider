@@ -518,6 +518,15 @@ function local_ltiprovider_duplicate_module($cmid, $courseid, $newidnumber) {
         $DB->update_record('course_modules', $module);
     }
 
+    if ($tools = $DB->get_records('local_ltiprovider', array('contextid' => $cmcontext->id))) {
+        $newcmcontext = context_module::instance($newcmid);
+        foreach ($tools as $tool) {
+            $tool->courseid = $course->id;
+            $tool->contextid = $newcmcontext->id;
+            $DB->update_record('local_ltiprovider', $tool);
+        }
+    }
+
     if (empty($CFG->keeptempdirectoriesonbackup)) {
         fulldelete($backupbasepath);
     }
