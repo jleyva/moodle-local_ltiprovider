@@ -446,7 +446,7 @@ function local_ltiprovider_get_new_course_info($field, $context) {
  * @param  int $courseid Course id
  * @return int           New course module id
  */
-function local_ltiprovider_duplicate_module($cmid, $courseid) {
+function local_ltiprovider_duplicate_module($cmid, $courseid, $newidnumber) {
     global $CFG, $DB, $USER;
 
     require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
@@ -512,6 +512,11 @@ function local_ltiprovider_duplicate_module($cmid, $courseid) {
     }
 
     $rc->destroy();
+
+    if ($module = $DB->get_record('course_modules', array('id' => $newcmid))) {
+        $module->idnumber = $newidnumber;
+        $DB->update_record('course_modules', $module);
+    }
 
     if (empty($CFG->keeptempdirectoriesonbackup)) {
         fulldelete($backupbasepath);

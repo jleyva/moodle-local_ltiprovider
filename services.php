@@ -143,6 +143,7 @@ if ($context->valid) {
 
     } else if ($service == 'duplicate_resource') {
         $idnumber = $context->info['custom_resource_link_copy_id'];
+        $resource_link_id = $context->info['resource_link_id'];
 
         if (!$tool) {
             print_error('missingrequiredtool', 'local_ltiprovider');
@@ -162,7 +163,7 @@ if ($context->valid) {
 
         $courseid = $context->instanceid;
 
-        $cmid = local_ltiprovider_duplicate_module($cm->id, $courseid);
+        $cmid = local_ltiprovider_duplicate_module($cm->id, $courseid, $resource_link_id);
         if ($cm = get_coursemodule_from_id(false, $cmid)) {
             echo json_encode($cm);
         }

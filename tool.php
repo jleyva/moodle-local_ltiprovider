@@ -377,7 +377,7 @@ if ($context->valid) {
             if (!$cm = $DB->get_record('course_modules', array('idnumber' => $custom_resource_link_copy_id), '*', IGNORE_MULTIPLE)) {
                 print_error('invalidresourcecopyid', 'local_ltiprovider');
             }
-            $newcmid = local_ltiprovider_duplicate_module($cm->id, $courseid);
+            $newcmid = local_ltiprovider_duplicate_module($cm->id, $courseid, $resource_link_id);
             if ($cm = get_coursemodule_from_id(false, $newcmid)) {
                 $urltogo = new moodle_url('/mod/' .$cm->modname. '/view.php', array('id' => $cm->id));
             }
