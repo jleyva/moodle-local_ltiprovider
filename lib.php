@@ -439,11 +439,15 @@ function local_ltiprovider_cron() {
                 $croncoursessafe = serialize($croncourses);
                 set_config('croncourses', $croncoursessafe, 'local_ltiprovider');
 
-                // Duplicate course + users.
-                local_ltiprovider_duplicate_course($course->id, $course->destinationid, 1,
-                                                    $options = array(array('name'   => 'users',
-                                                                            'value' => 1)));
-                mtrace('Restoration for ' .$key. ' finished');
+                if ($destinationcourse = $DB->get_record('course', array('id' => $course->destinationid))) {
+                    // Duplicate course + users.
+                    local_ltiprovider_duplicate_course($course->id, $destinationcourse, 1,
+                                                        $options = array(array('name'   => 'users',
+                                                                                'value' => 1)));
+                    mtrace('Restoration for ' .$key. ' finished');
+                } else {
+                    mtrace('Restoration for ' .$key. ' finished (destination course not exists)');
+                }
 
                 unset($croncourses[$key]);
                 $croncoursessafe = serialize($croncourses);
