@@ -266,11 +266,11 @@ class OAuthRequest {
 
     // Parse the query-string to find and add GET parameters
     $parts = parse_url($http_url);
-    if ( $parts['query'] ) {
+    if ( !empty($parts['query']) ) {
       $qparms = OAuthUtil::parse_parameters($parts['query']);
       $parameters = array_merge($qparms, $parameters);
     }
-     
+
 
     return new OAuthRequest($http_method, $http_url, $parameters);
   }
@@ -604,7 +604,7 @@ class OAuthServer {
       $token,
       $signature
     );
-    
+
     if (!$valid_sig) {
       $ex_text = "Invalid signature";
       if ( $OAuth_last_computed_signature ) {

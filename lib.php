@@ -317,6 +317,8 @@ function local_ltiprovider_cron() {
 
     // Membership service.
     $timenow = time();
+    $userphotos = array();
+
     if ($tools = $DB->get_records('local_ltiprovider', array('disabled' => 0, 'syncmembers' => 1))) {
         mtrace('Starting sync of member using the memberships service');
         $consumers = array();
@@ -350,10 +352,16 @@ function local_ltiprovider_cron() {
                             'lti_version' => 'LTI-1p0'
                         );
 
-                        mtrace('Calling memberships url: ' . $user->membershipsurl . ' with body: ' . serialize($params));
+                        mtrace('Calling memberships url: ' . $user->membershipsurl . ' with body: ' . json_encode($params));
 
-                        $response = ltiprovider\sendOAuthParamsPOST('POST', $user->membershipsurl, $user->consumerkey, $user->consumersecret,
-                                                                'application/x-www-form-urlencoded', $params);
+                        try {
+                            $response = ltiprovider\sendOAuthParamsPOST('POST', $user->membershipsurl, $user->consumerkey, $user->consumersecret,
+                                                            'application/x-www-form-urlencoded', $params);
+                        } catch (Exception $e) {
+                            mtrace("Exception: " . $e->getMessage());
+                            $response = false;
+                        }
+
                         if ($response) {
                             $data = new SimpleXMLElement($response);
                             if(!empty($data->statusinfo)) {
@@ -369,6 +377,7 @@ function local_ltiprovider_cron() {
                                             $userobj->lastname = clean_param($member->person_name_family, PARAM_TEXT);
                                             $userobj->email = clean_param($member->person_contact_email_primary, PARAM_EMAIL);
                                             $DB->update_record('user', $userobj);
+                                            $userphotos[$userobj->id] = $member->user_image;
                                             events_trigger('user_updated', $userobj);
                                         } else {
                                             // New members.
@@ -405,6 +414,8 @@ function local_ltiprovider_cron() {
                                                 $userobj->id = $DB->insert_record('user', $userobj);
                                                 // Reload full user
                                                 $userobj = $DB->get_record('user', array('id' => $userobj->id));
+
+                                                $userphotos[$userobj->id] = $member->user_image;
                                                 events_trigger('user_created', $userobj);
                                                 $currentusers[] = $userobj->id;
                                             }
@@ -438,8 +449,11 @@ function local_ltiprovider_cron() {
                         }
                     }
                 }
+                set_config('membershipslastsync-' . $tool->id, $timenow, 'local_ltiprovider');
+            } else {
+                $last = format_time((time() - $lastsync));
+                mtrace("Tool $tool->id synchronized $last ago");
             }
-            set_config('membershipslastsync-' . $tool->id, $timenow, 'local_ltiprovider');
             mtrace('Finished sync of member using the memberships service');
         }
     }
@@ -478,6 +492,60 @@ function local_ltiprovider_cron() {
                 unset($croncourses[$key]);
                 $croncoursessafe = serialize($croncourses);
                 set_config('croncourses', $croncoursessafe, 'local_ltiprovider');
+            }
+        }
+    }
+
+    // Sync of user photos.
+    if ($userphotos) {
+        require_once("$CFG->libdir/filelib.php");
+        require_once("$CFG->libdir/gdlib.php");
+
+         $fs = get_file_storage();
+
+        mtrace("Sync user profile images");
+        foreach ($userphotos as $userid => $url) {
+            if ($url) {
+                try {
+                    $context = context_user::instance($userid, MUST_EXIST);
+                    $fs->delete_area_files($context->id, 'user', 'newicon');
+
+                    $filerecord = array('contextid'=>$context->id, 'component'=>'user', 'filearea'=>'newicon', 'itemid'=>0, 'filepath'=>'/');
+                    if (!$iconfiles = $fs->create_file_from_url($filerecord, $url, array('calctimeout' => true, 'timeout' => 20))) {
+                        mtrace("Error downloading profile image from $url");
+                        continue;
+                    }
+
+                    if ($iconfiles = $fs->get_area_files($context->id, 'user', 'newicon')) {
+                        // Get file which was uploaded in draft area
+                        foreach ($iconfiles as $file) {
+                            if (!$file->is_directory()) {
+                                break;
+                            }
+                        }
+                        // Copy file to temporary location and the send it for processing icon
+                        if ($iconfile = $file->copy_content_to_temp()) {
+                            // There is a new image that has been uploaded
+                            // Process the new image and set the user to make use of it.
+                            $newpicture = (int)process_new_icon($context, 'user', 'icon', 0, $iconfile);
+                            // Delete temporary file
+                            @unlink($iconfile);
+                            // Remove uploaded file.
+                            $fs->delete_area_files($context->id, 'user', 'newicon');
+                            $DB->set_field('user', 'picture', $newpicture, array('id' => $userid));
+                            mtrace("Profile image succesfully downloaded and created from $url");
+                        } else {
+                            // Something went wrong while creating temp file.
+                            // Remove uploaded file.
+                            $fs->delete_area_files($context->id, 'user', 'newicon');
+                            mtrace("Error creating the downloaded profile image from $url");
+                        }
+                    } else {
+                        mtrace("Error converting downloaded profile image from $url");
+                    }
+                } catch (Exception $e) {
+                    mtrace("Error downloading profile image from $url");
+                }
             }
         }
     }
