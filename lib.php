@@ -178,6 +178,23 @@ function local_ltiprovider_delete_tool($tool) {
 }
 
 /**
+ * Checks if a course linked to a tool is missing, is so, delete the lti entries
+ * @param  stdclass $tool Tool record
+ * @return bool      True if the course was missing
+ */
+function local_ltiprovider_check_missing_course($tool) {
+    global $DB;
+
+    if (! $course = $DB->get_record('course', array('id' => $tool->courseid))) {
+        $DB->delete_records('local_ltiprovider', array('courseid' => $tool->courseid));
+        $DB->delete_records('local_ltiprovider_user', array('toolid' => $tool->id));
+        mtrace("Tool: $tool->id deleted (courseid: $tool->courseid missing)");
+        return true;
+    }
+    return false;
+}
+
+/**
  * Cron function for sync grades
  * @return void
  */
@@ -194,6 +211,15 @@ function local_ltiprovider_cron() {
     $timenow = time();
 
     mtrace('Running cron for ltiprovider');
+
+    mtrace('Deleting LTI tools assigned to deleted courses');
+    if ($tools = $DB->get_records('local_ltiprovider')) {
+        foreach ($tools as $tool) {
+            local_ltiprovider_check_missing_course($tool);
+        }
+    }
+
+
     if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND sendgrades = ?', array(0, 1))) {
         foreach ($tools as $tool) {
             if ($tool->lastsync + $synctime < $timenow) {
