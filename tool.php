@@ -291,6 +291,11 @@ if ($context->valid) {
         }
     }
 
+    // Update user image.
+    if ($context->info['user_image']) {
+        local_ltiprovider_update_user_profile_image($user->id, $context->info['user_image']);
+    }
+
     // Enrol user in course and activity if needed
     if (! $moodlecontext = $DB->get_record('context', array('id' => $tool->contextid))) {
         print_error("invalidcontext");

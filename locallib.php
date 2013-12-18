@@ -534,6 +534,58 @@ function local_ltiprovider_duplicate_module($cmid, $courseid, $newidnumber) {
 
 }
 
+function local_ltiprovider_update_user_profile_image($userid, $url) {
+    global $CFG, $DB;
+
+    require_once("$CFG->libdir/filelib.php");
+    require_once("$CFG->libdir/gdlib.php");
+
+    $fs = get_file_storage();
+    try {
+        $context = context_user::instance($userid, MUST_EXIST);
+        $fs->delete_area_files($context->id, 'user', 'newicon');
+
+        $filerecord = array('contextid'=>$context->id, 'component'=>'user', 'filearea'=>'newicon', 'itemid'=>0, 'filepath'=>'/');
+        if (!$iconfiles = $fs->create_file_from_url($filerecord, $url, array('calctimeout' => false,
+                                                                                'timeout' => 5,
+                                                                                'skipcertverify' => true,
+                                                                                'connecttimeout' => 5))) {
+            return "Error downloading profile image from $url";
+        }
+
+        if ($iconfiles = $fs->get_area_files($context->id, 'user', 'newicon')) {
+            // Get file which was uploaded in draft area
+            foreach ($iconfiles as $file) {
+                if (!$file->is_directory()) {
+                    break;
+                }
+            }
+            // Copy file to temporary location and the send it for processing icon
+            if ($iconfile = $file->copy_content_to_temp()) {
+                // There is a new image that has been uploaded
+                // Process the new image and set the user to make use of it.
+                $newpicture = (int)process_new_icon($context, 'user', 'icon', 0, $iconfile);
+                // Delete temporary file
+                @unlink($iconfile);
+                // Remove uploaded file.
+                $fs->delete_area_files($context->id, 'user', 'newicon');
+                $DB->set_field('user', 'picture', $newpicture, array('id' => $userid));
+                return true;
+            } else {
+                // Something went wrong while creating temp file.
+                // Remove uploaded file.
+                $fs->delete_area_files($context->id, 'user', 'newicon');
+                return "Error creating the downloaded profile image from $url";
+            }
+        } else {
+            return "Error converting downloaded profile image from $url";
+        }
+    } catch (Exception $e) {
+        return "Error downloading profile image from $url";
+    }
+    return "Error downloading profile image from $url";
+}
+
 if (!function_exists("create_module")) {
     /**
      * Create a module.

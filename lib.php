@@ -498,53 +498,14 @@ function local_ltiprovider_cron() {
 
     // Sync of user photos.
     if ($userphotos) {
-        require_once("$CFG->libdir/filelib.php");
-        require_once("$CFG->libdir/gdlib.php");
-
-         $fs = get_file_storage();
-
         mtrace("Sync user profile images");
         foreach ($userphotos as $userid => $url) {
             if ($url) {
-                try {
-                    $context = context_user::instance($userid, MUST_EXIST);
-                    $fs->delete_area_files($context->id, 'user', 'newicon');
-
-                    $filerecord = array('contextid'=>$context->id, 'component'=>'user', 'filearea'=>'newicon', 'itemid'=>0, 'filepath'=>'/');
-                    if (!$iconfiles = $fs->create_file_from_url($filerecord, $url, array('calctimeout' => true, 'timeout' => 20))) {
-                        mtrace("Error downloading profile image from $url");
-                        continue;
-                    }
-
-                    if ($iconfiles = $fs->get_area_files($context->id, 'user', 'newicon')) {
-                        // Get file which was uploaded in draft area
-                        foreach ($iconfiles as $file) {
-                            if (!$file->is_directory()) {
-                                break;
-                            }
-                        }
-                        // Copy file to temporary location and the send it for processing icon
-                        if ($iconfile = $file->copy_content_to_temp()) {
-                            // There is a new image that has been uploaded
-                            // Process the new image and set the user to make use of it.
-                            $newpicture = (int)process_new_icon($context, 'user', 'icon', 0, $iconfile);
-                            // Delete temporary file
-                            @unlink($iconfile);
-                            // Remove uploaded file.
-                            $fs->delete_area_files($context->id, 'user', 'newicon');
-                            $DB->set_field('user', 'picture', $newpicture, array('id' => $userid));
-                            mtrace("Profile image succesfully downloaded and created from $url");
-                        } else {
-                            // Something went wrong while creating temp file.
-                            // Remove uploaded file.
-                            $fs->delete_area_files($context->id, 'user', 'newicon');
-                            mtrace("Error creating the downloaded profile image from $url");
-                        }
-                    } else {
-                        mtrace("Error converting downloaded profile image from $url");
-                    }
-                } catch (Exception $e) {
-                    mtrace("Error downloading profile image from $url");
+                $result = local_ltiprovider_update_user_profile_image($userid, $url);
+                if ($result === true) {
+                    mtrace("Profile image succesfully downloaded and created from $url");
+                } else {
+                    mtrace($result);
                 }
             }
         }

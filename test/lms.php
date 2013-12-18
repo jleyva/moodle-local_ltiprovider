@@ -45,7 +45,8 @@ require_once("../ims-blti/blti_util.php");
       "custom_custom_css" => "",
       "custom_show_blocks" => "",
       "ext_ims_lis_memberships_id" => "",
-      "ext_ims_lis_memberships_url" => ""
+      "ext_ims_lis_memberships_url" => "",
+      "user_image" => ""
       );
 
   foreach ($lmsdata as $k => $val ) {
