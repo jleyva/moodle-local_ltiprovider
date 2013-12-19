@@ -365,8 +365,14 @@ if ($context->valid) {
                                 $moduleinfo->introeditor = array('text'=> $resource_link_description, 'format'=>FORMAT_HTML, 'itemid'=>$draftid_editor);
                             }
 
-                            // create the module
-                            if ($modinfo = create_module($moduleinfo)) {
+                            // Create the module, create module is available since Moodle 2.5 and onwards.
+                            if (function_exists('create_module')) {
+                                $modinfo = create_module($moduleinfo);
+                            } else {
+                                $modinfo = local_ltiprovider_create_module($moduleinfo);
+                            }
+
+                            if ($modinfo) {
                                 $urltogo = new moodle_url('/course/modedit.php', array('update' => $modinfo->coursemodule));
                             }
                         } else {
