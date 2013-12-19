@@ -292,8 +292,9 @@ if ($context->valid) {
     }
 
     // Update user image.
-    if ($context->info['user_image']) {
-        local_ltiprovider_update_user_profile_image($user->id, $context->info['user_image']);
+    if (!empty($context->info['user_image']) or !empty($context->info['custom_user_image'])) {
+        $userimageurl = (!empty($context->info['user_image'])) ? $context->info['user_image'] : $context->info['custom_user_image'];
+        local_ltiprovider_update_user_profile_image($user->id, $userimageurl);
     }
 
     // Enrol user in course and activity if needed
