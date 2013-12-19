@@ -586,274 +586,268 @@ function local_ltiprovider_update_user_profile_image($userid, $url) {
     return "Error downloading profile image from $url";
 }
 
-if (!function_exists("create_module")) {
-    /**
-     * Create a module.
-     *
-     * It includes:
-     *      - capability checks and other checks
-     *      - create the module from the module info
-     *
-     * @param object $module
-     * @return object the created module info
-     */
-    function create_module($moduleinfo) {
-        global $DB, $CFG;
 
-        require_once($CFG->dirroot . '/course/modlib.php');
+/**
+ * Create a module.
+ *
+ * It includes:
+ *      - capability checks and other checks
+ *      - create the module from the module info
+ *
+ * @param object $module
+ * @return object the created module info
+ */
+function local_ltiprovider_create_module($moduleinfo) {
+    global $DB, $CFG;
 
-        // Check manadatory attributs.
-        $mandatoryfields = array('modulename', 'course', 'section', 'visible');
-        if (plugin_supports('mod', $moduleinfo->modulename, FEATURE_MOD_INTRO, true)) {
-            $mandatoryfields[] = 'introeditor';
-        }
-        foreach($mandatoryfields as $mandatoryfield) {
-            if (!isset($moduleinfo->{$mandatoryfield})) {
-                throw new moodle_exception('createmodulemissingattribut', '', '', $mandatoryfield);
-            }
-        }
+    require_once($CFG->dirroot . '/course/modlib.php');
 
-        // Some additional checks (capability / existing instances).
-        $course = $DB->get_record('course', array('id'=>$moduleinfo->course), '*', MUST_EXIST);
-        list($module, $context, $cw) = can_add_moduleinfo($course, $moduleinfo->modulename, $moduleinfo->section);
-
-        // Load module library.
-        include_modulelib($module->name);
-
-        // Add the module.
-        $moduleinfo->module = $module->id;
-        $moduleinfo = add_moduleinfo($moduleinfo, $course, null);
-
-        return $moduleinfo;
+    // Check manadatory attributs.
+    $mandatoryfields = array('modulename', 'course', 'section', 'visible');
+    if (plugin_supports('mod', $moduleinfo->modulename, FEATURE_MOD_INTRO, true)) {
+        $mandatoryfields[] = 'introeditor';
     }
+    foreach($mandatoryfields as $mandatoryfield) {
+        if (!isset($moduleinfo->{$mandatoryfield})) {
+            throw new moodle_exception('createmodulemissingattribut', '', '', $mandatoryfield);
+        }
+    }
+
+    // Some additional checks (capability / existing instances).
+    $course = $DB->get_record('course', array('id'=>$moduleinfo->course), '*', MUST_EXIST);
+    list($module, $context, $cw) = local_ltiprovider_can_add_moduleinfo($course, $moduleinfo->modulename, $moduleinfo->section);
+
+    // Load module library.
+    local_ltiprovider_include_modulelib($module->name);
+
+    // Add the module.
+    $moduleinfo->module = $module->id;
+    $moduleinfo = local_ltiprovider_add_moduleinfo($moduleinfo, $course, null);
+
+    return $moduleinfo;
 }
 
 
-if (!function_exists("can_add_moduleinfo")) {
 
-    /**
-     * Check that the user can add a module. Also returns some information like the module, context and course section info.
-     * The fucntion create the course section if it doesn't exist.
-     *
-     * @param object $course the course of the module
-     * @param object $modulename the module name
-     * @param object $section the section of the module
-     * @return array list containing module, context, course section.
-     */
-    function can_add_moduleinfo($course, $modulename, $section) {
-        global $DB;
 
-        $module = $DB->get_record('modules', array('name'=>$modulename), '*', MUST_EXIST);
+/**
+ * Check that the user can add a module. Also returns some information like the module, context and course section info.
+ * The fucntion create the course section if it doesn't exist.
+ *
+ * @param object $course the course of the module
+ * @param object $modulename the module name
+ * @param object $section the section of the module
+ * @return array list containing module, context, course section.
+ */
+function local_ltiprovider_can_add_moduleinfo($course, $modulename, $section) {
+    global $DB;
 
-        $context = context_course::instance($course->id);
-        require_capability('moodle/course:manageactivities', $context);
+    $module = $DB->get_record('modules', array('name'=>$modulename), '*', MUST_EXIST);
 
-        course_create_sections_if_missing($course, $section);
-        $cw = get_fast_modinfo($course)->get_section_info($section);
+    $context = context_course::instance($course->id);
+    require_capability('moodle/course:manageactivities', $context);
 
-        if (!course_allowed_module($course, $module->name)) {
-            print_error('moduledisable');
-        }
+    course_create_sections_if_missing($course, $section);
+    $cw = get_fast_modinfo($course)->get_section_info($section);
 
-        return array($module, $context, $cw);
+    if (!course_allowed_module($course, $module->name)) {
+        print_error('moduledisable');
     }
 
+    return array($module, $context, $cw);
 }
 
-if (!function_exists("add_moduleinfo")) {
-    /**
-     * Add course module.
-     *
-     * The function does not check user capabilities.
-     * The function creates course module, module instance, add the module to the correct section.
-     * It also trigger common action that need to be done after adding/updating a module.
-     *
-     * @param object $moduleinfo the moudle data
-     * @param object $course the course of the module
-     * @param object $mform this is required by an existing hack to deal with files during MODULENAME_add_instance()
-     * @return object the updated module info
-     */
-    function add_moduleinfo($moduleinfo, $course, $mform = null) {
-        global $DB, $CFG;
 
-        $moduleinfo->course = $course->id;
-        $moduleinfo = set_moduleinfo_defaults($moduleinfo);
+/**
+ * Add course module.
+ *
+ * The function does not check user capabilities.
+ * The function creates course module, module instance, add the module to the correct section.
+ * It also trigger common action that need to be done after adding/updating a module.
+ *
+ * @param object $moduleinfo the moudle data
+ * @param object $course the course of the module
+ * @param object $mform this is required by an existing hack to deal with files during MODULENAME_add_instance()
+ * @return object the updated module info
+ */
+function local_ltiprovider_add_moduleinfo($moduleinfo, $course, $mform = null) {
+    global $DB, $CFG;
 
-        if (!empty($course->groupmodeforce) or !isset($moduleinfo->groupmode)) {
-            $moduleinfo->groupmode = 0; // Do not set groupmode.
-        }
+    $moduleinfo->course = $course->id;
+    $moduleinfo = local_ltiprovider_set_moduleinfo_defaults($moduleinfo);
 
-        if (!course_allowed_module($course, $moduleinfo->modulename)) {
-            print_error('moduledisable', '', '', $moduleinfo->modulename);
-        }
+    if (!empty($course->groupmodeforce) or !isset($moduleinfo->groupmode)) {
+        $moduleinfo->groupmode = 0; // Do not set groupmode.
+    }
 
-        // First add course_module record because we need the context.
-        $newcm = new stdClass();
-        $newcm->course           = $course->id;
-        $newcm->module           = $moduleinfo->module;
-        $newcm->instance         = 0; // Not known yet, will be updated later (this is similar to restore code).
-        $newcm->visible          = $moduleinfo->visible;
-        $newcm->visibleold       = $moduleinfo->visible;
-        $newcm->groupmode        = $moduleinfo->groupmode;
-        $newcm->groupingid       = $moduleinfo->groupingid;
-        $newcm->groupmembersonly = $moduleinfo->groupmembersonly;
-        $completion = new completion_info($course);
-        if ($completion->is_enabled()) {
-            $newcm->completion                = $moduleinfo->completion;
-            $newcm->completiongradeitemnumber = $moduleinfo->completiongradeitemnumber;
-            $newcm->completionview            = $moduleinfo->completionview;
-            $newcm->completionexpected        = $moduleinfo->completionexpected;
-        }
-        if(!empty($CFG->enableavailability)) {
-            $newcm->availablefrom             = $moduleinfo->availablefrom;
-            $newcm->availableuntil            = $moduleinfo->availableuntil;
-            $newcm->showavailability          = $moduleinfo->showavailability;
-        }
-        if (isset($moduleinfo->showdescription)) {
-            $newcm->showdescription = $moduleinfo->showdescription;
-        } else {
-            $newcm->showdescription = 0;
-        }
+    if (!course_allowed_module($course, $moduleinfo->modulename)) {
+        print_error('moduledisable', '', '', $moduleinfo->modulename);
+    }
 
-        if (!$moduleinfo->coursemodule = add_course_module($newcm)) {
-            print_error('cannotaddcoursemodule');
-        }
+    // First add course_module record because we need the context.
+    $newcm = new stdClass();
+    $newcm->course           = $course->id;
+    $newcm->module           = $moduleinfo->module;
+    $newcm->instance         = 0; // Not known yet, will be updated later (this is similar to restore code).
+    $newcm->visible          = $moduleinfo->visible;
+    $newcm->visibleold       = $moduleinfo->visible;
+    $newcm->groupmode        = $moduleinfo->groupmode;
+    $newcm->groupingid       = $moduleinfo->groupingid;
+    $newcm->groupmembersonly = $moduleinfo->groupmembersonly;
+    $completion = new completion_info($course);
+    if ($completion->is_enabled()) {
+        $newcm->completion                = $moduleinfo->completion;
+        $newcm->completiongradeitemnumber = $moduleinfo->completiongradeitemnumber;
+        $newcm->completionview            = $moduleinfo->completionview;
+        $newcm->completionexpected        = $moduleinfo->completionexpected;
+    }
+    if(!empty($CFG->enableavailability)) {
+        $newcm->availablefrom             = $moduleinfo->availablefrom;
+        $newcm->availableuntil            = $moduleinfo->availableuntil;
+        $newcm->showavailability          = $moduleinfo->showavailability;
+    }
+    if (isset($moduleinfo->showdescription)) {
+        $newcm->showdescription = $moduleinfo->showdescription;
+    } else {
+        $newcm->showdescription = 0;
+    }
 
-        if (plugin_supports('mod', $moduleinfo->modulename, FEATURE_MOD_INTRO, true)) {
-            $introeditor = $moduleinfo->introeditor;
-            unset($moduleinfo->introeditor);
-            $moduleinfo->intro       = $introeditor['text'];
-            $moduleinfo->introformat = $introeditor['format'];
-        }
+    if (!$moduleinfo->coursemodule = add_course_module($newcm)) {
+        print_error('cannotaddcoursemodule');
+    }
 
-        $addinstancefunction    = $moduleinfo->modulename."_add_instance";
-        $returnfromfunc = $addinstancefunction($moduleinfo, $mform);
-        if (!$returnfromfunc or !is_number($returnfromfunc)) {
-            // Undo everything we can.
-            $modcontext = context_module::instance($moduleinfo->coursemodule);
-            delete_context(CONTEXT_MODULE, $moduleinfo->coursemodule);
-            $DB->delete_records('course_modules', array('id'=>$moduleinfo->coursemodule));
+    if (plugin_supports('mod', $moduleinfo->modulename, FEATURE_MOD_INTRO, true)) {
+        $introeditor = $moduleinfo->introeditor;
+        unset($moduleinfo->introeditor);
+        $moduleinfo->intro       = $introeditor['text'];
+        $moduleinfo->introformat = $introeditor['format'];
+    }
 
-            if (!is_number($returnfromfunc)) {
-                print_error('invalidfunction', '', course_get_url($course, $cw->section));
-            } else {
-                print_error('cannotaddnewmodule', '', course_get_url($course, $cw->section), $moduleinfo->modulename);
-            }
-        }
-
-        $moduleinfo->instance = $returnfromfunc;
-
-        $DB->set_field('course_modules', 'instance', $returnfromfunc, array('id'=>$moduleinfo->coursemodule));
-
-        // Update embedded links and save files.
+    $addinstancefunction    = $moduleinfo->modulename."_add_instance";
+    $returnfromfunc = $addinstancefunction($moduleinfo, $mform);
+    if (!$returnfromfunc or !is_number($returnfromfunc)) {
+        // Undo everything we can.
         $modcontext = context_module::instance($moduleinfo->coursemodule);
-        if (!empty($introeditor)) {
-            $moduleinfo->intro = file_save_draft_area_files($introeditor['itemid'], $modcontext->id,
-                                                          'mod_'.$moduleinfo->modulename, 'intro', 0,
-                                                          array('subdirs'=>true), $introeditor['text']);
-            $DB->set_field($moduleinfo->modulename, 'intro', $moduleinfo->intro, array('id'=>$moduleinfo->instance));
+        delete_context(CONTEXT_MODULE, $moduleinfo->coursemodule);
+        $DB->delete_records('course_modules', array('id'=>$moduleinfo->coursemodule));
+
+        if (!is_number($returnfromfunc)) {
+            print_error('invalidfunction', '', course_get_url($course, $cw->section));
+        } else {
+            print_error('cannotaddnewmodule', '', course_get_url($course, $cw->section), $moduleinfo->modulename);
         }
-
-        // Course_modules and course_sections each contain a reference to each other.
-        // So we have to update one of them twice.
-        $sectionid = course_add_cm_to_section($course, $moduleinfo->coursemodule, $moduleinfo->section);
-
-        // Make sure visibility is set correctly (in particular in calendar).
-        // Note: allow them to set it even without moodle/course:activityvisibility.
-        set_coursemodule_visible($moduleinfo->coursemodule, $moduleinfo->visible);
-
-        if (isset($moduleinfo->cmidnumber)) { // Label.
-            // Set cm idnumber - uniqueness is already verified by form validation.
-            set_coursemodule_idnumber($moduleinfo->coursemodule, $moduleinfo->cmidnumber);
-        }
-
-        // Set up conditions.
-        if ($CFG->enableavailability) {
-            condition_info::update_cm_from_form((object)array('id'=>$moduleinfo->coursemodule), $moduleinfo, false);
-        }
-
-        $eventname = 'mod_created';
-
-        add_to_log($course->id, "course", "add mod",
-                   "../mod/$moduleinfo->modulename/view.php?id=$moduleinfo->coursemodule",
-                   "$moduleinfo->modulename $moduleinfo->instance");
-        add_to_log($course->id, $moduleinfo->modulename, "add",
-                   "view.php?id=$moduleinfo->coursemodule",
-                   "$moduleinfo->instance", $moduleinfo->coursemodule);
-
-        $moduleinfo = edit_module_post_actions($moduleinfo, $course, 'mod_created');
-
-        return $moduleinfo;
     }
+
+    $moduleinfo->instance = $returnfromfunc;
+
+    $DB->set_field('course_modules', 'instance', $returnfromfunc, array('id'=>$moduleinfo->coursemodule));
+
+    // Update embedded links and save files.
+    $modcontext = context_module::instance($moduleinfo->coursemodule);
+    if (!empty($introeditor)) {
+        $moduleinfo->intro = file_save_draft_area_files($introeditor['itemid'], $modcontext->id,
+                                                      'mod_'.$moduleinfo->modulename, 'intro', 0,
+                                                      array('subdirs'=>true), $introeditor['text']);
+        $DB->set_field($moduleinfo->modulename, 'intro', $moduleinfo->intro, array('id'=>$moduleinfo->instance));
+    }
+
+    // Course_modules and course_sections each contain a reference to each other.
+    // So we have to update one of them twice.
+    $sectionid = course_add_cm_to_section($course, $moduleinfo->coursemodule, $moduleinfo->section);
+
+    // Make sure visibility is set correctly (in particular in calendar).
+    // Note: allow them to set it even without moodle/course:activityvisibility.
+    set_coursemodule_visible($moduleinfo->coursemodule, $moduleinfo->visible);
+
+    if (isset($moduleinfo->cmidnumber)) { // Label.
+        // Set cm idnumber - uniqueness is already verified by form validation.
+        set_coursemodule_idnumber($moduleinfo->coursemodule, $moduleinfo->cmidnumber);
+    }
+
+    // Set up conditions.
+    if ($CFG->enableavailability) {
+        condition_info::update_cm_from_form((object)array('id'=>$moduleinfo->coursemodule), $moduleinfo, false);
+    }
+
+    $eventname = 'mod_created';
+
+    add_to_log($course->id, "course", "add mod",
+               "../mod/$moduleinfo->modulename/view.php?id=$moduleinfo->coursemodule",
+               "$moduleinfo->modulename $moduleinfo->instance");
+    add_to_log($course->id, $moduleinfo->modulename, "add",
+               "view.php?id=$moduleinfo->coursemodule",
+               "$moduleinfo->instance", $moduleinfo->coursemodule);
+
+    $moduleinfo = edit_module_post_actions($moduleinfo, $course, 'mod_created');
+
+    return $moduleinfo;
 }
 
-if (!function_exists('set_moduleinfo_defaults')) {
-    /**
-     * Set module info default values for the unset module attributs.
-     *
-     * @param object $moduleinfo the current known data of the module
-     * @return object the completed module info
-     */
-    function set_moduleinfo_defaults($moduleinfo) {
-        global $DB;
 
-        if (empty($moduleinfo->coursemodule)) {
-            // Add.
-            $cm = null;
-            $moduleinfo->instance     = '';
-            $moduleinfo->coursemodule = '';
-        } else {
-            // Update.
-            $cm = get_coursemodule_from_id('', $moduleinfo->coursemodule, 0, false, MUST_EXIST);
-            $moduleinfo->instance     = $cm->instance;
-            $moduleinfo->coursemodule = $cm->id;
-        }
-        // For safety.
-        $moduleinfo->modulename = clean_param($moduleinfo->modulename, PARAM_PLUGIN);
+/**
+ * Set module info default values for the unset module attributs.
+ *
+ * @param object $moduleinfo the current known data of the module
+ * @return object the completed module info
+ */
+function local_ltiprovider_set_moduleinfo_defaults($moduleinfo) {
+    global $DB;
 
-        if (!isset($moduleinfo->groupingid)) {
-            $moduleinfo->groupingid = 0;
-        }
-
-        if (!isset($moduleinfo->groupmembersonly)) {
-            $moduleinfo->groupmembersonly = 0;
-        }
-
-        if (!isset($moduleinfo->name)) { // Label.
-            $moduleinfo->name = $moduleinfo->modulename;
-        }
-
-        if (!isset($moduleinfo->completion)) {
-            $moduleinfo->completion = COMPLETION_DISABLED;
-        }
-        if (!isset($moduleinfo->completionview)) {
-            $moduleinfo->completionview = COMPLETION_VIEW_NOT_REQUIRED;
-        }
-
-        // Convert the 'use grade' checkbox into a grade-item number: 0 if checked, null if not.
-        if (isset($moduleinfo->completionusegrade) && $moduleinfo->completionusegrade) {
-            $moduleinfo->completiongradeitemnumber = 0;
-        } else {
-            $moduleinfo->completiongradeitemnumber = null;
-        }
-
-        return $moduleinfo;
+    if (empty($moduleinfo->coursemodule)) {
+        // Add.
+        $cm = null;
+        $moduleinfo->instance     = '';
+        $moduleinfo->coursemodule = '';
+    } else {
+        // Update.
+        $cm = get_coursemodule_from_id('', $moduleinfo->coursemodule, 0, false, MUST_EXIST);
+        $moduleinfo->instance     = $cm->instance;
+        $moduleinfo->coursemodule = $cm->id;
     }
+    // For safety.
+    $moduleinfo->modulename = clean_param($moduleinfo->modulename, PARAM_PLUGIN);
+
+    if (!isset($moduleinfo->groupingid)) {
+        $moduleinfo->groupingid = 0;
+    }
+
+    if (!isset($moduleinfo->groupmembersonly)) {
+        $moduleinfo->groupmembersonly = 0;
+    }
+
+    if (!isset($moduleinfo->name)) { // Label.
+        $moduleinfo->name = $moduleinfo->modulename;
+    }
+
+    if (!isset($moduleinfo->completion)) {
+        $moduleinfo->completion = COMPLETION_DISABLED;
+    }
+    if (!isset($moduleinfo->completionview)) {
+        $moduleinfo->completionview = COMPLETION_VIEW_NOT_REQUIRED;
+    }
+
+    // Convert the 'use grade' checkbox into a grade-item number: 0 if checked, null if not.
+    if (isset($moduleinfo->completionusegrade) && $moduleinfo->completionusegrade) {
+        $moduleinfo->completiongradeitemnumber = 0;
+    } else {
+        $moduleinfo->completiongradeitemnumber = null;
+    }
+
+    return $moduleinfo;
 }
 
-if (!function_exists('include_modulelib')) {
-    /**
-     * Include once the module lib file.
-     *
-     * @param string $modulename module name of the lib to include
-     */
-    function include_modulelib($modulename) {
-        global $CFG;
-        $modlib = "$CFG->dirroot/mod/$modulename/lib.php";
-        if (file_exists($modlib)) {
-            include_once($modlib);
-        } else {
-            throw new moodle_exception('modulemissingcode', '', '', $modlib);
-        }
+
+/**
+ * Include once the module lib file.
+ *
+ * @param string $modulename module name of the lib to include
+ */
+function local_ltiprovider_include_modulelib($modulename) {
+    global $CFG;
+    $modlib = "$CFG->dirroot/mod/$modulename/lib.php";
+    if (file_exists($modlib)) {
+        include_once($modlib);
+    } else {
+        throw new moodle_exception('modulemissingcode', '', '', $modlib);
     }
 }
