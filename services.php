@@ -135,10 +135,13 @@ if ($context->valid) {
         $toolid = $DB->insert_record('local_ltiprovider', $tool);
         $tool->id = $toolid;
 
+        $username = local_ltiprovider_create_username($context->info['oauth_consumer_key'], $context->info['user_id']);
+        $userrestoringid = $DB->get_field('user', 'id', array('username' => $username));
+
         // Duplicate course + users.
         $course = local_ltiprovider_duplicate_course($tplcourse->id, $course, 1,
                                             $options = array(array('name'   => 'users',
-                                                                    'value' => 1)));
+                                                                    'value' => 1)), $userrestoringid, $context);
         echo json_encode($course);
 
     } else if ($service == 'duplicate_resource') {

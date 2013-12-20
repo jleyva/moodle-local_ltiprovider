@@ -483,7 +483,8 @@ function local_ltiprovider_cron() {
                     // Duplicate course + users.
                     local_ltiprovider_duplicate_course($course->id, $destinationcourse, 1,
                                                         $options = array(array('name'   => 'users',
-                                                                                'value' => 1)));
+                                                                                'value' => 1)),
+                                                        $course->userrestoringid, $course->context);
                     mtrace('Restoration for ' .$key. ' finished');
                 } else {
                     mtrace('Restoration for ' .$key. ' finished (destination course not exists)');

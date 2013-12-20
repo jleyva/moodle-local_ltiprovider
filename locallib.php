@@ -309,7 +309,7 @@ function local_ltiprovider_get_new_course_info($field, $context) {
  * @param array $options List of backup options
  * @return stdClass New course info
  */
- function local_ltiprovider_duplicate_course($courseid, $newcourse, $visible = 1, $options = array()) {
+ function local_ltiprovider_duplicate_course($courseid, $newcourse, $visible = 1, $options = array(), $useridcreating = null, $context) {
     global $CFG, $USER, $DB;
 
     require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
@@ -436,6 +436,82 @@ function local_ltiprovider_get_new_course_info($field, $context) {
 
     // Delete the course backup file created by this WebService. Originally located in the course backups area.
     $file->delete();
+
+    // We have to unenroll all the user except the one that create the course.
+    if (get_config('local_ltiprovider', 'duplicatecourseswithoutusers') and $useridcreating) {
+        require_once($CFG->dirroot.'/group/lib.php');
+        // Previous to unenrol users, we assign some type of activities to the user that created the course.
+        if ($user = $DB->get_record('user', array('id' => $useridcreating))) {
+            if ($databases = $DB->get_records('data', array('course' => $course->id))) {
+                foreach ($databases as $data) {
+                    $DB->execute("UPDATE {data_records} SET userid = ? WHERE dataid = ?", array($user->id,
+                                                                                                $data->id));
+                }
+            }
+            if ($glossaries = $DB->get_records('glossary', array('course' => $course->id))) {
+                foreach ($glossaries as $glossary) {
+                    $DB->execute("UPDATE {glossary_entries} SET userid = ? WHERE glossaryid = ?", array($user->id,
+                                                                                                $glossary->id));
+                }
+            }
+
+            // Same for questions.
+            $newcoursecontextid = context_course::instance($course->id);
+            if ($qcategories = $DB->get_records('question_categories', array('contextid' => $newcoursecontextid->id))) {
+                foreach ($qcategories as $qcategory) {
+                    $DB->execute("UPDATE {question} SET createdby = ?, modifiedby = ? WHERE category = ?", array($user->id,
+                                                                                                                    $user->id,
+                                                                                                                    $qcategory->id));
+                }
+            }
+
+            // Enrol the user.
+            if ($tool = $DB->get_record('local_ltiprovider', array('contextid' => $newcoursecontextid->id))) {
+                $roles = explode(',', strtolower($context->info['roles']));
+                local_ltiprovider_enrol_user($tool, $user, $roles, true);
+            }
+
+
+            // Now, we unenrol all the users except the one who created the course.
+            $plugins = enrol_get_plugins(true);
+            $instances = enrol_get_instances($course->id, true);
+            foreach ($instances as $key => $instance) {
+                if (!isset($plugins[$instance->enrol])) {
+                    unset($instances[$key]);
+                    continue;
+                }
+            }
+
+            $sql = "SELECT ue.*
+                          FROM {user_enrolments} ue
+                          JOIN {enrol} e ON (e.id = ue.enrolid AND e.courseid = :courseid)
+                          JOIN {context} c ON (c.contextlevel = :courselevel AND c.instanceid = e.courseid)";
+            $params = array('courseid' => $course->id, 'courselevel' => CONTEXT_COURSE);
+
+            $rs = $DB->get_recordset_sql($sql, $params);
+            foreach ($rs as $ue) {
+                if ($ue->userid == $user->id) {
+                    continue;
+                }
+
+                if (!isset($instances[$ue->enrolid])) {
+                    continue;
+                }
+                $instance = $instances[$ue->enrolid];
+                $plugin = $plugins[$instance->enrol];
+                if (!$plugin->allow_unenrol($instance) and !$plugin->allow_unenrol_user($instance, $ue)) {
+                    continue;
+                }
+                $plugin->unenrol_user($instance, $ue->userid);
+            }
+            $rs->close();
+
+            groups_delete_group_members($course->id);
+            groups_delete_groups($course->id, false);
+            groups_delete_groupings_groups($course->id, false);
+            groups_delete_groupings($course->id, false);
+        }
+    }
 
     return $course;
 }

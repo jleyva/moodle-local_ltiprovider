@@ -62,6 +62,9 @@ if ($hassiteconfig) { // needs this condition or there is error on login page
     $settings->add(new admin_setting_configselect('local_ltiprovider/idnumberformat', get_string('idnumberformat',
         'local_ltiprovider'), get_string('genericformathelp', 'local_ltiprovider'), 0, $options));
 
+    $settings->add(new admin_setting_configcheckbox('local_ltiprovider/duplicatecourseswithoutusers', get_string('duplicatecourseswithoutusers', 'local_ltiprovider'),
+                       get_string('duplicatecourseswithoutusershelp', 'local_ltiprovider'), 0));
+
     $settings->add(new admin_setting_configmultiselect('local_ltiprovider/rolesallowedcreatecontexts', get_string('rolesallowedcreatecontexts', 'local_ltiprovider'),
                    '', array('Administrator'),
                        array(

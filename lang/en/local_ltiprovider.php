@@ -106,3 +106,7 @@ $string['shortnameformat'] = 'Shortname format for new created courses';
 $string['fullnameformat'] = 'Fullname format for new created courses';
 $string['genericformathelp'] = 'For remotely new create courses you can select the remote parameters for creating the name';
 
+$string['duplicatecourseswithoutusers'] = 'Duplicate courses without users';
+$string['duplicatecourseswithoutusershelp'] = 'When creating a new course, do not import the users from the template course';
+
+

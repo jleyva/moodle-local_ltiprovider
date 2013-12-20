@@ -168,10 +168,14 @@ if ($context->valid) {
 
         if ($custom_context_template and $tplcourse) {
 
+            $username = local_ltiprovider_create_username($context->info['oauth_consumer_key'], $context->info['user_id']);
+            $userrestoringid = $DB->get_field('user', 'id', array('username' => $username));;
 
             $newcourse = new stdClass();
             $newcourse->id = $tplcourse->id;
             $newcourse->destinationid = $course->id;
+            $newcourse->userrestoringid = $userrestoringid;
+            $newcourse->context = $context;
             $newcourse->restorestart = 0;
             $aid = $newcourse->id . "-" . $newcourse->destinationid;
 
