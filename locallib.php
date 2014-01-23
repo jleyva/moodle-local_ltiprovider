@@ -35,7 +35,7 @@ use moodle\local\ltiprovider as ltiprovider;
  * @param  float $grade User final grade
  * @return string
  */
-function loca_ltiprovider_create_service_body($source, $grade) {
+function local_ltiprovider_create_service_body($source, $grade) {
     return '<?xml version = "1.0" encoding = "UTF-8"?>
 <imsx_POXEnvelopeRequest xmlns = "http://www.imsglobal.org/lis/oms1p0/pox">
 	<imsx_POXHeader>
