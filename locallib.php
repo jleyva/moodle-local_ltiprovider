@@ -676,8 +676,6 @@ function local_ltiprovider_update_user_profile_image($userid, $url) {
 function local_ltiprovider_create_module($moduleinfo) {
     global $DB, $CFG;
 
-    require_once($CFG->dirroot . '/course/modlib.php');
-
     // Check manadatory attributs.
     $mandatoryfields = array('modulename', 'course', 'section', 'visible');
     if (plugin_supports('mod', $moduleinfo->modulename, FEATURE_MOD_INTRO, true)) {
@@ -854,7 +852,7 @@ function local_ltiprovider_add_moduleinfo($moduleinfo, $course, $mform = null) {
                "view.php?id=$moduleinfo->coursemodule",
                "$moduleinfo->instance", $moduleinfo->coursemodule);
 
-    $moduleinfo = edit_module_post_actions($moduleinfo, $course, 'mod_created');
+    $moduleinfo = local_ltiprovider_edit_module_post_actions($moduleinfo, $course, 'mod_created');
 
     return $moduleinfo;
 }
@@ -927,3 +925,150 @@ function local_ltiprovider_include_modulelib($modulename) {
         throw new moodle_exception('modulemissingcode', '', '', $modlib);
     }
 }
+
+
+/**
+ * Common create/update module module actions that need to be processed as soon as a module is created/updaded.
+ * For example:create grade parent category, add outcomes, rebuild caches, regrade, save plagiarism settings...
+ * Please note this api does not trigger events as of MOODLE 2.6. Please trigger events before calling this api.
+ *
+ * @param object $moduleinfo the module info
+ * @param object $course the course of the module
+ *
+ * @return object moduleinfo update with grading management info
+ */
+function local_ltiprovider_edit_module_post_actions($moduleinfo, $course) {
+    global $CFG;
+
+    $modcontext = context_module::instance($moduleinfo->coursemodule);
+    $hasgrades = plugin_supports('mod', $moduleinfo->modulename, FEATURE_GRADE_HAS_GRADE, false);
+    $hasoutcomes = plugin_supports('mod', $moduleinfo->modulename, FEATURE_GRADE_OUTCOMES, true);
+
+    // Sync idnumber with grade_item.
+    if ($hasgrades && $grade_item = grade_item::fetch(array('itemtype'=>'mod', 'itemmodule'=>$moduleinfo->modulename,
+                 'iteminstance'=>$moduleinfo->instance, 'itemnumber'=>0, 'courseid'=>$course->id))) {
+        if ($grade_item->idnumber != $moduleinfo->cmidnumber) {
+            $grade_item->idnumber = $moduleinfo->cmidnumber;
+            $grade_item->update();
+        }
+    }
+
+    if ($hasgrades) {
+        $items = grade_item::fetch_all(array('itemtype'=>'mod', 'itemmodule'=>$moduleinfo->modulename,
+                                         'iteminstance'=>$moduleinfo->instance, 'courseid'=>$course->id));
+    } else {
+        $items = array();
+    }
+
+    // Create parent category if requested and move to correct parent category.
+    if ($items and isset($moduleinfo->gradecat)) {
+        if ($moduleinfo->gradecat == -1) {
+            $grade_category = new grade_category();
+            $grade_category->courseid = $course->id;
+            $grade_category->fullname = $moduleinfo->name;
+            $grade_category->insert();
+            if ($grade_item) {
+                $parent = $grade_item->get_parent_category();
+                $grade_category->set_parent($parent->id);
+            }
+            $moduleinfo->gradecat = $grade_category->id;
+        }
+        foreach ($items as $itemid=>$unused) {
+            $items[$itemid]->set_parent($moduleinfo->gradecat);
+            if ($itemid == $grade_item->id) {
+                // Use updated grade_item.
+                $grade_item = $items[$itemid];
+            }
+        }
+    }
+
+    // Add outcomes if requested.
+    if ($hasoutcomes && $outcomes = grade_outcome::fetch_all_available($course->id)) {
+        $grade_items = array();
+
+        // Outcome grade_item.itemnumber start at 1000, there is nothing above outcomes.
+        $max_itemnumber = 999;
+        if ($items) {
+            foreach($items as $item) {
+                if ($item->itemnumber > $max_itemnumber) {
+                    $max_itemnumber = $item->itemnumber;
+                }
+            }
+        }
+
+        foreach($outcomes as $outcome) {
+            $elname = 'outcome_'.$outcome->id;
+
+            if (property_exists($moduleinfo, $elname) and $moduleinfo->$elname) {
+                // So we have a request for new outcome grade item?
+                if ($items) {
+                    $outcomeexists = false;
+                    foreach($items as $item) {
+                        if ($item->outcomeid == $outcome->id) {
+                            $outcomeexists = true;
+                            break;
+                        }
+                    }
+                    if ($outcomeexists) {
+                        continue;
+                    }
+                }
+
+                $max_itemnumber++;
+
+                $outcome_item = new grade_item();
+                $outcome_item->courseid     = $course->id;
+                $outcome_item->itemtype     = 'mod';
+                $outcome_item->itemmodule   = $moduleinfo->modulename;
+                $outcome_item->iteminstance = $moduleinfo->instance;
+                $outcome_item->itemnumber   = $max_itemnumber;
+                $outcome_item->itemname     = $outcome->fullname;
+                $outcome_item->outcomeid    = $outcome->id;
+                $outcome_item->gradetype    = GRADE_TYPE_SCALE;
+                $outcome_item->scaleid      = $outcome->scaleid;
+                $outcome_item->insert();
+
+                // Move the new outcome into correct category and fix sortorder if needed.
+                if ($grade_item) {
+                    $outcome_item->set_parent($grade_item->categoryid);
+                    $outcome_item->move_after_sortorder($grade_item->sortorder);
+
+                } else if (isset($moduleinfo->gradecat)) {
+                    $outcome_item->set_parent($moduleinfo->gradecat);
+                }
+            }
+        }
+    }
+
+    if (plugin_supports('mod', $moduleinfo->modulename, FEATURE_ADVANCED_GRADING, false)
+            and has_capability('moodle/grade:managegradingforms', $modcontext)) {
+        require_once($CFG->dirroot.'/grade/grading/lib.php');
+        $gradingman = get_grading_manager($modcontext, 'mod_'.$moduleinfo->modulename);
+        $showgradingmanagement = false;
+        foreach ($gradingman->get_available_areas() as $areaname => $aretitle) {
+            $formfield = 'advancedgradingmethod_'.$areaname;
+            if (isset($moduleinfo->{$formfield})) {
+                $gradingman->set_area($areaname);
+                $methodchanged = $gradingman->set_active_method($moduleinfo->{$formfield});
+                if (empty($moduleinfo->{$formfield})) {
+                    // Going back to the simple direct grading is not a reason to open the management screen.
+                    $methodchanged = false;
+                }
+                $showgradingmanagement = $showgradingmanagement || $methodchanged;
+            }
+        }
+        // Update grading management information.
+        $moduleinfo->gradingman = $gradingman;
+        $moduleinfo->showgradingmanagement = $showgradingmanagement;
+    }
+
+    rebuild_course_cache($course->id, true);
+    if ($hasgrades) {
+        grade_regrade_final_grades($course->id);
+    }
+    require_once($CFG->libdir.'/plagiarismlib.php');
+    plagiarism_save_form_elements($moduleinfo);
+
+    return $moduleinfo;
+}
+
