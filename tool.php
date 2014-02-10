@@ -175,7 +175,8 @@ if ($context->valid) {
             $newcourse->id = $tplcourse->id;
             $newcourse->destinationid = $course->id;
             $newcourse->userrestoringid = $userrestoringid;
-            $newcourse->context = $context;
+            $newcourse->context = new stdClass;
+            $newcourse->context->info = $context->info;
             $newcourse->restorestart = 0;
             $aid = $newcourse->id . "-" . $newcourse->destinationid;
 
