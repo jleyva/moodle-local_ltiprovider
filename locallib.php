@@ -599,7 +599,7 @@ function local_ltiprovider_duplicate_module($cmid, $courseid, $newidnumber) {
         foreach ($tools as $tool) {
             $tool->courseid = $course->id;
             $tool->contextid = $newcmcontext->id;
-            $DB->update_record('local_ltiprovider', $tool);
+            $DB->insert_record('local_ltiprovider', $tool);
         }
     }
 
