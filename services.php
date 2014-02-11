@@ -100,39 +100,7 @@ if ($context->valid) {
         $coursecontext = context_course::instance($course->id);
 
         // Create the tool that provide the full course.
-        $tool = new stdClass();
-        $tool->courseid = $course->id;
-        $tool->contextid = $coursecontext->id;
-        $tool->disabled = 0;
-        $tool->sendgrades = 1;
-        $tool->forcenavigation = 0;
-        $tool->croleinst = 3;
-        $tool->crolelearn = 5;
-        $tool->aroleinst = 3;
-        $tool->arolelearn = 5;
-        $tool->secret = get_config('local_ltiprovider', 'globalsharedsecret');
-        $tool->encoding = 'UTF-8';
-        $tool->institution = "";
-        $tool->lang = $CFG->lang;
-        $tool->timezone = 99;
-        $tool->maildisplay = 2;
-        $tool->city = "mycity";
-        $tool->country = "ES";
-        $tool->hidepageheader = 0;
-        $tool->hidepagefooter = 0;
-        $tool->hideleftblocks = 0;
-        $tool->hiderightblocks = 0;
-        $tool->customcss = '';
-        $tool->enrolstartdate = 0;
-        $tool->enrolperiod = 0;
-        $tool->enrolenddate = 0;
-        $tool->maxenrolled = 0;
-        $tool->userprofileupdate = 1;
-        $tool->timemodified = time();
-        $tool->timecreated = time();
-        $tool->lastsync = 0;
-
-        $toolid = $DB->insert_record('local_ltiprovider', $tool);
+        $toolid = local_ltiprovider_create_tool($course->id, $coursecontext->id, $context);
         $tool->id = $toolid;
 
         $username = local_ltiprovider_create_username($context->info['oauth_consumer_key'], $context->info['user_id']);
@@ -166,7 +134,7 @@ if ($context->valid) {
 
         $courseid = $context->instanceid;
 
-        $cmid = local_ltiprovider_duplicate_module($cm->id, $courseid, $resource_link_id);
+        $cmid = local_ltiprovider_duplicate_module($cm->id, $courseid, $resource_link_id, $context);
         if ($cm = get_coursemodule_from_id(false, $cmid)) {
             echo json_encode($cm);
         }

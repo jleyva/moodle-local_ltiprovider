@@ -107,7 +107,7 @@ function local_ltiprovider_extends_navigation ($nav) {
         $nav->children->add($coursenode);
 
         // Custom CSS
-        if (isset($SESSION->ltiprovider)) {
+        if (isset($SESSION->ltiprovider) and !$PAGE->requires->is_head_done()) {
             $PAGE->requires->css(new moodle_url('/local/ltiprovider/styles.php', array('id' => $SESSION->ltiprovider->id)));
         }
     }

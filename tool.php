@@ -126,39 +126,7 @@ if ($context->valid) {
         $coursecontext = context_course::instance($course->id);
 
         // Create the tool that provide the full course.
-        $tool = new stdClass();
-        $tool->courseid = $course->id;
-        $tool->contextid = $coursecontext->id;
-        $tool->disabled = 0;
-        $tool->sendgrades = 1;
-        $tool->forcenavigation = 0;
-        $tool->croleinst = 3;
-        $tool->crolelearn = 5;
-        $tool->aroleinst = 3;
-        $tool->arolelearn = 5;
-        $tool->secret = get_config('local_ltiprovider', 'globalsharedsecret');
-        $tool->encoding = 'UTF-8';
-        $tool->institution = "";
-        $tool->lang = $CFG->lang;
-        $tool->timezone = 99;
-        $tool->maildisplay = 2;
-        $tool->city = "mycity";
-        $tool->country = 'ES';
-        $tool->hidepageheader = 0;
-        $tool->hidepagefooter = 0;
-        $tool->hideleftblocks = 0;
-        $tool->hiderightblocks = 0;
-        $tool->customcss = '';
-        $tool->enrolstartdate = 0;
-        $tool->enrolperiod = 0;
-        $tool->enrolenddate = 0;
-        $tool->maxenrolled = 0;
-        $tool->userprofileupdate = 1;
-        $tool->timemodified = time();
-        $tool->timecreated = time();
-        $tool->lastsync = 0;
-
-        $toolid = $DB->insert_record('local_ltiprovider', $tool);
+        $toolid = local_ltiprovider_create_tool($course->id, $coursecontext->id, $context);
         $tool->id = $toolid;
 
         // Are we using another course as template?
@@ -394,7 +362,7 @@ if ($context->valid) {
             if (!$cm = $DB->get_record('course_modules', array('idnumber' => $custom_resource_link_copy_id), '*', IGNORE_MULTIPLE)) {
                 print_error('invalidresourcecopyid', 'local_ltiprovider');
             }
-            $newcmid = local_ltiprovider_duplicate_module($cm->id, $courseid, $resource_link_id);
+            $newcmid = local_ltiprovider_duplicate_module($cm->id, $courseid, $resource_link_id, $context);
             if ($cm = get_coursemodule_from_id(false, $newcmid)) {
                 $urltogo = new moodle_url('/mod/' .$cm->modname. '/view.php', array('id' => $cm->id));
             }

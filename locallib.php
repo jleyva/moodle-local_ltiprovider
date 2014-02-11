@@ -301,6 +301,53 @@ function local_ltiprovider_get_new_course_info($field, $context) {
 }
 
 /**
+ * Create a ltiprovier tool for a restored course or activity
+ *
+ * @param  int $courseid  The course id
+ * @param  int $contextid The context id
+ * @param  stdClass $lticontext The LTI context object
+ * @return int           The new tool id
+ */
+function local_ltiprovider_create_tool($courseid, $contextid, $lticontext) {
+    global $CFG, $DB;
+
+    $tool = new stdClass();
+    $tool->courseid = $courseid;
+    $tool->contextid = $contextid;
+    $tool->disabled = 0;
+    $tool->forcenavigation = 0;
+    $tool->croleinst = 3;
+    $tool->crolelearn = 5;
+    $tool->aroleinst = 3;
+    $tool->arolelearn = 5;
+    $tool->secret = get_config('local_ltiprovider', 'globalsharedsecret');
+    $tool->encoding = 'UTF-8';
+    $tool->institution = "";
+    $tool->lang = $CFG->lang;
+    $tool->timezone = 99;
+    $tool->maildisplay = 2;
+    $tool->city = "mycity";
+    $tool->country = "ES";
+    $tool->hidepageheader = 0;
+    $tool->hidepagefooter = 0;
+    $tool->hideleftblocks = 0;
+    $tool->hiderightblocks = 0;
+    $tool->customcss = '';
+    $tool->enrolstartdate = 0;
+    $tool->enrolperiod = 0;
+    $tool->enrolenddate = 0;
+    $tool->maxenrolled = 0;
+    $tool->userprofileupdate = 1;
+    $tool->timemodified = time();
+    $tool->timecreated = time();
+    $tool->lastsync = 0;
+    $tool->sendgrades = (!empty($lticontext->info['lis_outcome_service_url'])) ? 1 : 0;
+    $tool->syncmembers = (!empty($lticontext->info['ext_ims_lis_memberships_url'])) ? 1 : 0;
+
+    return $DB->insert_record('local_ltiprovider', $tool);
+}
+
+/**
  * Duplicate a course
  *
  * @param int $courseid
@@ -522,7 +569,7 @@ function local_ltiprovider_get_new_course_info($field, $context) {
  * @param  int $courseid Course id
  * @return int           New course module id
  */
-function local_ltiprovider_duplicate_module($cmid, $courseid, $newidnumber) {
+function local_ltiprovider_duplicate_module($cmid, $courseid, $newidnumber, $lticontext) {
     global $CFG, $DB, $USER;
 
     require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
@@ -594,13 +641,18 @@ function local_ltiprovider_duplicate_module($cmid, $courseid, $newidnumber) {
         $DB->update_record('course_modules', $module);
     }
 
+    $newtoolid = 0;
     if ($tools = $DB->get_records('local_ltiprovider', array('contextid' => $cmcontext->id))) {
         $newcmcontext = context_module::instance($newcmid);
         foreach ($tools as $tool) {
             $tool->courseid = $course->id;
             $tool->contextid = $newcmcontext->id;
-            $DB->insert_record('local_ltiprovider', $tool);
+            $newtoolid = $DB->insert_record('local_ltiprovider', $tool);
         }
+    }
+
+    if (!$newtoolid) {
+        $toolid = local_ltiprovider_create_tool($course->id, $newcmcontext->id, $lticontext);
     }
 
     if (empty($CFG->keeptempdirectoriesonbackup)) {
