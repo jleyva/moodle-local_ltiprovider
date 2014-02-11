@@ -195,11 +195,11 @@ function local_ltiprovider_populate($user, $context, $tool) {
     $user->firstname = isset($context->info['lis_person_name_given'])? $context->info['lis_person_name_given'] : $context->getUserEmail();
     $user->lastname = isset($context->info['lis_person_name_family'])? $context->info['lis_person_name_family']: '';
     $user->email = clean_param($context->getUserEmail(), PARAM_EMAIL);
-    $user->city = $tool->city;
-    $user->country = $tool->country;
-    $user->institution = $tool->institution;
-    $user->timezone = $tool->timezone;
-    $user->maildisplay = $tool->maildisplay;
+    $user->city = (!empty($tool->city)) ? $tool->city : "";
+    $user->country = (!empty($tool->country)) ? $tool->country : "";
+    $user->institution = (!empty($tool->institution)) ? $tool->institution : "";
+    $user->timezone = (!empty($tool->timezone)) ? $tool->timezone : "";
+    $user->maildisplay = (!empty($tool->maildisplay)) ? $tool->maildisplay : "";
     $user->mnethostid = $CFG->mnet_localhost_id;
     $user->confirmed = 1;
 
