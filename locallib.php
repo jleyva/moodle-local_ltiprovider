@@ -344,7 +344,8 @@ function local_ltiprovider_create_tool($courseid, $contextid, $lticontext) {
     $tool->sendgrades = (!empty($lticontext->info['lis_outcome_service_url'])) ? 1 : 0;
     $tool->syncmembers = (!empty($lticontext->info['ext_ims_lis_memberships_url'])) ? 1 : 0;
 
-    return $DB->insert_record('local_ltiprovider', $tool);
+    $tool->id = $DB->insert_record('local_ltiprovider', $tool);
+    return $tool;
 }
 
 /**
@@ -652,7 +653,7 @@ function local_ltiprovider_duplicate_module($cmid, $courseid, $newidnumber, $lti
     }
 
     if (!$newtoolid) {
-        $toolid = local_ltiprovider_create_tool($course->id, $newcmcontext->id, $lticontext);
+        $tool = local_ltiprovider_create_tool($course->id, $newcmcontext->id, $lticontext);
     }
 
     if (empty($CFG->keeptempdirectoriesonbackup)) {

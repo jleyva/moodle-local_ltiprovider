@@ -100,8 +100,7 @@ if ($context->valid) {
         $coursecontext = context_course::instance($course->id);
 
         // Create the tool that provide the full course.
-        $toolid = local_ltiprovider_create_tool($course->id, $coursecontext->id, $context);
-        $tool->id = $toolid;
+        $tool = local_ltiprovider_create_tool($course->id, $coursecontext->id, $context);
 
         $username = local_ltiprovider_create_username($context->info['oauth_consumer_key'], $context->info['user_id']);
         $userrestoringid = $DB->get_field('user', 'id', array('username' => $username));

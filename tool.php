@@ -126,8 +126,7 @@ if ($context->valid) {
         $coursecontext = context_course::instance($course->id);
 
         // Create the tool that provide the full course.
-        $toolid = local_ltiprovider_create_tool($course->id, $coursecontext->id, $context);
-        $tool->id = $toolid;
+        $tool = local_ltiprovider_create_tool($course->id, $coursecontext->id, $context);
 
         // Are we using another course as template?
         // We have a setting for storing courses to be restored when the cron job is executed.
