@@ -343,6 +343,8 @@ function local_ltiprovider_create_tool($courseid, $contextid, $lticontext) {
     $tool->lastsync = 0;
     $tool->sendgrades = (!empty($lticontext->info['lis_outcome_service_url'])) ? 1 : 0;
     $tool->syncmembers = (!empty($lticontext->info['ext_ims_lis_memberships_url'])) ? 1 : 0;
+    $tool->syncmode = (!empty($lticontext->info['ext_ims_lis_memberships_url'])) ? 1 : 0;
+    $tool->syncperiod = (!empty($lticontext->info['ext_ims_lis_memberships_url'])) ? 86400 : 0;
 
     $tool->id = $DB->insert_record('local_ltiprovider', $tool);
     return $tool;
@@ -434,7 +436,7 @@ function local_ltiprovider_create_tool($courseid, $contextid, $lticontext) {
     }
 
     $rc = new restore_controller($backupid, $newcourse->id,
-            backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $admin->id, backup::TARGET_NEW_COURSE);
+            backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $admin->id, backup::TARGET_EXISTING_DELETING);
 
     foreach ($backupsettings as $name => $value) {
         $setting = $rc->get_plan()->get_setting($name);
