@@ -143,7 +143,7 @@ if ($context->valid) {
             $newcourse->destinationid = $course->id;
             $newcourse->userrestoringid = $userrestoringid;
             $newcourse->context = new stdClass;
-            $newcourse->context->info = $context->info;
+            $newcourse->context->info['roles'] = $context->info['roles'];
             $newcourse->restorestart = 0;
             $aid = $newcourse->id . "-" . $newcourse->destinationid;
 
