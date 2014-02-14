@@ -121,66 +121,75 @@ if ($context->valid) {
         $category = array_shift($categories);
         $newcourse->category  = $category->id;
 
-        $course = create_course($newcourse);
+        $course = $DB->get_record('course', array('shortname' => $newcourse->shortname));
+        if (!$course) {
+            $course = create_course($newcourse);
 
-        $coursecontext = context_course::instance($course->id);
+            $coursecontext = context_course::instance($course->id);
 
-        // Create the tool that provide the full course.
-        $tool = local_ltiprovider_create_tool($course->id, $coursecontext->id, $context);
+            // Create the tool that provide the full course.
+            $tool = local_ltiprovider_create_tool($course->id, $coursecontext->id, $context);
 
-        // Are we using another course as template?
-        // We have a setting for storing courses to be restored when the cron job is executed.
-        $custom_context_template  = $context->info['custom_context_template'];
-        $tplcourse = $DB->get_record('course', array('idnumber' => $custom_context_template), '*', IGNORE_MULTIPLE);
+            // Are we using another course as template?
+            // We have a setting for storing courses to be restored when the cron job is executed.
+            $custom_context_template  = $context->info['custom_context_template'];
+            $tplcourse = $DB->get_record('course', array('idnumber' => $custom_context_template), '*', IGNORE_MULTIPLE);
 
-        if ($custom_context_template and $tplcourse) {
+            if ($custom_context_template and $tplcourse) {
 
-            $username = local_ltiprovider_create_username($context->info['oauth_consumer_key'], $context->info['user_id']);
-            $userrestoringid = $DB->get_field('user', 'id', array('username' => $username));;
+                $username = local_ltiprovider_create_username($context->info['oauth_consumer_key'], $context->info['user_id']);
+                $userrestoringid = $DB->get_field('user', 'id', array('username' => $username));;
 
-            $newcourse = new stdClass();
-            $newcourse->id = $tplcourse->id;
-            $newcourse->destinationid = $course->id;
-            $newcourse->userrestoringid = $userrestoringid;
-            $newcourse->context = new stdClass;
-            $newcourse->context->info['roles'] = $context->info['roles'];
-            $newcourse->restorestart = 0;
-            $aid = $newcourse->id . "-" . $newcourse->destinationid;
+                $newcourse = new stdClass();
+                $newcourse->id = $tplcourse->id;
+                $newcourse->destinationid = $course->id;
+                $newcourse->userrestoringid = $userrestoringid;
+                $newcourse->context = new stdClass;
+                $newcourse->context->info['roles'] = $context->info['roles'];
+                $newcourse->restorestart = 0;
+                $aid = $newcourse->id . "-" . $newcourse->destinationid;
 
-            if ($croncourses = get_config('local_ltiprovider', 'croncourses')) {
-                $croncourses = unserialize($croncourses);
-                if (is_array($croncourses)) {
-                    $croncourses[$aid] = $newcourse;
+                if ($croncourses = get_config('local_ltiprovider', 'croncourses')) {
+                    $croncourses = unserialize($croncourses);
+                    if (is_array($croncourses)) {
+                        $croncourses[$aid] = $newcourse;
+                    } else {
+                        $croncourses = array($aid => $newcourse);
+                    }
                 } else {
                     $croncourses = array($aid => $newcourse);
                 }
-            } else {
-                $croncourses = array($aid => $newcourse);
-            }
 
-            $croncourses = serialize($croncourses);
-            set_config('croncourses', $croncourses, 'local_ltiprovider');
+                $croncourses = serialize($croncourses);
+                set_config('croncourses', $croncourses, 'local_ltiprovider');
 
-            // Add the waiting label.
-            $section = new stdClass();
-            $section->course = $course->id;
-            $section->section = 0;
-            $section->name = "";
-            $section->summary = get_string("coursebeingrestored", "local_ltiprovider");
-            $section->summaryformat = 1;
-            $section->sequence = 10;
-            $section->visible = 1;
-            $section->availablefrom = 0;
-            $section->availableuntil = 0;
-            $section->showavailability = 0;
-            $section->groupingid = 0;
-            if ($section = $DB->get_record('course_sections', array('course' => $course->id, 'section' => 0))) {
+                // Add the waiting label.
+                $section = new stdClass();
+                $section->course = $course->id;
+                $section->section = 0;
+                $section->name = "";
                 $section->summary = get_string("coursebeingrestored", "local_ltiprovider");
-                $DB->update_record('course_sections', $section);
-            } else {
-                $DB->insert_record('course_sections', $section);
+                $section->summaryformat = 1;
+                $section->sequence = 10;
+                $section->visible = 1;
+                $section->availablefrom = 0;
+                $section->availableuntil = 0;
+                $section->showavailability = 0;
+                $section->groupingid = 0;
+                if ($section = $DB->get_record('course_sections', array('course' => $course->id, 'section' => 0))) {
+                    $section->summary = get_string("coursebeingrestored", "local_ltiprovider");
+                    $DB->update_record('course_sections', $section);
+                } else {
+                    $DB->insert_record('course_sections', $section);
+                }
+                rebuild_course_cache($course->id);
             }
-            rebuild_course_cache($course->id);
+        } else {
+            $coursecontext = context_course::instance($course->id);
+
+            if (!$tool = $DB->get_record('local_ltiprovider', array('contextid' => $coursecontext->id))) {
+                print_error('cantdeterminecontext', 'local_ltiprovider');
+            }
         }
     }
 
