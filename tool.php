@@ -107,10 +107,6 @@ if ($context->valid) {
 
         }
 
-        if (!$cancreate) {
-            print_error('rolecannotcreatecontexts', 'local_ltiprovider');
-        }
-
         require_once("$CFG->dirroot/course/lib.php");
         $newcourse = new stdClass();
         $newcourse->fullname  = local_ltiprovider_get_new_course_info('fullname', $context);
@@ -126,6 +122,10 @@ if ($context->valid) {
         // Then try idnumber.
         if (!$course) {
             $course = $DB->get_record('course', array('idnumber' => $newcourse->idnumber));
+        }
+
+        if (!$cancreate and !$course) {
+            print_error('rolecannotcreatecontexts', 'local_ltiprovider');
         }
 
         if (!$course) {
