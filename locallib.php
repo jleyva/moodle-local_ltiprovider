@@ -436,7 +436,7 @@ function local_ltiprovider_create_tool($courseid, $contextid, $lticontext) {
     }
 
     $rc = new restore_controller($backupid, $newcourse->id,
-            backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $admin->id, backup::TARGET_EXISTING_DELETING);
+            backup::INTERACTIVE_NO, backup::MODE_SAMESITE, $admin->id, backup::TARGET_CURRENT_DELETING);
 
     foreach ($backupsettings as $name => $value) {
         $setting = $rc->get_plan()->get_setting($name);
