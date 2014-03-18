@@ -474,7 +474,7 @@ if ($context->valid) {
         $tool->hidepagefooter = 1;
     }
     if ($custom_custom_css = $context->info['custom_custom_css']) {
-        $tool->customcss = 1;
+        $tool->customcss = $custom_custom_css;
     }
     if ($custom_show_blocks = $context->info['custom_show_blocks']) {
         $tool->showblocks = $custom_show_blocks;
