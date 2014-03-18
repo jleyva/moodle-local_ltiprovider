@@ -376,6 +376,11 @@ function local_ltiprovider_create_tool($courseid, $contextid, $lticontext) {
         throw new moodle_exception('invalidcourseid', 'error');
     }
 
+    $options = array();
+    $options['keep_roles_and_enrolments'] = true;
+    $options['keep_groups_and_groupings'] = true;
+    remove_course_contents($newcourse->id, false, $options);
+
     $backupdefaults = array(
         'activities' => 1,
         'blocks' => 1,

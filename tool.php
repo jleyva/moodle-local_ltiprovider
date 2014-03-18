@@ -336,9 +336,9 @@ if ($context->valid) {
                             // Always mandatory generic values to any module
                             // TODO, check for valid types.
                             $moduleinfo->modulename = $resource_link_type;
-                            $moduleinfo->section= 1;
-                            $moduleinfo->course= $courseid;
-                            $moduleinfo->visible= true;
+                            $moduleinfo->section = 1;
+                            $moduleinfo->course = $courseid;
+                            $moduleinfo->visible = true;
                             $moduleinfo->cmidnumber = $resource_link_id;
 
                             // Sometimes optional generic values for some modules
@@ -350,6 +350,15 @@ if ($context->valid) {
                                 $USER = $user;
                                 file_prepare_draft_area($draftid_editor, null, null, null, null);
                                 $moduleinfo->introeditor = array('text'=> $resource_link_description, 'format'=>FORMAT_HTML, 'itemid'=>$draftid_editor);
+                            }
+
+                            // Add extra module info.
+                            $modinfofile = $CFG->dirroot . '/local/ltiprovider/modinfo/' . $moduleinfo->modulename . '.php';
+                            if (file_exists($modinfofile)) {
+                                require_once($modinfofile);
+                                foreach ($extramodinfo as $key => $val) {
+                                    $moduleinfo->{$key} = $val;
+                                }
                             }
 
                             // Create the module, create module is available since Moodle 2.5 and onwards.
