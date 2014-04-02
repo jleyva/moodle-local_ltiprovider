@@ -202,6 +202,8 @@ function local_ltiprovider_populate($user, $context, $tool) {
     $user->maildisplay = (!empty($tool->maildisplay)) ? $tool->maildisplay : "";
     $user->mnethostid = $CFG->mnet_localhost_id;
     $user->confirmed = 1;
+    $user->timecreated = time();
+    $user->timemodified = time();
 
     $user->lang = $tool->lang;
     if (! $user->lang and isset($_POST['launch_presentation_locale'])) {

@@ -414,6 +414,8 @@ function local_ltiprovider_cron() {
                                             $userobj->firstname = clean_param($member->person_name_given, PARAM_TEXT);
                                             $userobj->lastname = clean_param($member->person_name_family, PARAM_TEXT);
                                             $userobj->email = clean_param($member->person_contact_email_primary, PARAM_EMAIL);
+                                            $userobj->timemodified = time();
+
                                             $DB->update_record('user', $userobj);
                                             $userphotos[$userobj->id] = $member->user_image;
                                             events_trigger('user_updated', $userobj);
@@ -444,6 +446,7 @@ function local_ltiprovider_cron() {
                                                 $userobj->mnethostid = $CFG->mnet_localhost_id;
                                                 $userobj->confirmed = 1;
                                                 $userobj->lang = $tool->lang;
+                                                $userobj->timecreated = time();
                                                 if (! $userobj->lang) {
                                                     // TODO: This should be changed for detect the course lang
                                                     $userobj->lang = current_language();
