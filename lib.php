@@ -409,7 +409,19 @@ function local_ltiprovider_cron() {
                                     $currentusers = array();
                                     foreach ($members as $member) {
                                         $username = local_ltiprovider_create_username($user->consumerkey, $member->user_id);
-                                        if ($userobj = $DB->get_record('user', array('username' => $username))) {
+
+                                        $userobj = $DB->get_record('user', array('username' => $username));
+                                        if (!$userobj) {
+                                            // Old format.
+                                            $oldusername = 'ltiprovider' . md5($user->consumerkey . ':' . $member->user_id);
+                                            $userobj = $DB->get_record('user', array('username' => $oldusername));
+                                            if ($userobj) {
+                                                $DB->set_field('user', 'username', $username, array('id' => $userobj->id));
+                                            }
+                                            $userobj = $DB->get_record('user', array('username' => $username));
+                                        }
+
+                                        if ($userobj) {
                                             $currentusers[] = $userobj->id;
                                             $userobj->firstname = clean_param($member->person_name_given, PARAM_TEXT);
                                             $userobj->lastname = clean_param($member->person_name_family, PARAM_TEXT);
