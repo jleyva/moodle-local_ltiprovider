@@ -38,6 +38,7 @@ $mycontext->info['context_id'] = optional_param('context_id', false, PARAM_RAW);
 $mycontext->info['context_title'] = optional_param('context_title', false, PARAM_RAW);
 $mycontext->info['context_label'] = optional_param('context_label', false, PARAM_RAW);
 $mycontext->info['oauth_consumer_key'] = optional_param('oauth_consumer_key', false, PARAM_RAW);
+$mycontext->info['resource_link_id'] = optional_param('resource_link_id', false, PARAM_RAW);
 
 if (optional_param('custom_lti_message_encoded_base64', 0, PARAM_INT) == 1) {
     $lticontextid = base64_decode($lticontextid);
@@ -63,6 +64,23 @@ if (!$toolid and $lticontextid) {
                 print_error('cantdeterminecontext', 'local_ltiprovider');
             }
             $toolid = $DB->get_field('local_ltiprovider', 'id', array('contextid' => $coursecontext->id));
+
+            // Now check if we are accessing a resource/activity instead a course.
+            $resource_link_id = $mycontext->info['resource_link_id'];
+            if ($resource_link_id) {
+                if ($cm = $DB->get_record('course_modules', array('idnumber' => $resource_link_id, 'course' => $course->id), '*', IGNORE_MULTIPLE)) {
+                    $cmcontext  = context_module::instance($cm->id);
+
+                    $toolinstances = $DB->count_records('local_ltiprovider', array('contextid' => $cmcontext->id));
+                    // More than one tool for the same resource/activity.
+                    if ($toolinstances and $toolinstances  > 1) {
+                        print_error('cantdeterminecontext', 'local_ltiprovider');
+                    }
+                    if ($toolinstances) {
+                        $toolid = $DB->get_field('local_ltiprovider', 'id', array('contextid' => $cmcontext->id));
+                    }
+                }
+            }
         }
     }
 }
