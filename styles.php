@@ -55,8 +55,11 @@ if ($tool->hidepagefooter or $SESSION->ltiprovider->hidepagefooter) {
 }
 if ($tool->hideleftblocks or $SESSION->ltiprovider->hideleftblocks) {
     $css .= '
-    #region-pre, #block-region-side-pre{
+    #region-pre .block, #block-region-side-pre .block{
      display: none;
+    }
+    #mod_quiz_navblock {
+     display: block !important;
     }
     ';
 }
@@ -69,8 +72,12 @@ if ($tool->hiderightblocks or $SESSION->ltiprovider->hiderightblocks) {
 }
 
 if ($tool->customcss or $SESSION->ltiprovider->customcss) {
+
     $css .= $tool->customcss;
-    $css .= $SESSION->ltiprovider->customcss;
+
+    if ($SESSION->ltiprovider->customcss and $SESSION->ltiprovider->customcss != $tool->customcss) {
+        $css .= $SESSION->ltiprovider->customcss;
+    }
 }
 
 header('Content-Disposition: inline; filename="styles.php"');
