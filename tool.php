@@ -135,11 +135,12 @@ if ($context->valid) {
         $category = array_shift($categories);
         $newcourse->category  = $category->id;
 
-        // Course exists?? First try shorntmae.
-        $course = $DB->get_record('course', array('shortname' => $newcourse->shortname));
-        // Then try idnumber.
+        // Course exists?? First try idnumber.
+        $course = $DB->get_record('course', array('idnumber' => $newcourse->idnumber));
+
+        // Then try shortname.
         if (!$course) {
-            $course = $DB->get_record('course', array('idnumber' => $newcourse->idnumber));
+            $course = $DB->get_record('course', array('shortname' => $newcourse->shortname));
         }
 
         if (!$cancreate and !$course) {
