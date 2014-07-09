@@ -51,7 +51,7 @@ $tools = $DB->get_records('local_ltiprovider', array('courseid' => $course->id))
 
 $data = array();
 foreach ($tools as $tool) {
-    if (!$toolcontext = context::instance_by_id($tool->contextid)) {
+    if (!$toolcontext = context::instance_by_id($tool->contextid, IGNORE_MISSING)) {
         local_ltiprovider_delete_tool($tool);
         continue;
     }
