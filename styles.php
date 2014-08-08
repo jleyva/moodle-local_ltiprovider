@@ -44,6 +44,10 @@ if ($tool->hidepageheader or $SESSION->ltiprovider->hidepageheader) {
     #page-header{
      display: none;
     }
+
+    header.navbar {
+     display: none;
+    }
     ';
 }
 if ($tool->hidepagefooter or $SESSION->ltiprovider->hidepagefooter) {
