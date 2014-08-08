@@ -110,7 +110,9 @@ function local_ltiprovider_extends_navigation ($nav) {
         if (isset($SESSION->ltiprovider) and !$PAGE->requires->is_head_done()) {
             $PAGE->requires->css(new moodle_url('/local/ltiprovider/styles.php', array('id' => $SESSION->ltiprovider->id)));
         } else {
-            $PAGE->requires->js(new moodle_url('/local/ltiprovider/styles.js.php', array('id' => $SESSION->ltiprovider->id)));
+            $url = new moodle_url('/local/ltiprovider/styles.js.php',
+                                    array('id' => $SESSION->ltiprovider->id, 'rand' => rand(0, 1000)));
+            $PAGE->requires->js($url);
         }
     }
 }
