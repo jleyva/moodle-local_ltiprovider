@@ -7,6 +7,18 @@ header('Content-Type: text/html; charset=utf-8');
 <head>
   <title>IMS Basic Learning Tools Interoperability</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <script language="javascript">
+    var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+    var eventer = window[eventMethod];
+    var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+
+    // Listen to message from child window
+    eventer(messageEvent,function(e) {
+      console.log('Parent received message!');
+      var data = JSON.parse(e.data);
+      console.log(data);
+    },false);
+  </script>
 </head>
 <body style="font-family:sans-serif">
 <img src="http://www.imsglobal.org/images/IMSGLCLogo.jpg"/>
