@@ -25,6 +25,27 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+
+/**
+ * SCORM Bridge, we detect changes in quizzes for submitting back to the parent Window that will process SCORM API messages
+ *
+ * @param  object $nav Global navigation object
+ */
 function ltiproviderextension_scormbridge_navigation($nav) {
-    return;
+    global $DB, $SESSION, $USER, $PAGE;
+
+    // First we need to check if we are in a LTI session and also if the module is a quiz.
+    if (isset($SESSION->ltiprovider)) {
+        $context = $SESSION->ltiprovider->context;
+        if ($context->contextlevel == CONTEXT_MODULE) {
+            $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
+
+            if ($cm->modname == "quiz") {
+                $url = new moodle_url('/local/ltiprovider/extension/scormbridge/tracking.js.php',
+                                        array('quizid' => $cm->instance, 'rand' => rand(0, 1000)));
+                $PAGE->requires->js($url);
+
+            }
+        }
+    }
 }
