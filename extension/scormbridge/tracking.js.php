@@ -57,33 +57,24 @@ if (isset($SESSION->ltiprovider) and isloggedin()) {
     $grades = array();
 }
 
-$attempts = array(
-    'type' => "attempts",
-    'data' => array_values($attempts)
-);
-$grades = array(
-    'type' => "grades",
-    'data' => array_values($grades)
+$data = array(
+    'grades'   => array_values($grades),
+    'attempts' => array_values($attempts)
 );
 
-$attempts = json_encode($attempts);
-$grades   = json_encode($grades);
+$data = json_encode($data);
 
 // Using JSONP, we use a padding function that must be implemented in the consumer side.
 if ($jsonp) {
 ?>
 
-<?php echo $jsonp; ?>('<?php echo $attempts; ?>','<?php echo $grades; ?>');
+<?php echo $jsonp; ?>('<?php echo $data; ?>);
 
 <?php
 } else {
 ?>
 
-var attempts = '<?php echo $attempts; ?>';
-var grades   = '<?php echo $grades; ?>';
-
-parent.postMessage(attempts, "*");
-parent.postMessage(grades, "*");
+parent.postMessage('<?php echo $data; ?>', "*");
 
 <?php
 }
