@@ -28,17 +28,6 @@ require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
 
 use moodle\local\ltiprovider as ltiprovider;
 
-
-/**
- * Function for backwards compatibility (<2.4)
- * For 2.4 and onwards the correct way for calling this hook is local_ltiprovider_extends_navigation
- *
- * @param navigation_node $nav Current navigation object
- */
-function ltiprovider_extends_navigation ($nav) {
-    local_ltiprovider_extends_navigation($nav);
-}
-
 /**
  * Display the LTI settings in the course settings block
  * For 2.3 and onwards
@@ -66,17 +55,8 @@ function local_ltiprovider_extends_settings_navigation(settings_navigation $nav,
 function local_ltiprovider_extends_navigation ($nav) {
     global $CFG, $USER, $PAGE, $SESSION, $ME;
 
-    // Check capabilities for tool providers
-    // Only for Moodle < 2.3 versions
-    if ($CFG->version < 2012062500 and $PAGE->course->id and $PAGE->course->id != SITEID
-        and has_capability('local/ltiprovider:view', $PAGE->context)) {
-        $ltiurl = new moodle_url('/local/ltiprovider/index.php', array('courseid' => $PAGE->course->id));
-        $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
-        $coursenode->add(get_string('pluginname', 'local_ltiprovider'), $ltiurl, $nav::TYPE_CONTAINER, null, 'ltiprovider'.$PAGE->course->id);
-    }
-
     if (isset($USER) and isset($USER->auth) and strpos($USER->username, 'ltiprovider') === 0) {
-        // Force course or activity navigation
+        // Force course or activity navigation.
         if (isset($SESSION->ltiprovider) and $SESSION->ltiprovider->forcenavigation) {
             $context = $SESSION->ltiprovider->context;
             $urltogo = '';
@@ -93,11 +73,12 @@ function local_ltiprovider_extends_navigation ($nav) {
             }
 
             if ($urltogo) {
+                local_ltiprovider_call_hook("navigation", $nav);
                 redirect($urltogo);
             }
         }
 
-        // Delete all the navigation nodes except the course one
+        // Delete all the navigation nodes except the course one.
         $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
         foreach (array('myprofile', 'users', 'site', 'home', 'myhome', 'mycourses', 'courses', '1') as $nodekey) {
             if ($node = $nav->get($nodekey)) {
@@ -106,10 +87,12 @@ function local_ltiprovider_extends_navigation ($nav) {
         }
         $nav->children->add($coursenode);
 
-        // Custom CSS
+        // Custom CSS.
         if (isset($SESSION->ltiprovider) and !$PAGE->requires->is_head_done()) {
             $PAGE->requires->css(new moodle_url('/local/ltiprovider/styles.php', array('id' => $SESSION->ltiprovider->id)));
         }
+
+        local_ltiprovider_call_hook("navigation", $nav);
     }
 }
 
@@ -549,3 +532,19 @@ function local_ltiprovider_cron() {
     mtrace("$counter profile images updated");
 }
 
+/**
+ * Call a hook present in a subplugin
+ *
+ * @param  string $hookname The hookname (function without franken style prefix)
+ * @param  object $data     Object containing data to be used by the hook function
+ * @return bool             Allways false
+ */
+function local_ltiprovider_call_hook($hookname, $data) {
+    $plugins = get_plugin_list_with_function('ltiproviderextension', $hookname);
+    if (!empty($plugins)) {
+        foreach ($plugins as $plugin) {
+            call_user_func($plugin, $data);
+        }
+    }
+    return false;
+}
