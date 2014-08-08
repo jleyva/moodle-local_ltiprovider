@@ -430,7 +430,17 @@ function local_ltiprovider_cron() {
 
                                             $DB->update_record('user', $userobj);
                                             $userphotos[$userobj->id] = $member->user_image;
-                                            events_trigger('user_updated', $userobj);
+
+                                            // Trigger event.
+                                            $event = \core\event\user_updated::create(
+                                                array(
+                                                    'objectid' => $userobj->id,
+                                                    'relateduserid' => $userobj->id,
+                                                    'context' => context_user::instance($userobj->id)
+                                                    )
+                                                 );
+                                            $event->trigger();
+
                                         } else {
                                             // New members.
                                             if ($tool->syncmode == 1 or $tool->syncmode == 2) {
@@ -469,7 +479,16 @@ function local_ltiprovider_cron() {
                                                 $userobj = $DB->get_record('user', array('id' => $userobj->id));
 
                                                 $userphotos[$userobj->id] = $member->user_image;
-                                                events_trigger('user_created', $userobj);
+                                                // Trigger event.
+                                                $event = \core\event\user_created::create(
+                                                    array(
+                                                        'objectid' => $userobj->id,
+                                                        'relateduserid' => $userobj->id,
+                                                        'context' => context_user::instance($userobj->id)
+                                                        )
+                                                     );
+                                                $event->trigger();
+
                                                 $currentusers[] = $userobj->id;
                                             }
                                         }

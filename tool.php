@@ -276,7 +276,15 @@ if ($context->valid) {
         $user->id = $DB->insert_record('user', $user);
         // Reload full user
         $user = $DB->get_record('user', array('id' => $user->id));
-        events_trigger('user_created', $user);
+        // Trigger event.
+        $event = \core\event\user_created::create(
+            array(
+                'objectid' => $user->id,
+                'relateduserid' => $user->id,
+                'context' => context_user::instance($user->id)
+                )
+             );
+        $event->trigger();
     } else {
         $user = new stdClass();
         local_ltiprovider_populate($user, $context, $tool);
@@ -292,7 +300,16 @@ if ($context->valid) {
             if ($userprofileupdate) {
                 local_ltiprovider_populate($user, $context, $tool);
                 $DB->update_record('user', $user);
-                events_trigger('user_updated', $user);
+
+                // Trigger event.
+                $event = \core\event\user_updated::create(
+                    array(
+                        'objectid' => $user->id,
+                        'relateduserid' => $user->id,
+                        'context' => context_user::instance($user->id)
+                        )
+                     );
+                $event->trigger();
             }
         }
     }
@@ -380,12 +397,7 @@ if ($context->valid) {
                                 }
                             }
 
-                            // Create the module, create module is available since Moodle 2.5 and onwards.
-                            if (function_exists('create_module')) {
-                                $modinfo = create_module($moduleinfo);
-                            } else {
-                                $modinfo = local_ltiprovider_create_module($moduleinfo);
-                            }
+                            $modinfo = create_module($moduleinfo);
 
                             if ($modinfo) {
                                 $urltogo = new moodle_url('/course/modedit.php', array('update' => $modinfo->coursemodule));
@@ -464,7 +476,6 @@ if ($context->valid) {
         $DB->insert_record('local_ltiprovider_user', $userlog);
     }
 
-    add_to_log(SITEID, 'user', 'login', $urltogo, "ltiprovider login", 0, $user->id);
     $tool->context = $moodlecontext;
 
     $indexes = array('custom_force_navigation', 'custom_hide_left_blocks', 'custom_hide_right_blocks',
@@ -476,7 +487,7 @@ if ($context->valid) {
         }
     }
 
-    // Overrida some settings.
+    // Override some settings.
     if ($custom_force_navigation = $context->info['custom_force_navigation']) {
         $tool->forcenavigation = 1;
     }
@@ -502,6 +513,15 @@ if ($context->valid) {
     $SESSION->ltiprovider = $tool;
 
     complete_user_login($user);
+
+    // Trigger login event.
+    $event = \core\event\user_loggedin::create(
+        array(
+          'userid' => $user->id,
+          'objectid' => $user->id,
+          'other' => array('username' => $user->username),
+        ));
+    $event->trigger();
 
     // Moodle 2.2 and onwards.
     if (isset($CFG->allowframembedding) and !$CFG->allowframembedding) {
