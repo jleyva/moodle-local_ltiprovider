@@ -90,6 +90,8 @@ function local_ltiprovider_extends_navigation ($nav) {
         // Custom CSS.
         if (isset($SESSION->ltiprovider) and !$PAGE->requires->is_head_done()) {
             $PAGE->requires->css(new moodle_url('/local/ltiprovider/styles.php', array('id' => $SESSION->ltiprovider->id)));
+        } else {
+            $PAGE->requires->js(new moodle_url('/local/ltiprovider/styles.js.php', array('id' => $SESSION->ltiprovider->id)));
         }
 
         local_ltiprovider_call_hook("navigation", $nav);
