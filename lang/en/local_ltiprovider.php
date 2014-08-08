@@ -109,4 +109,5 @@ $string['genericformathelp'] = 'For remotely new create courses you can select t
 $string['duplicatecourseswithoutusers'] = 'Duplicate courses without users';
 $string['duplicatecourseswithoutusershelp'] = 'When creating a new course, do not import the users from the template course';
 
-
+$string['subplugintype_ltiproviderextension'] = 'LTI extension';
+$string['subplugintype_ltiproviderextension_plural'] = 'LTI extensions';

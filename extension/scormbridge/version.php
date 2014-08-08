@@ -17,15 +17,14 @@
 /**
  * Version details.
  *
- * @package    local
- * @subpackage ltiprovider
- * @copyright  2011 Juan Leyva <juanleyvadelgado@gmail.com>
+ * @package    ltiproviderextension
+ * @subpackage scormbridge
+ * @copyright  2014 Juan Leyva <juanleyvadelgado@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version  = 2014080101;
+$plugin->version  = 2014080100;
 $plugin->requires = 2014051200; // Require Moodle version (2.7).
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release  = '2.7.0';
+$plugin->component = "ltiproviderextension_scormbridge";
