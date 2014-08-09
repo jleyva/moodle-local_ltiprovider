@@ -68,7 +68,7 @@ $data = json_encode($data);
 if ($jsonp) {
 ?>
 
-<?php echo $jsonp; ?>('<?php echo $data; ?>);
+<?php echo $jsonp; ?>('<?php echo $data; ?>');
 
 <?php
 } else {
