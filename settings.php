@@ -49,7 +49,7 @@ if ($hassiteconfig) { // needs this condition or there is error on login page
         }
     }
     $settings->add(new admin_setting_configselect('local_ltiprovider/defaultauthmethod', get_string('defaultauthmethod',
-        'local_ltiprovider'), get_string('defaultauthmethodhelp', 'local_ltiprovider'), 'nologin', $authmethods));
+        'local_ltiprovider'), get_string('defaultauthmethodhelp', 'local_ltiprovider'), 'manual', $authmethods));
 
     $options = array('context_id', 'context_title' , 'context_label', 'consumer_key : context_id', 'consumer_key : context_title' , 'consumer_key : context_label');
 
