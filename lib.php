@@ -98,13 +98,14 @@ function local_ltiprovider_extends_navigation ($nav) {
         }
 
         // Delete all the navigation nodes except the course one
-        $coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE);
-        foreach (array('myprofile', 'users', 'site', 'home', 'myhome', 'mycourses', 'courses', '1') as $nodekey) {
-            if ($node = $nav->get($nodekey)) {
-                $node->remove();
+        if ($coursenode = $nav->find($PAGE->course->id, $nav::TYPE_COURSE)) {
+            foreach (array('myprofile', 'users', 'site', 'home', 'myhome', 'mycourses', 'courses', '1') as $nodekey) {
+                if ($node = $nav->get($nodekey)) {
+                    $node->remove();
+                }
             }
+            $nav->children->add($coursenode);
         }
-        $nav->children->add($coursenode);
 
         // Custom CSS
         if (isset($SESSION->ltiprovider) and !$PAGE->requires->is_head_done()) {
