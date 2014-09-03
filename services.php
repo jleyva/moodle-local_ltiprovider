@@ -137,6 +137,15 @@ if ($context->valid) {
         if ($cm = get_coursemodule_from_id(false, $cmid)) {
             echo json_encode($cm);
         }
+    } else if ($service == 'force_logout') {
+        // Force logout.
+        $authsequence = get_enabled_auth_plugins();
+        foreach ($authsequence as $authname) {
+            $authplugin = get_auth_plugin($authname);
+            $authplugin->logoutpage_hook();
+        }
+
+        require_logout();
     }
 
 } else {
