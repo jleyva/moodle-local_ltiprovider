@@ -9,8 +9,8 @@ function getLastOAuthBodyBaseString() {
     global $LastOAuthBodyBaseString;
     return $LastOAuthBodyBaseString;
 }
- 
-function handleOAuthBodyPOST($oauth_consumer_key, $oauth_consumer_secret) 
+
+function handleOAuthBodyPOST($oauth_consumer_key, $oauth_consumer_secret)
 {
     $request_headers = OAuthUtil::get_headers();
     // print_r($request_headers);
@@ -69,8 +69,82 @@ function handleOAuthBodyPOST($oauth_consumer_key, $oauth_consumer_secret)
 function sendOAuthBodyPOST($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $body)
 {
     $hash = base64_encode(sha1($body, TRUE));
-
     $parms = array('oauth_body_hash' => $hash);
+
+    $test_token = '';
+    $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
+    $test_consumer = new OAuthConsumer($oauth_consumer_key, $oauth_consumer_secret, NULL);
+
+    $acc_req = OAuthRequest::from_consumer_and_token($test_consumer, $test_token, $method, $endpoint, $parms);
+    $acc_req->sign_request($hmac_method, $test_consumer, $test_token);
+
+    // Pass this back up "out of band" for debugging
+    global $LastOAuthBodyBaseString;
+    $LastOAuthBodyBaseString = $acc_req->get_signature_base_string();
+    // echo($LastOAuthBodyBaseString."\m");
+	// converted to CURL.  Lots more informative, less stupid.  
+	$header_array = array(
+		"Content-type: \"$content_type\"",
+		$acc_req->to_header()
+	);
+	error_log(print_r($header_array, true));
+	error_log("Sending $body");
+	$curl = curl_init($endpoint);
+	curl_setopt($curl, CURLOPT_HEADER, true);
+	curl_setopt($curl, CURLOPT_HTTPHEADER, $header_array);
+	//curl_setopt($curl, CURLOPT_POST, true);
+	curl_setopt($curl, CURLOPT_POSTFIELDS, $body);
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+	curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "POST");
+	curl_setopt($curl, CURLOPT_POSTREDIR, 3);
+	// todo:  Fix me.
+	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+	$response = curl_exec($curl);
+	if (curl_errno($curl)) {
+		error_log("Curl failed with error " . curl_errno($curl).  ".  Details:  " . curl_error($curl) . " using endpoint $endpoint");
+
+		throw new \Exception("Curl failed with error " . curl_errno($curl).  ".  Details:  " . curl_error($curl) . " using endpoint $endpoint");
+	}
+	error_log("CUrl succeded with $response");
+	return $response;
+	
+    /* 
+
+    $header = $acc_req->to_header();
+	$header = $header . "\r\nContent-type: " . $content_type . "\r\n";
+
+    $params = array('http' => array(
+        'method' => 'POST',
+        'content' => $body,
+    	'header' => $header
+        ));
+    $ctx = stream_context_create($params);
+    $fp = @fopen($endpoint, 'rb', false, $ctx);
+    if (!$fp) {
+        throw new \Exception("Problem with $endpoint, $php_errormsg");
+    }
+    $response = @stream_get_contents($fp);
+    if ($response === false) {
+        throw new \Exception("Problem reading data from $endpoint, $php_errormsg");
+    }
+    return $response;
+	*/
+}
+
+function sendOAuthParamsPOST($method, $endpoint, $oauth_consumer_key, $oauth_consumer_secret, $content_type, $params)
+{
+
+    if (is_array($params)) {
+        $body = http_build_query($params, '', '&');
+    } else {
+        $body = $params;
+    }
+
+    $hash = base64_encode(sha1($body, TRUE));
+
+    $parms = $params;
+    $parms['oauth_body_hash'] = $hash;
 
     $test_token = '';
     $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();

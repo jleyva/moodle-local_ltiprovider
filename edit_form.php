@@ -43,7 +43,9 @@ class edit_form extends moodleform {
 
         $tools = array();
         $tools[$context->id] = get_string('course');
-        get_all_mods($this->_customdata['courseid'], $mods, $modnames, $modnamesplural, $modnamesused);
+
+        $modinfo = get_fast_modinfo($this->_customdata['courseid']);
+        $mods = $modinfo->get_cms();
 
         foreach ($mods as $mod) {
             $tools[$mod->context->id] = format_string($mod->name);
@@ -57,7 +59,7 @@ class edit_form extends moodleform {
 
         $mform->addElement('checkbox', 'forcenavigation', null, get_string('forcenavigation', 'local_ltiprovider'));
         $mform->setDefault('forcenavigation', 1);
-        
+
         $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'local_ltiprovider'), array('optional' => true, 'defaultunit' => 86400));
         $mform->setDefault('enrolperiod', 0);
         $mform->addHelpButton('enrolperiod', 'enrolperiod', 'local_ltiprovider');
@@ -69,7 +71,7 @@ class edit_form extends moodleform {
         $mform->addElement('date_selector', 'enrolenddate', get_string('enrolenddate', 'local_ltiprovider'), array('optional' => true));
         $mform->setDefault('enrolenddate', 0);
         $mform->addHelpButton('enrolenddate', 'enrolenddate', 'local_ltiprovider');
-        
+
         $mform->addElement('text', 'maxenrolled', get_string('maxenrolled', 'local_ltiprovider'));
         $mform->setDefault('maxenrolled', 0);
         $mform->addHelpButton('maxenrolled', 'maxenrolled', 'local_ltiprovider');
@@ -100,12 +102,28 @@ class edit_form extends moodleform {
         $mform->setDefault('secret', md5(uniqid(rand(), 1)));
         $mform->addRule('secret', get_string('required'), 'required');
 
-        $textlib = textlib_get_instance();
+        if (class_exists('textlib')) {
+            $textlib = new textlib();
+        } else {
+            $textlib = textlib_get_instance();
+        }
+
         $choices = $textlib->get_encodings();
         $mform->addElement('select', 'encoding', get_string('remoteencoding', 'local_ltiprovider'), $choices);
         $mform->setDefault('encoding', 'UTF-8');
 
         $mform->addElement('header', 'defaultheader', get_string('userdefaultvalues', 'local_ltiprovider'));
+
+        $choices = array(0 => get_string('never'), 1 => get_string('always'));
+        $mform->addElement('select', 'userprofileupdate', get_string('userprofileupdate', 'local_ltiprovider'), $choices);
+
+        $userprofileupdate = get_config('local_ltiprovider', 'userprofileupdate');
+        if ($userprofileupdate != -1) {
+            $mform->setDefault('userprofileupdate', $userprofileupdate);
+            $mform->freeze('userprofileupdate');
+        } else {
+            $mform->setDefault('userprofileupdate', 1);
+        }
 
         $choices = array(0 => get_string('emaildisplayno'), 1 => get_string('emaildisplayyes'), 2 => get_string('emaildisplaycourse'));
         $mform->addElement('select', 'maildisplay', get_string('emaildisplay'), $choices);
@@ -143,6 +161,30 @@ class edit_form extends moodleform {
         $mform->setDefault('institution', $templateuser->institution);
         $mform->setAdvanced('institution');
 
+        $mform->addElement('header', 'memberships', get_string('membershipsettings', 'local_ltiprovider'));
+        $mform->addElement('checkbox', 'syncmembers', null, get_string('enablememberssync', 'local_ltiprovider'));
+        $mform->disabledIf('syncmembers', 'contextid', 'neq', $context->id);
+
+        $options = array();
+        $options[30*60]     = '30 ' . get_string('minutes');
+        $options[60*60]     = '1 ' . get_string('hour');
+        $options[2*60*60]   = '2 ' . get_string('hours');
+        $options[6*60*60]   = '6 ' . get_string('hours');
+        $options[12*60*60]  = '12 ' . get_string('hours');
+        $options[24*60*60]  = '24 ' . get_string('hours');
+        $mform->addElement('select', 'syncperiod', get_string('syncperiod', 'local_ltiprovider'), $options);
+        $mform->setDefault('syncperiod', 30*60);
+        $mform->disabledIf('syncperiod', 'contextid', 'neq', $context->id);
+
+        $options = array();
+        $options[1] = get_string('enrolandunenrol' , 'local_ltiprovider');
+        $options[2] = get_string('enrolnew' , 'local_ltiprovider');
+        $options[3] = get_string('unenrolmissing' , 'local_ltiprovider');
+        $mform->addElement('select', 'syncmode', get_string('syncmode', 'local_ltiprovider'), $options);
+        $mform->setDefault('syncmode', 1);
+        $mform->disabledIf('syncmode', 'contextid', 'neq', $context->id);
+
+
         $mform->addElement('header', 'layoutandcss', get_string('layoutandcss', 'local_ltiprovider'));
 
         $mform->addElement('checkbox', 'hidepageheader', null, get_string('hidepageheader', 'local_ltiprovider'));
@@ -170,7 +212,7 @@ class edit_form extends moodleform {
         global $COURSE, $DB, $CFG;
 
         $errors = parent::validation($data, $files);
-        
+
         if (!empty($data['enrolenddate']) and $data['enrolenddate'] < $data['enrolstartdate']) {
             $errors['enrolenddate'] = get_string('enrolenddaterror', 'local_ltiprovider');
         }

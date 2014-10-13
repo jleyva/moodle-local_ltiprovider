@@ -66,7 +66,6 @@ $string['customcss'] = 'Custom CSS';
 $string['sendgrades'] = 'Send grades back';
 $string['forcenavigation'] = 'Force course or activity navigation';
 
-
 $string['invalidcredentials'] = 'Invalid credentials';
 $string['allowframembedding'] = 'In order to avoid problems embedding this site, please enable the allowframembedding setting in Admin -> Security -> HTTP security';
 $string['newpopupnotice'] = 'The tool will be opened in a new Window. Please, check that popups for this site are enabled in your browser. You can use the link displayed bellow for opening the tool.';
@@ -76,4 +75,38 @@ $string['enrolmentnotstarted'] = 'The enrolment period has not started';
 $string['enrolmentfinished'] = 'The enrolment period has finished';
 $string['ltiprovider:manage'] = 'Manage tools (provide)';
 $string['ltiprovider:view'] = 'View tools provided';
+
+$string['globalsharedsecret'] = 'Global Shared Secret';
+$string['defaultauthmethod'] = 'Default auth method';
+$string['defaultauthmethodhelp'] = 'This is the auth method assigned a new users created by the plugin';
+$string['delegate'] = 'Delegate';
+$string['userprofileupdate'] = 'User profile update';
+$string['userprofileupdatehelp'] = 'Never for not update the user profile on every remote access, Delegate to be configured at tool level';
+$string['rolesallowedcreateresources'] = 'Roles allowed to create resources (from the remote site)';
+$string['rolesallowedcreatecontexts'] = 'Roles allowed to create contexts (from the remote site)';
+$string['cantdeterminecontext'] = 'Can\' determine the context, it seems that there are more than one tool provided for this context_id';
+
+$string['invalidtplcourse'] = 'Invalid course template id';
+$string['missingrequiredtool'] = 'For duplicating a resource, you must point the request to an existing resource type course';
+$string['invalidtypetool'] = 'For duplicating a resource, you must point the request to a resource type course';
+$string['invalidresourcecopyid'] = 'Invalid resource to be copied identifier';
+
+$string['coursebeingrestored'] = 'This course is being restored, it can take some minutes to finish';
+
+$string['membershipsettings'] = 'Memberships service settings';
+$string['enablememberssync'] = 'Enable members synchronization';
+$string['syncperiod'] = 'Synchronization period';
+$string['syncmode'] = 'Synchronization mode';
+$string['enrolandunenrol'] = 'Enrol new and unenrol missing members';
+$string['enrolnew'] = 'Enrol new members';
+$string['unenrolmissing'] = 'Unenrol missing members';
+
+$string['idnumberformat'] = 'Idnumber format for new created courses';
+$string['shortnameformat'] = 'Shortname format for new created courses';
+$string['fullnameformat'] = 'Fullname format for new created courses';
+$string['genericformathelp'] = 'For remotely new create courses you can select the remote parameters for creating the name';
+
+$string['duplicatecourseswithoutusers'] = 'Duplicate courses without users';
+$string['duplicatecourseswithoutusershelp'] = 'When creating a new course, do not import the users from the template course';
+
 

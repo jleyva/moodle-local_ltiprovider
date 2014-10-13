@@ -51,8 +51,8 @@ if (! ($course = $DB->get_record('course', array('id'=>$courseid)))) {
 
 $PAGE->set_url('/local/ltiprovider/edit.php', array('id' => $id, 'courseid' => $courseid));
 
-preload_course_contexts($course->id);
-if (!$context = get_context_instance(CONTEXT_COURSE, $course->id)) {
+context_helper::preload_course($course->id);
+if (!$context = context_course::instance($course->id)) {
     print_error('nocontext');
 }
 
@@ -67,7 +67,7 @@ $PAGE->set_context($context);
 if ($delete and $tool->id) {
     $PAGE->url->param('delete', 1);
     if ($confirm and confirm_sesskey()) {
-        ltiprovider_delete_tool($tool);
+        local_ltiprovider_delete_tool($tool);
         redirect($returnurl);
     }
     $strheading = get_string('deletetool', 'local_ltiprovider');
@@ -100,6 +100,12 @@ $PAGE->set_title($strheading);
 $PAGE->set_heading($course->fullname . ': '.$strheading);
 
 $editform = new edit_form(null, compact('context', 'courseid'));
+
+$userprofileupdate = get_config('local_ltiprovider', 'userprofileupdate');
+if ($userprofileupdate != -1) {
+    $tool->userprofileupdate = $userprofileupdate;
+}
+
 $editform->set_data($tool);
 
 if ($editform->is_cancelled()) {
@@ -109,10 +115,10 @@ if ($editform->is_cancelled()) {
 
     if ($data->id > 0) {
         // Update
-        ltiprovider_update_tool($data);
+        local_ltiprovider_update_tool($data);
     } else {
         // Create new
-        ltiprovider_add_tool($data);
+        local_ltiprovider_add_tool($data);
     }
     redirect($returnurl);
 }

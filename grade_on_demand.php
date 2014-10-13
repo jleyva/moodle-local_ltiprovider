@@ -26,7 +26,7 @@
 require_once('../../config.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
-require_once($CFG->dirroot.'/local/ltiprovider/return_grade.php');
+require_once($CFG->dirroot.'/local/ltiprovider/lib.php');
 
 use moodle\local\ltiprovider as ltiprovider;
 
@@ -35,15 +35,22 @@ parse_str($parsed_url['query']);
 $tool = $DB->get_record_select('local_ltiprovider', 'disabled = ? AND sendgrades = ? AND id = ?', array(0, 1, $id));
 // ensure the params are sane.
 $context = new BLTI($tool->secret, false, false);
-//mtrace($context);
 if ($context) {
+		
 		$user = $DB->get_record_select('local_ltiprovider_user', 'sourceid = ?', array($_POST['lis_result_sourcedid']));
-		local_ltiprovider_return_grade($tool, $user);
-		echo "Yes!";
+		//mtrace(" Staring sync of grade for single user id $user->id for tool id $tool->id");
+		//if(local_ltiprovider_return_grade($tool, $user);
+		list($result, $message) = local_ltiprovider_send_grade_on_demand($tool, $user);
+		if($result === true) {
+				mtrace(" Completed on demand sync for single user id $user->id tool id $tool->id was successful.");
+				// TODO:  Some saner response.  JSON?
+				echo "Grade request processed successfully.";
+		} else {
+				mtrace(" Completed on demand sync for single user id $user->id tool id $tool->id was failed with message $message.");
+				echo "Grade request failed:  $message";
+		}
 } else {
 		//BLTI launch invalid.
-		echo "No!";
+		mtrace(" Invalid parameters for on demand sync.");
+		echo "Invalid parameters.";
 }
-
-
-

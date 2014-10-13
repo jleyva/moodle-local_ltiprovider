@@ -39,36 +39,50 @@ $lifetime = 60*60*24*3;
 
 $css = '';
 
-if ($tool->hidepageheader) {
+if ($tool->hidepageheader or $SESSION->ltiprovider->hidepageheader) {
     $css .= '
     #page-header{
      display: none;
     }
+
+    header.navbar {
+     display: none;
+    }
     ';
 }
-if ($tool->hidepagefooter) {
+if ($tool->hidepagefooter or $SESSION->ltiprovider->hidepagefooter) {
     $css .= '
     #page-footer{
      display: none;
     }
     ';
 }
-if ($tool->hideleftblocks) {
+if ($tool->hideleftblocks or $SESSION->ltiprovider->hideleftblocks) {
     $css .= '
-    #region-pre{
+    #region-pre .block, #block-region-side-pre .block{
      display: none;
+    }
+    #mod_quiz_navblock {
+     display: block !important;
     }
     ';
 }
-if ($tool->hiderightblocks) {
+if ($tool->hiderightblocks or $SESSION->ltiprovider->hiderightblocks) {
     $css .= '
-    #region-post{
+    #region-post, #block-region-side-post {
      display: none;
     }
     ';
 }
 
-$css .= $tool->customcss;
+if ($tool->customcss or $SESSION->ltiprovider->customcss) {
+
+    $css .= $tool->customcss;
+
+    if ($SESSION->ltiprovider->customcss and $SESSION->ltiprovider->customcss != $tool->customcss) {
+        $css .= $SESSION->ltiprovider->customcss;
+    }
+}
 
 header('Content-Disposition: inline; filename="styles.php"');
 header('Last-Modified: '. gmdate('D, d M Y H:i:s', time()) .' GMT');

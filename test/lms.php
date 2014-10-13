@@ -32,6 +32,21 @@ require_once("../ims-blti/blti_util.php");
       "context_label" => "SI182",
       "tool_consumer_instance_guid" => "lmsng.school.edu",
       "tool_consumer_instance_description" => "University of School (LMSng)",
+      "custom_create_context" => "0",
+      "custom_context_template" => "",
+      "custom_resource_link_type" => "",
+      "custom_resource_link_copy_id" => "",
+      "custom_service" => "",
+      "custom_force_navigation" => "",
+      "custom_hide_left_blocks" => "",
+      "custom_hide_right_blocks" => "",
+      "custom_hide_page_header" => "",
+      "custom_hide_page_footer" => "",
+      "custom_custom_css" => "",
+      "custom_show_blocks" => "",
+      "ext_ims_lis_memberships_id" => "",
+      "ext_ims_lis_memberships_url" => "",
+      "user_image" => ""
       );
 
   foreach ($lmsdata as $k => $val ) {
@@ -47,7 +62,7 @@ require_once("../ims-blti/blti_util.php");
   if ( ! $secret ) $secret = "secret";
   $endpoint = $_REQUEST["endpoint"];
 
-  if ( ! $endpoint ) $endpoint = str_replace("lms.php","tool.php",$cur_url);
+  if ( ! $endpoint ) $endpoint = str_replace("test/lms.php","tool.php",$cur_url);
 
   $urlformat = $_REQUEST["format"];
   $urlformat = ( $urlformat != 'XML' );
@@ -57,8 +72,8 @@ require_once("../ims-blti/blti_util.php");
   $xmldesc = str_replace("\\\"","\"",$_REQUEST["xmldesc"]);
   if ( ! $xmldesc ) $xmldesc = $default_desc;
 ?>
-<script language="javascript"> 
-  //<![CDATA[ 
+<script language="javascript">
+  //<![CDATA[
 function lmsdataToggle() {
     var ele = document.getElementById("lmsDataForm");
     if(ele.style.display == "block") {
@@ -67,8 +82,8 @@ function lmsdataToggle() {
     else {
         ele.style.display = "block";
     }
-} 
-  //]]> 
+}
+  //]]>
 </script>
 <a id="displayText" href="javascript:lmsdataToggle();">Toggle Resource and Launch Data</a>
 <?php
@@ -127,17 +142,17 @@ function lmsdataToggle() {
 
   $parms = signParameters($parms, $endpoint, "POST", $key, $secret, "Press to Launch", $tool_consumer_instance_guid, $tool_consumer_instance_description);
 
-  $content = postLaunchHTML($parms, $endpoint, true, 
+  $content = postLaunchHTML($parms, $endpoint, true,
      "width=\"100%\" height=\"900\" scrolling=\"auto\" frameborder=\"1\" transparency");
   print($content);
 
 ?>
 <hr>
 <p>
-Note: Unpublished drafts of IMS Specifications are only available to 
+Note: Unpublished drafts of IMS Specifications are only available to
 IMS members and any software based on an unpublished draft is subject to change.
 Sample code is provided to help developers understand the specification more quickly.
-Simply interoperating with this sample implementation code does not 
+Simply interoperating with this sample implementation code does not
 allow one to claim compliance with a specification.
 <p>
 <a href=http://www.imsglobal.org/toolsinteroperability2.cfm>IMS Learning Tools Interoperability Working Group</a> <br/>

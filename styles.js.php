@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details.
+ * Custom styles for a tool.
  *
  * @package    local
  * @subpackage ltiprovider
@@ -23,9 +23,31 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
+require_once(dirname(__FILE__) . '/../../config.php');
 
-$plugin->version  = 2011121709;
-$plugin->requires = 2011120500; // require Moodle version (2.2).
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release  = '2.3.1';
+$toolid = required_param('id', PARAM_INT);
+
+$url = $CFG->wwwroot . "/local/ltiprovider/styles.php?id=$toolid";
+?>
+
+function local_ltiprovider_loadjscssfile(){
+    var url = "<?php echo $url; ?>";
+    var fileref=document.createElement("link");
+    fileref.setAttribute("rel", "stylesheet");
+    fileref.setAttribute("type", "text/css");
+    fileref.setAttribute("href", url);
+    var head = document.getElementsByTagName("head");
+    if (head) {
+        head[0].appendChild(fileref)
+    }
+}
+
+// Waiting DOM ready (hide effect).
+YUI().use('node', function(Y) {
+      Y.on("domready", function(){
+        local_ltiprovider_loadjscssfile();
+      });
+});
+
+// Without waiting.
+local_ltiprovider_loadjscssfile();

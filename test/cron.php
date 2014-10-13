@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details.
+ * Launch destination url. Main entry point for the external system.
  *
  * @package    local
  * @subpackage ltiprovider
@@ -23,9 +23,21 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
+require_once(dirname(__FILE__) . '/../../../config.php');
 
-$plugin->version  = 2011121709;
-$plugin->requires = 2011120500; // require Moodle version (2.2).
-$plugin->maturity = MATURITY_STABLE;
-$plugin->release  = '2.3.1';
+require_login();
+require_capability('moodle/site:config', context_system::instance());
+
+require_once('../lib.php');
+
+if ($tools = $DB->get_records('local_ltiprovider', array('disabled' => 0, 'syncmembers' => 1))) {
+    foreach ($tools as $tool) {
+        set_config('membershipslastsync-' . $tool->id, 0, 'local_ltiprovider');
+    }
+}
+
+$start = time();
+echo "Starting LTI provider cron";
+local_ltiprovider_cron();
+$end = time();
+echo "LTI provider cron finished, duration: " . ($end - $start) . " secs";

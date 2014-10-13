@@ -1,0 +1,5 @@
+<?php
+
+$extramodinfo = array(
+    "quizpassword" => "");
+
