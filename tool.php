@@ -439,8 +439,8 @@ if ($context->valid) {
 
     if ($moodlecontext->contextlevel == CONTEXT_MODULE) {
         // Enrol the user in the activity
-        if (($tool->aroleinst and in_array('Instructor', $roles)) or ($tool->arolelearn and in_array('Learner', $roles))) {
-            $roleid = ($role == 'Instructor')? $tool->aroleinst: $tool->arolelearn;
+        if (($tool->aroleinst and in_array('instructor', $roles)) or ($tool->arolelearn and in_array('learner', $roles))) {
+            $roleid = ($role == 'instructor')? $tool->aroleinst: $tool->arolelearn;
             role_assign($roleid, $user->id, $tool->contextid);
         }
     }
