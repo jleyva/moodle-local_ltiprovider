@@ -227,11 +227,7 @@ if ($context->valid) {
 
     // Transform to utf8 all the post and get data
 
-    if (class_exists('textlib')) {
-        $textlib = new textlib();
-    } else {
-        $textlib = textlib_get_instance();
-    }
+    $textlib = new core_text;
 
     foreach ($_POST as $key => $value) {
         $_POST[$key] = $textlib->convert($value, $tool->encoding);
@@ -292,7 +288,12 @@ if ($context->valid) {
             if ($userprofileupdate) {
                 local_ltiprovider_populate($user, $context, $tool);
                 $DB->update_record('user', $user);
-                events_trigger('user_updated', $user);
+								$evt = \core\event\user_updated::create(array(
+									'contextid' => $tool->contextid,
+									'relateduserid' => $user->id,
+									'objectid' => $user->id,
+								));
+								$evt->trigger();
             }
         }
     }
@@ -427,8 +428,8 @@ if ($context->valid) {
 
     if ($moodlecontext->contextlevel == CONTEXT_MODULE) {
         // Enrol the user in the activity
-        if (($tool->aroleinst and in_array('Instructor', $roles)) or ($tool->arolelearn and in_array('Learner', $roles))) {
-            $roleid = ($role == 'Instructor')? $tool->aroleinst: $tool->arolelearn;
+        if (($tool->aroleinst and in_array('instructor', $roles)) or ($tool->arolelearn and in_array('learner', $roles))) {
+            $roleid = ($role == 'instructor')? $tool->aroleinst: $tool->arolelearn;
             role_assign($roleid, $user->id, $tool->contextid);
         }
     }
@@ -464,7 +465,13 @@ if ($context->valid) {
         $DB->insert_record('local_ltiprovider_user', $userlog);
     }
 
-    add_to_log(SITEID, 'user', 'login', $urltogo, "ltiprovider login", 0, $user->id);
+		$evt = \core\event\user_loggedin::create(array(
+			'objectid' => $user->id,
+			'other' => array(
+				'username' => $user->username
+			)
+		));
+
     $tool->context = $moodlecontext;
 
     $indexes = array('custom_force_navigation', 'custom_hide_left_blocks', 'custom_hide_right_blocks',

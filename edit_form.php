@@ -101,12 +101,8 @@ class edit_form extends moodleform {
         $mform->setType('secret', PARAM_MULTILANG);
         $mform->setDefault('secret', md5(uniqid(rand(), 1)));
         $mform->addRule('secret', get_string('required'), 'required');
-
-        if (class_exists('textlib')) {
-            $textlib = new textlib();
-        } else {
-            $textlib = textlib_get_instance();
-        }
+	// updated to use new core_text lib as required by Moodle 2.9
+        $textlib = new core_text;
 
         $choices = $textlib->get_encodings();
         $mform->addElement('select', 'encoding', get_string('remoteencoding', 'local_ltiprovider'), $choices);
@@ -146,7 +142,7 @@ class edit_form extends moodleform {
         }
         $mform->setAdvanced('country');
 
-        $choices = get_list_of_timezones();
+        $choices = core_date::get_list_of_timezones();
         $choices['99'] = get_string('serverlocaltime');
         $mform->addElement('select', 'timezone', get_string('timezone'), $choices);
         $mform->setDefault('timezone', $templateuser->timezone);
