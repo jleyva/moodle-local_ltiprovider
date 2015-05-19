@@ -102,13 +102,8 @@ class edit_form extends moodleform {
         $mform->setDefault('secret', md5(uniqid(rand(), 1)));
         $mform->addRule('secret', get_string('required'), 'required');
 
-        if (class_exists('textlib')) {
-            $textlib = new textlib();
-        } else {
-            $textlib = textlib_get_instance();
-        }
 
-        $choices = $textlib->get_encodings();
+        $choices = core_text::get_encodings();
         $mform->addElement('select', 'encoding', get_string('remoteencoding', 'local_ltiprovider'), $choices);
         $mform->setDefault('encoding', 'UTF-8');
 
