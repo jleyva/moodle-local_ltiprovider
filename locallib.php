@@ -192,8 +192,8 @@ function local_ltiprovider_enrol_user($tool, $user, $roles, $return = false) {
  */
 function local_ltiprovider_populate($user, $context, $tool) {
     global $CFG;
-    $user->firstname = isset($context->info['lis_person_name_given'])? $context->info['lis_person_name_given'] : $context->getUserEmail();
-    $user->lastname = isset($context->info['lis_person_name_family'])? $context->info['lis_person_name_family']: '';
+    $user->firstname = isset($context->info['lis_person_name_given'])? $context->info['lis_person_name_given'] : $context->info['user_id'];
+    $user->lastname = isset($context->info['lis_person_name_family'])? $context->info['lis_person_name_family']: $context->info['context_id'];
     $user->email = clean_param($context->getUserEmail(), PARAM_EMAIL);
     $user->city = (!empty($tool->city)) ? $tool->city : "";
     $user->country = (!empty($tool->country)) ? $tool->country : "";
