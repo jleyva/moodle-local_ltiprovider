@@ -39,7 +39,8 @@
         <FIELD NAME="syncperiod" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="syncmode" NEXT="timemodified"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="syncperiod" NEXT="timecreated"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="timemodified" NEXT="lastsync"/>
-        <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="timecreated"/>
+        <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="timecreated" NEXT="requirecompletion"/>
+        <FIELD NAME="requirecompletion" TYPE="int" LENGTH="2" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="lastsync"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

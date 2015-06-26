@@ -432,6 +432,8 @@ if ($context->valid) {
     local_ltiprovider_enrol_user($tool, $user, $roles);
 
     if ($moodlecontext->contextlevel == CONTEXT_MODULE) {
+        $role =(in_array('instructor', $roles))? 'instructor' : 'learner';
+
         // Enrol the user in the activity
         if (($tool->aroleinst and in_array('instructor', $roles)) or ($tool->arolelearn and in_array('learner', $roles))) {
             $roleid = ($role == 'instructor')? $tool->aroleinst: $tool->arolelearn;

@@ -111,3 +111,6 @@ $string['duplicatecourseswithoutusershelp'] = 'When creating a new course, do no
 
 $string['subplugintype_ltiproviderextension'] = 'LTI extension';
 $string['subplugintype_ltiproviderextension_plural'] = 'LTI extensions';
+
+$string['requirecompletion'] = 'Require course or activity completed before sending the grades';
+$string['errorcompletionenabled'] = 'Completion should be enabled for the course or the activity';

@@ -57,6 +57,10 @@ class edit_form extends moodleform {
         $mform->addElement('checkbox', 'sendgrades', null, get_string('sendgrades', 'local_ltiprovider'));
         $mform->setDefault('sendgrades', 1);
 
+        $mform->addElement('checkbox', 'requirecompletion', null, get_string('requirecompletion', 'local_ltiprovider'));
+        $mform->setDefault('requirecompletion', 0);
+        $mform->disabledIf('requirecompletion', 'sendgrades');
+
         $mform->addElement('checkbox', 'forcenavigation', null, get_string('forcenavigation', 'local_ltiprovider'));
         $mform->setDefault('forcenavigation', 1);
 
@@ -210,6 +214,20 @@ class edit_form extends moodleform {
 
         if (!empty($data['enrolenddate']) and $data['enrolenddate'] < $data['enrolstartdate']) {
             $errors['enrolenddate'] = get_string('enrolenddaterror', 'local_ltiprovider');
+        }
+
+        if (!empty($data['requirecompletion'])) {
+            $completion = new completion_info($COURSE);
+            $moodlecontext = $DB->get_record('context', array('id' => $data['contextid']));
+            if ($moodlecontext->contextlevel == CONTEXT_MODULE) {
+                $cm = get_coursemodule_from_id(false, $moodlecontext->instanceid, 0, false, MUST_EXIST);
+            } else {
+                $cm = null;
+            }
+
+            if (! $completion->is_enabled($cm)) {
+                $errors['requirecompletion'] = get_string('errorcompletionenabled', 'local_ltiprovider');
+            }
         }
 
         return $errors;

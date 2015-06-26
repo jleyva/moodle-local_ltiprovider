@@ -211,16 +211,23 @@ function local_ltiprovider_cron() {
     if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND sendgrades = ?', array(0, 1))) {
         foreach ($tools as $tool) {
             if ($tool->lastsync + $synctime < $timenow) {
-                mtrace(" Starting sync tool id $tool->id course id $tool->courseid");
+                mtrace(" Starting sync tool for grades id $tool->id course id $tool->courseid");
+                if ($tool->requirecompletion) {
+                    mtrace(" Grades require activity or course completion");
+                }
                 $user_count = 0;
                 $send_count = 0;
                 $error_count = 0;
+
+                $completion = new completion_info(get_course($tool->courseid));
+
                 if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id))) {
                     foreach ($users as $user) {
                         $user_count = $user_count + 1;
                         // This can happen is the sync process has an unexpected error
                         if ( strlen($user->serviceurl) < 1 ) continue;
                         if ( strlen($user->sourceid) < 1 ) continue;
+
                         if ($user->lastsync > $tool->lastsync) {
                             mtrace("Skipping user {$user->id}");
                             continue;
@@ -230,13 +237,26 @@ function local_ltiprovider_cron() {
                         if ($context = $DB->get_record('context', array('id' => $tool->contextid))) {
                             if ($context->contextlevel == CONTEXT_COURSE) {
 
+                                if ($tool->requirecompletion and !$completion->is_course_complete($user->userid)) {
+                                    mtrace("   Skipping user since he didn't complete the course");
+                                    continue;
+                                }
+
                                 if ($grade = grade_get_course_grade($user->userid, $tool->courseid)) {
                                     $grademax = floatval($grade->item->grademax);
                                     $grade = $grade->grade;
                                 }
                             } else if ($context->contextlevel == CONTEXT_MODULE) {
-
                                 $cm = get_coursemodule_from_id(false, $context->instanceid, 0, false, MUST_EXIST);
+
+                                if ($tool->requirecompletion) {
+                                    $data = $completion->get_data($cm, false, $user->userid);
+                                    if ($data->completionstate != COMPLETION_COMPLETE_PASS and $data->completionstate != COMPLETION_COMPLETE) {
+                                        mtrace("   Skipping user since he didn't complete the activity");
+                                        continue;
+                                    }
+                                }
+
                                 $grades = grade_get_grades($cm->course, 'mod', $cm->modname, $cm->instance, $user->userid);
                                 if (empty($grades->items[0]->grades)) {
                                     $grade = false;

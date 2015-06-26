@@ -30,11 +30,22 @@ require_capability('moodle/site:config', context_system::instance());
 
 require_once('../lib.php');
 
-if ($tools = $DB->get_records('local_ltiprovider', array('disabled' => 0, 'syncmembers' => 1))) {
+if ($tools = $DB->get_records('local_ltiprovider', array('disabled' => 0))) {
     foreach ($tools as $tool) {
         set_config('membershipslastsync-' . $tool->id, 0, 'local_ltiprovider');
+        $tool->lastsync = 0;
+        $DB->update_record('local_ltiprovider', $tool);
     }
 }
+
+if ($users = $DB->get_records('local_ltiprovider_user')) {
+    foreach ($users as $user) {
+        $user->lastsync = 0;
+        $DB->update_record('local_ltiprovider_user', $user);
+    }
+}
+
+@header('Content-Type: text/plain; charset=utf-8');
 
 $start = time();
 echo "Starting LTI provider cron";

@@ -92,6 +92,17 @@ function xmldb_local_ltiprovider_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2011121707, 'local', 'ltiprovider');
     }
 
+    if ($oldversion < 2014080102) {
+
+        $table = new xmldb_table('local_ltiprovider');
+
+        $field = new xmldb_field('requirecompletion', XMLDB_TYPE_INTEGER, 2, XMLDB_UNSIGNED, XMLDB_NOTNULL, null, 0, 'lastsync');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2014080102, 'local', 'ltiprovider');
+    }
 
     return true;
 }
