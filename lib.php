@@ -244,7 +244,7 @@ function local_ltiprovider_cron() {
                             if ($context->contextlevel == CONTEXT_COURSE) {
 
                                 if ($tool->requirecompletion and !$completion->is_course_complete($user->userid)) {
-                                    mtrace("   Skipping user since he didn't complete the course");
+                                    mtrace("   Skipping user $user->userid since he didn't complete the course");
                                     continue;
                                 }
 
