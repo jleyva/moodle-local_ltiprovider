@@ -37,7 +37,7 @@ use moodle\local\ltiprovider as ltiprovider;
  */
 function local_ltiprovider_create_service_body($source, $grade) {
     return '<?xml version = "1.0" encoding = "UTF-8"?>
-<imsx_POXEnvelopeRequest xmlns = "http://www.imsglobal.org/lis/oms1p0/pox">
+<imsx_POXEnvelopeRequest xmlns = "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
 	<imsx_POXHeader>
 		<imsx_POXRequestHeaderInfo>
 			<imsx_version>V1.0</imsx_version>

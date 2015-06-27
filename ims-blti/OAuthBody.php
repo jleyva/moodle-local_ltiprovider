@@ -84,23 +84,14 @@ function sendOAuthBodyPOST($method, $endpoint, $oauth_consumer_key, $oauth_consu
     $LastOAuthBodyBaseString = $acc_req->get_signature_base_string();
     // echo($LastOAuthBodyBaseString."\m");
 
-    $header = $acc_req->to_header();
-    $header = $header . "\r\nContent-type: " . $content_type . "\r\n";
+    $headers = array();
+    $headers[] = $acc_req->to_header();
+    $headers[] = "Content-type: " . $content_type;
 
-    $params = array('http' => array(
-        'method' => 'POST',
-        'content' => $body,
-    'header' => $header
-        ));
-    $ctx = stream_context_create($params);
-    $fp = @fopen($endpoint, 'rb', false, $ctx);
-    if (!$fp) {
-        throw new \Exception("Problem with $endpoint, $php_errormsg");
-    }
-    $response = @stream_get_contents($fp);
-    if ($response === false) {
-        throw new \Exception("Problem reading data from $endpoint, $php_errormsg");
-    }
+    $curl = new \curl();
+    $curl->setHeader($headers);
+    $response =  $curl->post($endpoint, $body);
+
     return $response;
 }
 

@@ -213,7 +213,7 @@ function local_ltiprovider_cron() {
             if ($tool->lastsync + $synctime < $timenow) {
                 mtrace(" Starting sync tool for grades id $tool->id course id $tool->courseid");
                 if ($tool->requirecompletion) {
-                    mtrace(" Grades require activity or course completion");
+                    mtrace("  Grades require activity or course completion");
                 }
                 $user_count = 0;
                 $send_count = 0;
@@ -225,11 +225,17 @@ function local_ltiprovider_cron() {
                     foreach ($users as $user) {
                         $user_count = $user_count + 1;
                         // This can happen is the sync process has an unexpected error
-                        if ( strlen($user->serviceurl) < 1 ) continue;
-                        if ( strlen($user->sourceid) < 1 ) continue;
+                        if ( strlen($user->serviceurl) < 1 ) {
+                            mtrace("   Empty serviceurl");
+                            continue;
+                        }
+                        if ( strlen($user->sourceid) < 1 ) {
+                            mtrace("   Empty sourceid");
+                            continue;
+                        }
 
                         if ($user->lastsync > $tool->lastsync) {
-                            mtrace("Skipping user {$user->id}");
+                            mtrace("   Skipping user {$user->id} due to recent sync");
                             continue;
                         }
 
@@ -271,7 +277,10 @@ function local_ltiprovider_cron() {
                                 }
                             }
 
-                            if ( $grade === false || $grade === NULL || strlen($grade) < 1) continue;
+                            if ( $grade === false || $grade === NULL || strlen($grade) < 1) {
+                                mtrace("   Invalid grade $grade");
+                                continue;
+                            }
 
                             // No need to be dividing by zero
                             if ( $grademax == 0.0 ) $grademax = 100.0;
@@ -280,7 +289,10 @@ function local_ltiprovider_cron() {
                             // TODO: Then remove those intval() calls
 
                             // Don't double send
-                            if ( intval($grade) == $user->lastgrade ) continue;
+                            if ( intval($grade) == $user->lastgrade ) {
+                                mtrace("   Skipping, last grade send is equal to current grade");
+                                continue;
+                            }
 
                             // We sync with the external system only when the new grade differs with the previous one
                             // TODO - Global setting for check this
