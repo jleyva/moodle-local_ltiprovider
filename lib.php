@@ -258,7 +258,7 @@ function local_ltiprovider_cron() {
                                 if ($tool->requirecompletion) {
                                     $data = $completion->get_data($cm, false, $user->userid);
                                     if ($data->completionstate != COMPLETION_COMPLETE_PASS and $data->completionstate != COMPLETION_COMPLETE) {
-                                        mtrace("   Skipping user since he didn't complete the activity");
+                                        mtrace("   Skipping user $user->userid since he didn't complete the activity");
                                         continue;
                                     }
                                 }
@@ -316,11 +316,11 @@ function local_ltiprovider_cron() {
                                     mtrace(" User grade sent to remote system. userid: $user->userid grade: $float_grade");
                                     $send_count = $send_count + 1;
                                 } else {
-                                    mtrace(" User grade send failed: ".$response);
+                                    mtrace(" User grade send failed. userid: $user->userid grade: $float_grade: " . $response);
                                     $error_count = $error_count + 1;
                                 }
                             } else {
-                                mtrace(" User grade out of range: grade = ".$grade);
+                                mtrace(" User grade for user $user->userid out of range: grade = ".$grade);
                                 $error_count = $error_count + 1;
                             }
                         } else {
