@@ -120,14 +120,28 @@ function local_ltiprovider_add_tool($tool) {
         $tool->timemodified = $tool->timecreated;
     }
 
-    $tool->sendgrades = (isset($tool->sendgrades)) ? 1 : 0;
-    $tool->forcenavigation = (isset($tool->forcenavigation)) ? 1 : 0;
-    $tool->hidepageheader = (isset($tool->hidepageheader)) ? 1 : 0;
-    $tool->hidepagefooter = (isset($tool->hidepagefooter)) ? 1 : 0;
-    $tool->hideleftblocks = (isset($tool->hideleftblocks)) ? 1 : 0;
-    $tool->hiderightblocks = (isset($tool->hiderightblocks)) ? 1 : 0;
-    $tool->syncmembers = (isset($tool->syncmembers)) ? 1 : 0;
-
+    if (!isset($tool->sendgrades)) {
+        $tool->sendgrades = 0;
+    }
+    if (!isset($tool->forcenavigation)) {
+        $tool->forcenavigation = 0;
+    }
+    if (!isset($tool->hidepageheader)) {
+        $tool->hidepageheader = 0;
+    }
+    if (!isset($tool->hidepagefooter)) {
+        $tool->hidepagefooter = 0;
+    }
+    if (!isset($tool->hideleftblocks)) {
+        $tool->hideleftblocks = 0;
+    }
+    if (!isset($tool->hiderightblocks)) {
+        $tool->hiderightblocks = 0;
+    }
+    if (!isset($tool->syncmembers)) {
+        $tool->syncmembers = 0;
+    }
+    
     $tool->id = $DB->insert_record('local_ltiprovider', $tool);
 
     return $tool->id;
@@ -143,13 +157,27 @@ function local_ltiprovider_update_tool($tool) {
 
     $tool->timemodified = time();
 
-    $tool->sendgrades = (isset($tool->sendgrades)) ? 1 : 0;
-    $tool->forcenavigation = (isset($tool->forcenavigation)) ? 1 : 0;
-    $tool->hidepageheader = (isset($tool->hidepageheader)) ? 1 : 0;
-    $tool->hidepagefooter = (isset($tool->hidepagefooter)) ? 1 : 0;
-    $tool->hideleftblocks = (isset($tool->hideleftblocks)) ? 1 : 0;
-    $tool->hiderightblocks = (isset($tool->hiderightblocks)) ? 1 : 0;
-    $tool->syncmembers = (isset($tool->syncmembers)) ? 1 : 0;
+    if (!isset($tool->sendgrades)) {
+        $tool->sendgrades = 0;
+    }
+    if (!isset($tool->forcenavigation)) {
+        $tool->forcenavigation = 0;
+    }
+    if (!isset($tool->hidepageheader)) {
+        $tool->hidepageheader = 0;
+    }
+    if (!isset($tool->hidepagefooter)) {
+        $tool->hidepagefooter = 0;
+    }
+    if (!isset($tool->hideleftblocks)) {
+        $tool->hideleftblocks = 0;
+    }
+    if (!isset($tool->hiderightblocks)) {
+        $tool->hiderightblocks = 0;
+    }
+    if (!isset($tool->syncmembers)) {
+        $tool->syncmembers = 0;
+    }
 
     $DB->update_record('local_ltiprovider', $tool);
 }
