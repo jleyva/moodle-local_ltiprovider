@@ -141,7 +141,7 @@ function local_ltiprovider_add_tool($tool) {
     if (!isset($tool->syncmembers)) {
         $tool->syncmembers = 0;
     }
-    
+
     $tool->id = $DB->insert_record('local_ltiprovider', $tool);
 
     return $tool->id;
@@ -324,7 +324,7 @@ function local_ltiprovider_cron() {
 
                             // We sync with the external system only when the new grade differs with the previous one
                             // TODO - Global setting for check this
-                            if ($grade > 0 and $grade <= $grademax) {
+                            if ($grade >= 0 and $grade <= $grademax) {
                                 $float_grade = $grade / $grademax;
                                 $body = local_ltiprovider_create_service_body($user->sourceid, $float_grade);
 
