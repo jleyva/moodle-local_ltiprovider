@@ -428,15 +428,15 @@ if ($context->valid) {
     $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
     // Enrol the user in the course
-    $roles = explode(',', strtolower($context->info['roles']));
-    local_ltiprovider_enrol_user($tool, $user, $roles);
+    $isinstructor = $context->isInstructor();
+    local_ltiprovider_enrol_user($tool, $user, $isinstructor);
 
     if ($moodlecontext->contextlevel == CONTEXT_MODULE) {
-        $role =(in_array('instructor', $roles))? 'instructor' : 'learner';
+        $role = $isinstructor ? 'instructor' : 'learner';
 
         // Enrol the user in the activity
-        if (($tool->aroleinst and in_array('instructor', $roles)) or ($tool->arolelearn and in_array('learner', $roles))) {
-            $roleid = ($role == 'instructor')? $tool->aroleinst: $tool->arolelearn;
+        if (($tool->aroleinst and $isinstructor) or ($tool->arolelearn and !$isinstructor)) {
+            $roleid = $isinstructor ? $tool->aroleinst : $tool->arolelearn;
             role_assign($roleid, $user->id, $tool->contextid);
         }
     }
