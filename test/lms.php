@@ -33,7 +33,7 @@ require_once("../ims-blti/blti_util.php");
       "resource_link_title" => "Weekly Blog",
       "resource_link_description" => "A weekly blog.",
       "user_id" => "292832126",
-      "roles" => "Instructor",  // or Learner
+      "roles" => "urn:lti:role:ims/lis/Instructor",  // or urn:lti:instrole:ims/lis/Learner
       "lis_person_name_full" => 'Jane Q. Public',
       "lis_person_name_family" => 'Public',
       "lis_person_name_given" => 'Given',
