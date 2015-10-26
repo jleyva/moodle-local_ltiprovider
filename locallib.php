@@ -106,17 +106,16 @@ function local_ltiprovider_unenrol_user($tool, $user) {
  * Enrol a user in a course
  * @param  stdclass  $tool   The tool object
  * @param  stdclass  $user   The user object
- * @param  array  $roles  Roles of the current user
+ * @param  boolean  $isinstructor  Is instructor or not (learner).
  * @param  boolean $return If we should return information
  * @return mix          Boolean if $return is set to true
  */
-function local_ltiprovider_enrol_user($tool, $user, $roles, $return = false) {
+function local_ltiprovider_enrol_user($tool, $user, $isinstructor, $return = false) {
     global $DB;
 
     $course = $DB->get_record('course', array('id' => $tool->courseid), '*', MUST_EXIST);
 
     $manual = enrol_get_plugin('manual');
-    $role =(in_array('instructor', $roles))? 'Instructor' : 'Learner';
 
     $today = time();
     $today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
@@ -127,7 +126,7 @@ function local_ltiprovider_enrol_user($tool, $user, $roles, $return = false) {
 
     // Course role id for the Instructor or Learner
     // TODO Do something with lti system admin (urn:lti:sysrole:ims/lis/Administrator)
-    $roleid = ($role == 'Instructor')? $tool->croleinst: $tool->crolelearn;
+    $roleid = $isinstructor ? $tool->croleinst: $tool->crolelearn;
 
     if ($instances = enrol_get_instances($course->id, false)) {
         foreach ($instances as $instance) {
