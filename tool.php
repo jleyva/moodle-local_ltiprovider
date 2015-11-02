@@ -227,17 +227,11 @@ if ($context->valid) {
 
     // Transform to utf8 all the post and get data
 
-    if (class_exists('textlib')) {
-        $textlib = new textlib();
-    } else {
-        $textlib = textlib_get_instance();
-    }
-
     foreach ($_POST as $key => $value) {
-        $_POST[$key] = $textlib->convert($value, $tool->encoding);
+        $_POST[$key] = core_text::convert($value, $tool->encoding);
     }
     foreach ($_GET as $key => $value) {
-        $_GET[$key] = $textlib->convert($value, $tool->encoding);
+        $_GET[$key] = core_text::convert($value, $tool->encoding);
     }
 
     // We need an username without extended chars
