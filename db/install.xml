@@ -40,7 +40,9 @@
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="syncperiod" NEXT="timecreated"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="timemodified" NEXT="lastsync"/>
         <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="last sync timestamp" PREVIOUS="timecreated" NEXT="requirecompletion"/>
-        <FIELD NAME="requirecompletion" TYPE="int" LENGTH="2" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="lastsync"/>
+        <FIELD NAME="requirecompletion" TYPE="int" LENGTH="2" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="lastsync" NEXT="enrolinst"/>
+        <FIELD NAME="enrolinst" TYPE="int" LENGTH="2" NOTNULL="false" DEFAULT="1" SEQUENCE="false" PREVIOUS="requirecompletion" NEXT="enrollearn"/>
+        <FIELD NAME="enrollearn" TYPE="int" LENGTH="2" NOTNULL="false" DEFAULT="1" SEQUENCE="false" PREVIOUS="enrolinst"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

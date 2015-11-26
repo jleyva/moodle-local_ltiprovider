@@ -104,5 +104,21 @@ function xmldb_local_ltiprovider_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2014080102, 'local', 'ltiprovider');
     }
 
+    if ($oldversion < 2014080103) {
+
+        $table = new xmldb_table('local_ltiprovider');
+
+        $field = new xmldb_field('enrolinst', XMLDB_TYPE_INTEGER, 2, XMLDB_UNSIGNED, XMLDB_NOTNULL, null, 1, 'requirecompletion');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('enrollearn', XMLDB_TYPE_INTEGER, 2, XMLDB_UNSIGNED, XMLDB_NOTNULL, null, 1, 'enrolinst');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2014080103, 'local', 'ltiprovider');
+    }
+
     return true;
 }

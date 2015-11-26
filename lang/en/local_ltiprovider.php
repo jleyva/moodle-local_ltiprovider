@@ -114,3 +114,8 @@ $string['subplugintype_ltiproviderextension_plural'] = 'LTI extensions';
 
 $string['requirecompletion'] = 'Require course or activity completed before sending the grades';
 $string['errorcompletionenabled'] = 'Completion should be enabled for the course or the activity';
+
+$string['enrolinst'] = 'Automatically enrol Instructors';
+$string['enrolinst_help'] = 'Uncheck this box to redirect instructors to the course page so they can select a self-enrolment option';
+$string['enrollearn'] = 'Automatically enrol Learners';
+$string['enrollearn_help'] = 'Uncheck this box to redirect learners to the course page so they can select a self-enrolment option';
