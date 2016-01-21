@@ -29,3 +29,4 @@ $plugin->version  = 2014080102;
 $plugin->requires = 2014051200; // Require Moodle version (2.7).
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release  = '2.7.1';
+$plugin->component = 'local_ltiprovider';
