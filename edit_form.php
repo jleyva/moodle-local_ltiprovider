@@ -83,6 +83,15 @@ class edit_form extends moodleform {
 
         $assignableroles = get_assignable_roles($context);
 
+        $mform->addElement('checkbox', 'enrolinst', null, get_string('enrolinst', 'local_ltiprovider'));
+        $mform->setDefault('enrolinst', 1);
+        $mform->addHelpButton('enrolinst', 'enrolinst', 'local_ltiprovider');
+        $mform->setAdvanced('enrolinst');
+        $mform->addElement('checkbox', 'enrollearn', null, get_string('enrollearn', 'local_ltiprovider'));
+        $mform->setDefault('enrollearn', 1);
+        $mform->addHelpButton('enrollearn', 'enrollearn', 'local_ltiprovider');
+        $mform->setAdvanced('enrollearn');
+
         $mform->addElement('select', 'croleinst', get_string('courseroleinstructor', 'local_ltiprovider'), $assignableroles);
         $mform->setDefault('croleinst', '3');
         $mform->setAdvanced('croleinst');

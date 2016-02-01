@@ -126,6 +126,12 @@ function local_ltiprovider_add_tool($tool) {
     if (!isset($tool->forcenavigation)) {
         $tool->forcenavigation = 0;
     }
+    if (!isset($tool->enrolinst)) {
+        $tool->enrolinst = 0;
+    }
+    if (!isset($tool->enrollearn)) {
+        $tool->enrollearn = 0;
+    }
     if (!isset($tool->hidepageheader)) {
         $tool->hidepageheader = 0;
     }
@@ -162,6 +168,12 @@ function local_ltiprovider_update_tool($tool) {
     }
     if (!isset($tool->forcenavigation)) {
         $tool->forcenavigation = 0;
+    }
+    if (!isset($tool->enrolinst)) {
+        $tool->enrolinst = 0;
+    }
+    if (!isset($tool->enrollearn)) {
+        $tool->enrollearn = 0;
     }
     if (!isset($tool->hidepageheader)) {
         $tool->hidepageheader = 0;

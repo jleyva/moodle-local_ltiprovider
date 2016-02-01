@@ -38,27 +38,27 @@ use moodle\local\ltiprovider as ltiprovider;
 function local_ltiprovider_create_service_body($source, $grade) {
     return '<?xml version = "1.0" encoding = "UTF-8"?>
 <imsx_POXEnvelopeRequest xmlns = "http://www.imsglobal.org/services/ltiv1p1/xsd/imsoms_v1p0">
-	<imsx_POXHeader>
-		<imsx_POXRequestHeaderInfo>
-			<imsx_version>V1.0</imsx_version>
-			<imsx_messageIdentifier>'.(time()).'</imsx_messageIdentifier>
-		</imsx_POXRequestHeaderInfo>
-	</imsx_POXHeader>
-	<imsx_POXBody>
-		<replaceResultRequest>
-			<resultRecord>
-				<sourcedGUID>
-					<sourcedId>'.$source.'</sourcedId>
-				</sourcedGUID>
-				<result>
-					<resultScore>
-						<language>en-us</language>
-						<textString>'.$grade.'</textString>
-					</resultScore>
-				</result>
-			</resultRecord>
-		</replaceResultRequest>
-	</imsx_POXBody>
+  <imsx_POXHeader>
+    <imsx_POXRequestHeaderInfo>
+      <imsx_version>V1.0</imsx_version>
+      <imsx_messageIdentifier>'.(time()).'</imsx_messageIdentifier>
+    </imsx_POXRequestHeaderInfo>
+  </imsx_POXHeader>
+  <imsx_POXBody>
+    <replaceResultRequest>
+      <resultRecord>
+        <sourcedGUID>
+          <sourcedId>'.$source.'</sourcedId>
+        </sourcedGUID>
+        <result>
+          <resultScore>
+            <language>en-us</language>
+            <textString>'.$grade.'</textString>
+          </resultScore>
+        </result>
+      </resultRecord>
+    </replaceResultRequest>
+  </imsx_POXBody>
 </imsx_POXEnvelopeRequest>';
 }
 
@@ -112,6 +112,10 @@ function local_ltiprovider_unenrol_user($tool, $user) {
  */
 function local_ltiprovider_enrol_user($tool, $user, $isinstructor, $return = false) {
     global $DB;
+
+    if (($isinstructor && !$tool->enrolinst) || (!$isinstructor && !$tool->enrollearn)) {
+      return $return;
+    }
 
     $course = $DB->get_record('course', array('id' => $tool->courseid), '*', MUST_EXIST);
 
@@ -342,6 +346,8 @@ function local_ltiprovider_create_tool($courseid, $contextid, $lticontext) {
     $tool->timemodified = time();
     $tool->timecreated = time();
     $tool->lastsync = 0;
+    $tool->enrolinst = 1;
+    $tool->enrollearn = 1;
     $tool->sendgrades = (!empty($lticontext->info['lis_outcome_service_url'])) ? 1 : 0;
     $tool->syncmembers = (!empty($lticontext->info['ext_ims_lis_memberships_url'])) ? 1 : 0;
     $tool->syncmode = (!empty($lticontext->info['ext_ims_lis_memberships_url'])) ? 1 : 0;
