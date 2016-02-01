@@ -74,6 +74,9 @@ function local_ltiprovider_extend_navigation ($nav) {
 
             if ($urltogo) {
                 local_ltiprovider_call_hook("navigation", $nav);
+                if (!$PAGE->requires->is_head_done()) {
+                    $PAGE->set_state($PAGE::STATE_IN_BODY);
+                }
                 redirect($urltogo);
             }
         }
