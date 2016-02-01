@@ -144,7 +144,6 @@ class edit_form extends moodleform {
         } else {
             $mform->setDefault('city', $CFG->defaultcity);
         }
-        $mform->addRule('city', get_string('required'), 'required');
 
         $mform->addElement('select', 'country', get_string('selectacountry'), get_string_manager()->get_list_of_countries());
         if (empty($CFG->country)) {
