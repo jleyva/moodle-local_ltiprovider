@@ -65,6 +65,9 @@ if ($tool->hideleftblocks or $SESSION->ltiprovider->hideleftblocks) {
     #mod_quiz_navblock {
      display: block !important;
     }
+    .empty-region-side-post.used-region-side-pre #region-main.span8 {
+     width: inherit;
+    }
     ';
 }
 if ($tool->hiderightblocks or $SESSION->ltiprovider->hiderightblocks) {
