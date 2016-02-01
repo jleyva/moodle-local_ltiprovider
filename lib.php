@@ -35,7 +35,7 @@ use moodle\local\ltiprovider as ltiprovider;
  * @param  settings_navigation $nav     The settings navigatin object
  * @param  stdclass            $context Course context
  */
-function local_ltiprovider_extends_settings_navigation(settings_navigation $nav, $context) {
+function local_ltiprovider_extend_settings_navigation(settings_navigation $nav, $context) {
     if ($context->contextlevel >= CONTEXT_COURSE and ($branch = $nav->get('courseadmin'))
         and has_capability('local/ltiprovider:view', $context)) {
         $ltiurl = new moodle_url('/local/ltiprovider/index.php', array('courseid' => $context->instanceid));
@@ -52,7 +52,7 @@ function local_ltiprovider_extends_settings_navigation(settings_navigation $nav,
  * @global moodle_database $DB
  * @param navigation_node $nav Current navigation object
  */
-function local_ltiprovider_extends_navigation ($nav) {
+function local_ltiprovider_extend_navigation ($nav) {
     global $CFG, $USER, $PAGE, $SESSION, $ME;
 
     if (isset($USER) and isset($USER->auth) and strpos($USER->username, 'ltiprovider') === 0) {
