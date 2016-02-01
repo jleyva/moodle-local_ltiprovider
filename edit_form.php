@@ -145,7 +145,7 @@ class edit_form extends moodleform {
         }
         $mform->setAdvanced('country');
 
-        $choices = get_list_of_timezones();
+        $choices = core_date::get_list_of_timezones();
         $choices['99'] = get_string('serverlocaltime');
         $mform->addElement('select', 'timezone', get_string('timezone'), $choices);
         $mform->setDefault('timezone', $templateuser->timezone);
