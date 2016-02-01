@@ -338,7 +338,7 @@ if ($context->valid) {
                 if (!$resource_link_title) {
                     $resource_link_title  = $context->info['custom_resource_link_title'];
                 }
-                if (!$resource_link_description) {
+                if (!$resource_link_description && isset($context->info['custom_resource_link_description'])) {
                     $resource_link_description  = $context->info['custom_resource_link_description'];
                 }
 
