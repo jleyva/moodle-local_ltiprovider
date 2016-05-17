@@ -119,3 +119,12 @@ $string['enrolinst'] = 'Automatically enrol Instructors';
 $string['enrolinst_help'] = 'Uncheck this box to redirect instructors to the course page so they can select a self-enrolment option';
 $string['enrollearn'] = 'Automatically enrol Learners';
 $string['enrollearn_help'] = 'Uncheck this box to redirect learners to the course page so they can select a self-enrolment option';
+
+$string['forcesendgrades'] = 'Force send grades';
+$string['forcesendgradesallusers'] = 'Force send grades for all users';
+$string['forcesendgradesallusersomittingcompletion'] = 'Force send grades for all users omitting completion status';
+$string['gradessent'] = 'Grades sent';
+$string['gradesserviceurl'] = 'Grades service URL';
+$string['gradessourceid'] = 'Grades source Id';
+$string['gradessyncreport'] = 'Grades synchronization report';
+$string['notifycompletion'] = 'This tool is configured to require completion, if the user has not completed the course or activity he won\'t be listed bellow.';

@@ -72,6 +72,10 @@ foreach ($tools as $tool) {
             $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'hide'=>1, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/hide'), 'alt'=>get_string('hide'), 'class'=>'iconsmall')));
         }
 
+        if ($tool->sendgrades) {
+            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/syncreport.php', array('id'=>$tool->id)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/grades'), 'alt'=>get_string('gradessyncreport', 'local_ltiprovider'), 'class'=>'iconsmall')));
+        }
+
         $line[] = implode(' ', $buttons);
     } else {
         $line[] = '';

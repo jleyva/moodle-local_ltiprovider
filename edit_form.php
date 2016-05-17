@@ -57,7 +57,7 @@ class edit_form extends moodleform {
         $mform->addElement('checkbox', 'sendgrades', null, get_string('sendgrades', 'local_ltiprovider'));
         $mform->setDefault('sendgrades', 1);
 
-        $mform->addElement('checkbox', 'requirecompletion', null, get_string('requirecompletion', 'local_ltiprovider'));
+        $mform->addElement('advcheckbox', 'requirecompletion', null, get_string('requirecompletion', 'local_ltiprovider'));
         $mform->setDefault('requirecompletion', 0);
         $mform->disabledIf('requirecompletion', 'sendgrades');
 
