@@ -43,32 +43,45 @@ $toolid = optional_param('toolid', 0, PARAM_INT);
 $userid = optional_param('userid', 0, PARAM_INT);
 $omitcompletion = optional_param('omitcompletion', 0, PARAM_BOOL);
 $printresponse = optional_param('printresponse', 0, PARAM_BOOL);
+$sesskey = optional_param('sesskey', null, PARAM_RAW);
 
-require_login();
-require_capability('moodle/site:config', context_system::instance());
+if (!empty($sesskey)) {
+    require_sesskey();
+}
 
-@header('Content-Type: text/plain; charset=utf-8');
+if (empty($toolid)) {
+    require_login();
+    require_capability('moodle/site:config', context_system::instance());
+} else {
+    $tool = $DB->get_record('local_ltiprovider', array('id' => $toolid), '*', MUST_EXIST);
+    $course = $DB->get_record('course', array('id' => $tool->courseid), '*', MUST_EXIST);
+    $coursecontext = context_course::instance($course->id);
+    require_login($course);
+    require_capability('local/ltiprovider:manage', $coursecontext);
+}
+
+$log = array();
 
 if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND sendgrades = ?', array(0, 1))) {
     foreach ($tools as $tool) {
 
         if (!empty($courseid) and $courseid != $tool->courseid) {
-            mtrace(" Omitting course $tool->courseid");
+            $log[] = s(" Omitting course $tool->courseid");
             continue;
         }
         if (!empty($toolid) and $toolid != $tool->id) {
-            mtrace(" Omitting tool $tool->id");
+            $log[] = s(" Omitting tool $tool->id");
             continue;
         }
 
-        mtrace(" Starting sync tool for grades id $tool->id course id $tool->courseid");
+        $log[] = s(" Starting sync tool for grades id $tool->id course id $tool->courseid");
 
         if ($omitcompletion) {
             $tool->requirecompletion = 0;
         }
 
         if ($tool->requirecompletion) {
-            mtrace("  Grades require activity or course completion");
+            $log[] = s("  Grades require activity or course completion");
         }
         $user_count = 0;
         $send_count = 0;
@@ -79,18 +92,18 @@ if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND send
         if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id))) {
             foreach ($users as $user) {
                 if (!empty($userid) and $userid != $user->userid) {
-                    mtrace(" Omitting user $user->userid");
+                    $log[] = s(" Omitting user $user->userid");
                     continue;
                 }
-                mtrace("   Sending grades for user $user->userid");
+                $log[] = s("   Sending grades for user $user->userid");
                 $user_count = $user_count + 1;
                 // This can happen is the sync process has an unexpected error
                 if ( strlen($user->serviceurl) < 1 ) {
-                    mtrace("   Empty serviceurl");
+                    $log[] = s("   Empty serviceurl");
                     continue;
                 }
                 if ( strlen($user->sourceid) < 1 ) {
-                    mtrace("   Empty sourceid");
+                    $log[] = s("   Empty sourceid");
                     continue;
                 }
 
@@ -99,7 +112,7 @@ if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND send
                     if ($context->contextlevel == CONTEXT_COURSE) {
 
                         if ($tool->requirecompletion and !$completion->is_course_complete($user->userid)) {
-                            mtrace("   Skipping user $user->userid since he didn't complete the course");
+                            $log[] = s("   Skipping user $user->userid since he didn't complete the course");
                             continue;
                         }
 
@@ -113,7 +126,7 @@ if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND send
                         if ($tool->requirecompletion) {
                             $data = $completion->get_data($cm, false, $user->userid);
                             if ($data->completionstate != COMPLETION_COMPLETE_PASS and $data->completionstate != COMPLETION_COMPLETE) {
-                                mtrace("   Skipping user $user->userid since he didn't complete the activity");
+                                $log[] = s("   Skipping user $user->userid since he didn't complete the activity");
                                 continue;
                             }
                         }
@@ -133,7 +146,7 @@ if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND send
                     }
 
                     if ( $grade === false || $grade === NULL || strlen($grade) < 1) {
-                        mtrace("   Invalid grade $grade");
+                        $log[] = s("   Invalid grade $grade");
                         continue;
                     }
 
@@ -145,7 +158,7 @@ if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND send
 
                     // Don't double send
                     if ( intval($grade) == $user->lastgrade ) {
-                        mtrace("   Last grade send is equal to current grade");
+                        $log[] = s("   Last grade send is equal to current grade");
                     }
 
                     // We sync with the external system only when the new grade differs with the previous one
@@ -157,35 +170,48 @@ if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND send
                         try {
                             $response = ltiprovider\sendOAuthBodyPOST('POST', $user->serviceurl, $user->consumerkey, $user->consumersecret, 'application/xml', $body);
                         } catch (Exception $e) {
-                            mtrace(" Exception".$e->getMessage());
+                            $log[] = s(" Exception".$e->getMessage());
                             $error_count = $error_count + 1;
-                            mtrace("Invalid $response " . $response);
+                            $log[] = s("Invalid $response " . $response);
                             continue;
                         }
 
                         if ($printresponse) {
-                            mtrace("   Remote system response: \n    $response\n");
+                            $log[] = s("   Remote system response: \n    $response\n");
                         }
 
                         // TODO - Check for errors in $retval in a correct way (parsing xml)
                         if (strpos(strtolower($response), 'success') !== false) {
-
+                            $DB->set_field('local_ltiprovider_user', 'lastsync', time(), array('id' => $user->id));
                             $DB->set_field('local_ltiprovider_user', 'lastgrade', intval($grade), array('id' => $user->id));
-                            mtrace(" User grade sent to remote system. userid: $user->userid grade: $float_grade");
+                            $log[] = s(" User grade sent to remote system. userid: $user->userid grade: $float_grade");
                             $send_count = $send_count + 1;
                         } else {
-                            mtrace(" User grade send failed. userid: $user->userid grade: $float_grade: " . $response);
+                            $log[] = s(" User grade send failed. userid: $user->userid grade: $float_grade: " . $response);
                             $error_count = $error_count + 1;
                         }
                     } else {
-                        mtrace(" User grade for user $user->userid out of range: grade = ".$grade);
+                        $log[] = s(" User grade for user $user->userid out of range: grade = ".$grade);
                         $error_count = $error_count + 1;
                     }
                 } else {
-                    mtrace(" Invalid context: contextid = ".$tool->contextid);
+                    $log[] = s(" Invalid context: contextid = ".$tool->contextid);
                 }
             }
         }
-        mtrace(" Completed sync tool id $tool->id course id $tool->courseid users=$user_count sent=$send_count errors=$error_count");
+        $log[] = s(" Completed sync tool id $tool->id course id $tool->courseid users=$user_count sent=$send_count errors=$error_count");
     }
 }
+
+// Check if we requested this by URL or via the sync grades report.
+if ($toolid & !empty($sesskey)) {
+    $link = new moodle_url('/local/ltiprovider/syncreport.php', array('id' => $toolid));
+
+    $PAGE->set_context($coursecontext);
+    $PAGE->set_url($link);
+    notice(implode("<br />", $log), $link);
+} else {
+    @header('Content-Type: text/plain; charset=utf-8');
+    echo implode("\n", $log);
+}
+
