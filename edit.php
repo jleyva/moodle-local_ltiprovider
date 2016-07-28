@@ -99,7 +99,7 @@ $PAGE->navbar->add($strheading);
 $PAGE->set_title($strheading);
 $PAGE->set_heading($course->fullname . ': '.$strheading);
 
-$editform = new edit_form(null, compact('context', 'courseid'));
+$editform = new edit_form(null, compact('context', 'courseid', 'tool'));
 
 $userprofileupdate = get_config('local_ltiprovider', 'userprofileupdate');
 if ($userprofileupdate != -1) {

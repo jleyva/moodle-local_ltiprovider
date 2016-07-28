@@ -38,6 +38,7 @@ class edit_form extends moodleform {
         $mform =& $this->_form;
         $templateuser = $USER;
         $context = $this->_customdata['context'];
+        $tool = $this->_customdata['tool'];
 
         $mform->addElement('header', 'settingsheader', get_string('toolsettings', 'local_ltiprovider'));
 
@@ -211,6 +212,10 @@ class edit_form extends moodleform {
 
         $mform->addElement('hidden', 'courseid');
         $mform->setType('courseid', PARAM_INT);
+
+        local_ltiprovider_call_hook("add_settings", (object) array('mform' => $mform,
+                                                                    'customdata' => $this->_customdata,
+                                                                    'tool' => $tool));
 
         $this->add_action_buttons();
     }

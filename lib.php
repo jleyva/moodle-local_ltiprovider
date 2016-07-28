@@ -152,6 +152,7 @@ function local_ltiprovider_add_tool($tool) {
     }
 
     $tool->id = $DB->insert_record('local_ltiprovider', $tool);
+    local_ltiprovider_call_hook('save_settings', $tool);
 
     return $tool->id;
 }
@@ -194,6 +195,7 @@ function local_ltiprovider_update_tool($tool) {
         $tool->syncmembers = 0;
     }
 
+    local_ltiprovider_call_hook('save_settings', $tool);
     $DB->update_record('local_ltiprovider', $tool);
 }
 
@@ -266,6 +268,13 @@ function local_ltiprovider_cron() {
 
                 if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id))) {
                     foreach ($users as $user) {
+
+                        $data = array(
+                            'tool' => $tool,
+                            'user' => $user,
+                        );
+                        local_ltiprovider_call_hook('grades', (object) $data);
+
                         $user_count = $user_count + 1;
                         // This can happen is the sync process has an unexpected error
                         if ( strlen($user->serviceurl) < 1 ) {
