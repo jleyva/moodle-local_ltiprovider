@@ -91,6 +91,13 @@ if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND send
 
         if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id))) {
             foreach ($users as $user) {
+
+                $data = array(
+                    'tool' => $tool,
+                    'user' => $user,
+                );
+                local_ltiprovider_call_hook('grades', (object) $data);
+
                 if (!empty($userid) and $userid != $user->userid) {
                     $log[] = s(" Omitting user $user->userid");
                     continue;
