@@ -444,9 +444,6 @@ function local_ltiprovider_create_tool($courseid, $contextid, $lticontext) {
 
     // Check if we need to unzip the file because the backup temp dir does not contains backup files.
     if (!file_exists($backupbasepath . "/moodle_backup.xml")) {
-      //Moodle <=2.8
-      //$file->extract_to_pathname(get_file_packer(), $backupbasepath);
-      //Moodle 2.9 or later
       $file->extract_to_pathname(get_file_packer('application/vnd.moodle.backup'), $backupbasepath);
     }
 
