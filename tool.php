@@ -103,6 +103,12 @@ if (!$secret) {
 // Do not set session, do not redirect
 $context = new BLTI($secret, false, false);
 
+$data = array(
+    'tool' => $tool,
+    'context' => $context,
+);
+local_ltiprovider_call_hook('validate_request', (object) $data);
+
 // Correct launch request
 if ($context->valid) {
 
