@@ -120,5 +120,15 @@ function xmldb_local_ltiprovider_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2014080103, 'local', 'ltiprovider');
     }
 
+    if ($oldversion < 2016020101) {
+
+        $table = new xmldb_table('local_ltiprovider');
+
+        $field = new xmldb_field('addtogroup', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null, 'enrollearn');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2016020101, 'local', 'ltiprovider');
+    }
     return true;
 }

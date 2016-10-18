@@ -437,6 +437,9 @@ if ($context->valid) {
     $isinstructor = $context->isInstructor();
     local_ltiprovider_enrol_user($tool, $user, $isinstructor);
 
+    // Check if we have to add the user to a group, and if so, add it.
+    local_ltiprovider_add_user_to_group($tool, $user);
+
     if ($moodlecontext->contextlevel == CONTEXT_MODULE) {
         $role = $isinstructor ? 'instructor' : 'learner';
 

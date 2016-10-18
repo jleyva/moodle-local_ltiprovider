@@ -82,6 +82,11 @@ class edit_form extends moodleform {
         $mform->addHelpButton('maxenrolled', 'maxenrolled', 'local_ltiprovider');
         $mform->setType('maxenrolled', PARAM_INT);
 
+        $mform->addElement('text', 'addtogroup', get_string('addtogroup', 'local_ltiprovider'));
+        $mform->setDefault('addtogroup', '');
+        $mform->addHelpButton('addtogroup', 'addtogroup', 'local_ltiprovider');
+        $mform->setType('addtogroup', PARAM_NOTAGS);
+
         $assignableroles = get_assignable_roles($context);
 
         $mform->addElement('checkbox', 'enrolinst', null, get_string('enrolinst', 'local_ltiprovider'));
