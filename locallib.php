@@ -729,6 +729,7 @@ function local_ltiprovider_update_user_profile_image($userid, $url) {
     return "Error downloading profile image from $url";
 }
 
+
 function local_ltiprovider_add_user_to_group($tool, $user) {
     global $CFG;
 
@@ -736,7 +737,7 @@ function local_ltiprovider_add_user_to_group($tool, $user) {
         require_once($CFG->libdir . '/grouplib.php');
         require_once($CFG->dirroot . '/group/lib.php');
 
-        if (strpos($tool->addtogroup, 'request:' === 0)) {
+        if (strpos($tool->addtogroup, 'request:') === 0) {
             $parameter = str_replace('request:', '', $tool->addtogroup);
             if (!isset( $_REQUEST[$parameter])) {
                 return;
@@ -745,14 +746,15 @@ function local_ltiprovider_add_user_to_group($tool, $user) {
         } else {
             $groupidnumber = $tool->addtogroup;
         }
-        
-        if (!$group = get_group_by_idnumber($tool->courseid, $groupidnumber) {) {
+
+        if (!$group = groups_get_group_by_idnumber($tool->courseid, $groupidnumber)) {
             $group = new stdClass();
             $group->courseid = $tool->courseid;
             $group->name = $groupidnumber;
             $group->idnumber = $groupidnumber;
             $group->id = groups_create_group($group);
         }
+
         groups_add_member($group->id, $user->id);
     }
 }

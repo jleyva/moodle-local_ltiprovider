@@ -24,6 +24,7 @@
  */
 
 require_once(dirname(__FILE__) . '/../../config.php');
+require_once($CFG->dirroot.'/local/ltiprovider/lib.php');
 require_once($CFG->dirroot.'/local/ltiprovider/locallib.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti.php');
 
