@@ -444,7 +444,7 @@ function local_ltiprovider_create_tool($courseid, $contextid, $lticontext) {
 
     // Check if we need to unzip the file because the backup temp dir does not contains backup files.
     if (!file_exists($backupbasepath . "/moodle_backup.xml")) {
-        $file->extract_to_pathname(get_file_packer(), $backupbasepath);
+      $file->extract_to_pathname(get_file_packer('application/vnd.moodle.backup'), $backupbasepath);
     }
 
     $rc = new restore_controller($backupid, $newcourse->id,
@@ -729,7 +729,6 @@ function local_ltiprovider_update_user_profile_image($userid, $url) {
     return "Error downloading profile image from $url";
 }
 
-
 function local_ltiprovider_add_user_to_group($tool, $user) {
     global $CFG;
 
@@ -758,3 +757,4 @@ function local_ltiprovider_add_user_to_group($tool, $user) {
         groups_add_member($group->id, $user->id);
     }
 }
+
