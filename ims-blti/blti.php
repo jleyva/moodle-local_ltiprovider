@@ -149,10 +149,10 @@ class BLTI {
 
     function getUserEmail() {
         # set default email in the event privacy settings don't pass in email.
-        $email = $this->info['user_id'] . "@ltiuser.com";
-        if ( isset($this->info['lis_person_contact_email_primary']) ) $email = $this->info['lis_person_contact_email_primary']; 
+        $email = md5($this->info['user_id']) . "@ltiuser.com";
+        if ( !empty($this->info['lis_person_contact_email_primary']) ) $email = $this->info['lis_person_contact_email_primary'];
         # Sakai Hack
-        if ( isset($this->info['lis_person_contact_emailprimary']) ) $email = $this->info['lis_person_contact_emailprimary']; 
+        if ( !empty($this->info['lis_person_contact_emailprimary']) ) $email = $this->info['lis_person_contact_emailprimary'];
         return $email;
     }
 
