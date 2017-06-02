@@ -96,12 +96,13 @@ if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND send
                     'tool' => $tool,
                     'user' => $user,
                 );
-                local_ltiprovider_call_hook('grades', (object) $data);
-
                 if (!empty($userid) and $userid != $user->userid) {
                     $log[] = s(" Omitting user $user->userid");
                     continue;
                 }
+
+                local_ltiprovider_call_hook('grades', (object) $data);
+
                 $log[] = s("   Sending grades for user $user->userid");
                 $user_count = $user_count + 1;
                 // This can happen is the sync process has an unexpected error
