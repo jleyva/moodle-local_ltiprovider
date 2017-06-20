@@ -62,17 +62,18 @@ if (empty($toolid)) {
 
 $log = array();
 
-if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND sendgrades = ?', array(0, 1))) {
+$select = 'disabled = ? AND sendgrades = ?';
+$params_select = array(0, 1);
+if (!empty($courseid)) {
+    $select .= ' AND courseid=?';
+    array_push($params_select,$courseid);
+}
+if (!empty($toolid)) {
+    $select .= ' AND id=?';
+    array_push($params_select,$toolid);
+}
+if ($tools = $DB->get_records_select('local_ltiprovider', $select, $params_select)) {
     foreach ($tools as $tool) {
-
-        if (!empty($courseid) and $courseid != $tool->courseid) {
-            $log[] = s(" Omitting course $tool->courseid");
-            continue;
-        }
-        if (!empty($toolid) and $toolid != $tool->id) {
-            $log[] = s(" Omitting tool $tool->id");
-            continue;
-        }
 
         $log[] = s(" Starting sync tool for grades id $tool->id course id $tool->courseid");
 
@@ -89,17 +90,17 @@ if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND send
 
         $completion = new completion_info(get_course($tool->courseid));
 
-        if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id))) {
+        $params_user = array('toolid' => $tool->id);
+        if (!empty($userid)) {
+            $params_user['userid'] = $userid;
+        }
+        if ($users = $DB->get_records('local_ltiprovider_user', $params_user)) {
             foreach ($users as $user) {
 
                 $data = array(
                     'tool' => $tool,
                     'user' => $user,
                 );
-                if (!empty($userid) and $userid != $user->userid) {
-                    $log[] = s(" Omitting user $user->userid");
-                    continue;
-                }
 
                 local_ltiprovider_call_hook('grades', (object) $data);
 
