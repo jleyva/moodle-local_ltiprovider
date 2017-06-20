@@ -53,6 +53,9 @@ $PAGE->navbar->add(get_string('pluginname', 'local_ltiprovider'), new moodle_url
 $PAGE->navbar->add($strheading);
 $PAGE->set_title($strheading);
 $PAGE->set_heading($course->fullname . ': '.$strheading);
+$PAGE->requires->jquery();
+$PAGE->requires->js('/local/ltiprovider/js/syncreport.js');
+$PAGE->requires->strings_for_js(array('youhavetoselectauser'), 'local_ltiprovider');
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('gradessent', 'local_ltiprovider'));
@@ -68,6 +71,14 @@ echo $table->syncreport_search_form($id, $search);
 
 $table->out(50, true);
 
+//Button to send grade to selected users
+$forcesendurl_participant = new \moodle_url('test/forcesendgrades.php', array('toolid' => $tool->id,
+    'printresponse' => 1, 'selected_users' => 1, 'user_force_grade' => ''));
+$action = new component_action('click', 'ltiprovider_send_syncreport');
+echo $OUTPUT->single_button($forcesendurl_participant, get_string('forcesendgradesselectedusers', 'local_ltiprovider'),
+    'post', array('actions' => array($action), 'formid' => 'ltiprovider_send_syncreport_form'));
+
+//Button to send grade to all users
 $forcesendurl = new \moodle_url('test/forcesendgrades.php', array('toolid' => $tool->id, 'printresponse' => 1));
 echo $OUTPUT->single_button($forcesendurl, get_string('forcesendgradesallusers', 'local_ltiprovider'));
 

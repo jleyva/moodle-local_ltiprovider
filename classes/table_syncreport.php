@@ -59,8 +59,9 @@ class local_ltiprovider_table_syncreport extends table_sql {
         $this->lti_toolprovider = $lti_toolprovider;
         $this->filterparams = $filterparams;
 
-        $this->define_columns(array('fullnameuser', 'lastsync', 'lastgrade', 'forcesendbutton', 'serviceurl', 'sourceid'));
+        $this->define_columns(array('checkbox', 'fullnameuser', 'lastsync', 'lastgrade', 'forcesendbutton', 'serviceurl', 'sourceid'));
         $this->define_headers(array(
+                get_string('select'),
                 get_string('fullnameuser'),
                 get_string('time'),
                 get_string('grade'),
@@ -69,10 +70,27 @@ class local_ltiprovider_table_syncreport extends table_sql {
                 get_string('gradesserviceurl', 'local_ltiprovider')
                 )
         );
+        $this->no_sorting('checkbox');
+        $this->no_sorting('forcesendbutton');
+        $this->no_sorting('serviceurl');
+        $this->no_sorting('sourceid');
         $this->collapsible(true);
         $this->sortable(true);
         $this->pageable(true);
         $this->is_downloadable(false);
+    }
+
+    /**
+     * Generate select checkbox column.
+     *
+     * @param stdClass $row_report event data.
+     * @return string HTML for the username column
+     */
+    public function col_checkbox($row_report) {
+
+        $checked = '';
+        return '<input type="checkbox" class="usercheckbox" name="user_force_grade_checkbox" value="'.$row_report->id.'" ' . $checked .'/>';
+
     }
 
     /**
