@@ -57,7 +57,22 @@ class local_ltiprovider_table_syncreport extends table_sql {
         $this->set_attribute('aria-live', 'polite');
         $this->lti_toolprovider = $lti_toolprovider;
         $this->filterparams = $filterparams;
-        $this->define_baseurl(new moodle_url('/local/ltiprovider/syncreport.php', array('id' => $lti_toolprovider->id)));
+        $params = array('id' => $lti_toolprovider->id);
+        if ($this->filterparams) {
+            if (!empty($this->filterparams->firstname)) {
+                $params['firstname'] = $this->filterparams->firstname;
+            }
+            if (!empty($this->filterparams->lastname)) {
+                $params['lastname'] = $this->filterparams->lastname;
+            }
+            if (!empty($this->filterparams->sifirst)) {
+                $params['sifirst'] = $this->filterparams->sifirst;
+            }
+            if (!empty($this->filterparams->silast)) {
+                $params['silast'] = $this->filterparams->silast;
+            }
+        }
+        $this->define_baseurl(new moodle_url('/local/ltiprovider/syncreport.php', $params));
 
         $this->define_columns(array('checkbox', 'fullnameuser', 'lastsync', 'lastgrade', 'forcesendbutton', 'serviceurl', 'sourceid'));
         $this->define_headers(array(
