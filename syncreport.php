@@ -27,15 +27,28 @@ require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot.'/local/ltiprovider/classes/table_syncreport.php');
 
 $id = required_param('id', PARAM_INT);
-$search = optional_param('search', '', PARAM_TEXT);
+$search_firstname = optional_param('search_firstname', '', PARAM_TEXT);
+$search_lastname = optional_param('search_lastname', '', PARAM_TEXT);
+$sifirst  = optional_param('sifirst', null, PARAM_NOTAGS);
+$silast   = optional_param('silast', null, PARAM_NOTAGS);
+
 
 $tool = $DB->get_record('local_ltiprovider', array('id' => $id), '*', MUST_EXIST);
 $courseid = $tool->courseid;
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
 $params_url = array('id' => $id);
-if (!empty($search)) {
-    $params_url['search'] = $search;
+if (!empty($search_firstname)) {
+    $params_url['search_firstname'] = $search_firstname;
+}
+if (!empty($search_surname)) {
+    $params_url['search_surname'] = $search_surname;
+}
+if (!empty($sifirst)) {
+    $params_url['sifirst'] = $sifirst;
+}
+if (!empty($silast)) {
+    $params_url['silast'] = $silast;
 }
 
 $PAGE->set_url('/local/ltiprovider/syncreport.php', $params_url );
@@ -65,9 +78,12 @@ if ($tool->requirecompletion) {
 }
 
 $filterparams = new stdClass();
-$filterparams->fullname = $search;
+$filterparams->firstname = $search_firstname;
+$filterparams->sifirst = $sifirst;
+$filterparams->lastname = $search_lastname;
+$filterparams->silast = $silast;
 $table = new local_ltiprovider_table_syncreport('local_ltiprovider_syncreport', $tool, $filterparams);
-echo $table->syncreport_search_form($id, $search);
+echo $table->syncreport_search_form($id, $search_firstname, $search_lastname, $sifirst, $silast);
 
 $table->out(50, true);
 

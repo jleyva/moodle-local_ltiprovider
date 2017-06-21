@@ -52,12 +52,12 @@ class local_ltiprovider_table_syncreport extends table_sql {
      */
     public function __construct($uniqueid, $lti_toolprovider, $filterparams=null) {
         parent::__construct($uniqueid);
-        global $DB;
 
         $this->set_attribute('class', 'generaltable generalbox');
         $this->set_attribute('aria-live', 'polite');
         $this->lti_toolprovider = $lti_toolprovider;
         $this->filterparams = $filterparams;
+        $this->define_baseurl(new moodle_url('/local/ltiprovider/syncreport.php', array('id' => $lti_toolprovider->id)));
 
         $this->define_columns(array('checkbox', 'fullnameuser', 'lastsync', 'lastgrade', 'forcesendbutton', 'serviceurl', 'sourceid'));
         $this->define_headers(array(
@@ -185,12 +185,36 @@ class local_ltiprovider_table_syncreport extends table_sql {
         global $DB;
         $params = array();
         $extra_sql = '';
-        if ($this->filterparams && !empty($this->filterparams->fullname) ){
-            $field = $DB->sql_fullname();
-            $name = 'fullname';
-            $value = $this->filterparams->fullname;
-            $extra_sql .= ' AND '.$DB->sql_like($field, ":$name", false, false);
-            $params[$name] = "%$value%";
+        if ($this->filterparams) {
+
+            if (!empty($this->filterparams->firstname)) {
+                $field = 'firstname';
+                $name = 'firstname';
+                $value = $this->filterparams->firstname;
+                $extra_sql .= ' AND ' . $DB->sql_like($field, ":$name", false, false);
+                $params[$name] = "%$value%";
+            }
+            if (!empty($this->filterparams->lastname)) {
+                $field = 'lastname';
+                $name = 'lastname';
+                $value = $this->filterparams->lastname;
+                $extra_sql .= ' AND ' . $DB->sql_like($field, ":$name", false, false);
+                $params[$name] = "%$value%";
+            }
+            if (!empty($this->filterparams->sifirst)) {
+                $field = 'firstname';
+                $name = 'sifirst';
+                $value = $this->filterparams->sifirst;
+                $extra_sql .= ' AND ' . $DB->sql_like($field, ":$name", false, false);
+                $params[$name] = "$value%";
+            }
+            if (!empty($this->filterparams->silast)) {
+                $field = 'lastname';
+                $name = 'silast';
+                $value = $this->filterparams->silast;
+                $extra_sql .= ' AND ' . $DB->sql_like($field, ":$name", false, false);
+                $params[$name] = "$value%";
+            }
         }
 
         return array($extra_sql, $params);
@@ -226,25 +250,71 @@ class local_ltiprovider_table_syncreport extends table_sql {
      * @param string $value default value to populate the search field
      * @return string
      */
-    function syncreport_search_form($tool_id, $value = '') {
+    function syncreport_search_form($tool_id, $value_firstname = '', $value_lastname = '', $firstinitial='', $lastinitial = '') {
         $formid = 'ltiprovidersyncreport';
         $inputid = 'coursesearchbox';
+        $inputidlastname= 'coursesearchboxlastname';
         $inputsize = 30;
 
-        $strsearchuser= get_string('fullnameuser');
+        $strsearchfirstname = get_string('firstname');
+        $strsearchlastname = get_string('lastname');
         $searchurl = new moodle_url('/local/ltiprovider/syncreport.php');
+        $url = new moodle_url('/local/ltiprovider/syncreport.php', array('id' => $tool_id));
+        $strall = get_string('all');
+        $alpha  = explode(',', get_string('alphabet', 'langconfig'));
 
         $output = html_writer::start_tag('form', array('id' => $formid, 'action' => $searchurl, 'method' => 'get'));
         $output .= html_writer::start_tag('fieldset', array('class' => 'ltiprovidersearchbox invisiblefieldset'));
-        $output .= html_writer::tag('label', $strsearchuser.': ', array('for' => $inputid));
+        $output .= html_writer::tag('label', $strsearchfirstname.': ', array('for' => $inputid));
         $output .= html_writer::empty_tag('input', array('type' => 'text', 'id' => $inputid,
-            'size' => $inputsize, 'name' => 'search', 'value' => s($value)));
+            'size' => $inputsize, 'name' => 'search_firstname', 'value' => s($value_firstname)));
+        $output .= html_writer::start_tag('span', array('class' => 'initialbar firstinitial'));
+        if (!empty($firstinitial)) {
+            $output .= html_writer::link($url.'&sifirst='.'&silast='.$lastinitial, $strall);
+        } else {
+            $output .= html_writer::tag('strong', $strall);
+        }
+        foreach ($alpha as $letter) {
+            if ($letter == $firstinitial) {
+                $output .= html_writer::tag('strong', $letter);
+            } else {
+                $output .= html_writer::link($url.'&sifirst='.$letter.'&silast='.$lastinitial, $letter);
+            }
+        }
+        $output .= html_writer::end_tag('span');
+
+
+        $output .= html_writer::tag('label', $strsearchlastname.': ', array('for' => $inputidlastname));
+        $output .= html_writer::empty_tag('input', array('type' => 'text', 'id' => $inputidlastname,
+            'size' => $inputsize, 'name' => 'search_lastname', 'value' => s($value_lastname)));
+        $output .= html_writer::start_tag('span', array('class' => 'initialbar lastinitial'));
+
+        if (!empty($lastinitial)) {
+            $output .= html_writer::link($url.'&silast='.'&sifirst='.$firstinitial, $strall);
+        } else {
+            $output .= html_writer::tag('strong', $strall);
+        }
+        foreach ($alpha as $letter) {
+            if ($letter == $lastinitial) {
+                $output .= html_writer::tag('strong', $letter);
+            } else {
+                $output .= html_writer::link($url.'&silast='.$letter.'&sifirst='.$firstinitial, $letter);
+            }
+        }
+        $output .= html_writer::end_tag('span');
+
+
+
+        $output .= html_writer::start_tag('div');
         $output .= html_writer::empty_tag('input', array('type' => 'submit',
             'value' => get_string('go')));
+        $output .= html_writer::end_tag('div');
         $output .= html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'id',
             'value' => $tool_id));
         $output .= html_writer::end_tag('fieldset');
         $output .= html_writer::end_tag('form');
+
+
 
         return $output;
     }
