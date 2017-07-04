@@ -24,14 +24,34 @@
  */
 
 require_once(dirname(__FILE__) . '/../../config.php');
+require_once($CFG->dirroot.'/local/ltiprovider/classes/table_syncreport.php');
 
 $id = required_param('id', PARAM_INT);
+$search_firstname = optional_param('search_firstname', '', PARAM_TEXT);
+$search_lastname = optional_param('search_lastname', '', PARAM_TEXT);
+$sifirst  = optional_param('sifirst', null, PARAM_NOTAGS);
+$silast   = optional_param('silast', null, PARAM_NOTAGS);
+
 
 $tool = $DB->get_record('local_ltiprovider', array('id' => $id), '*', MUST_EXIST);
 $courseid = $tool->courseid;
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
-$PAGE->set_url('/local/ltiprovider/syncreport.php', array('id' => $id));
+$params_url = array('id' => $id);
+if (!empty($search_firstname)) {
+    $params_url['search_firstname'] = $search_firstname;
+}
+if (!empty($search_surname)) {
+    $params_url['search_surname'] = $search_surname;
+}
+if (!empty($sifirst)) {
+    $params_url['sifirst'] = $sifirst;
+}
+if (!empty($silast)) {
+    $params_url['silast'] = $silast;
+}
+
+$PAGE->set_url('/local/ltiprovider/syncreport.php', $params_url );
 
 $context = context_course::instance($course->id);
 
@@ -46,6 +66,9 @@ $PAGE->navbar->add(get_string('pluginname', 'local_ltiprovider'), new moodle_url
 $PAGE->navbar->add($strheading);
 $PAGE->set_title($strheading);
 $PAGE->set_heading($course->fullname . ': '.$strheading);
+$PAGE->requires->jquery();
+$PAGE->requires->js('/local/ltiprovider/js/syncreport.js');
+$PAGE->requires->strings_for_js(array('youhavetoselectauser'), 'local_ltiprovider');
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('gradessent', 'local_ltiprovider'));
@@ -54,26 +77,24 @@ if ($tool->requirecompletion) {
     echo $OUTPUT->notification(get_string('notifycompletion', 'local_ltiprovider'), 'notifymessage');
 }
 
-$table = new html_table();
-$table->head = array(get_string('fullnameuser'), get_string('time'), get_string('grade'), '', get_string('gradessourceid', 'local_ltiprovider'), get_string('gradesserviceurl', 'local_ltiprovider'));
-$table->attributes['class'] = 'admintable generaltable';
-$table->data = array();
+$filterparams = new stdClass();
+$filterparams->firstname = $search_firstname;
+$filterparams->sifirst = $sifirst;
+$filterparams->lastname = $search_lastname;
+$filterparams->silast = $silast;
+$table = new local_ltiprovider_table_syncreport('local_ltiprovider_syncreport', $tool, $filterparams);
+echo $table->syncreport_search_form($id, $search_firstname, $search_lastname, $sifirst, $silast);
 
-$users = $DB->get_records_sql("
-    SELECT u.*, g.serviceurl, g.sourceid, g.lastgrade, g.lastsync
-        FROM {user} u JOIN {local_ltiprovider_user} g
-        ON u.id = g.userid
-        WHERE g.lastsync > 0 AND g.toolid = :toolid ORDER BY g.lastsync DESC", array('toolid' => $tool->id));
+$table->out(50, true);
 
-foreach ($users as $user) {
-    $forcesendurl = new \moodle_url('test/forcesendgrades.php', array('toolid' => $tool->id, 'userid' => $user->id, 'printresponse' => 1));
-    $forcesendbutton = $OUTPUT->single_button($forcesendurl, get_string('forcesendgrades', 'local_ltiprovider'));
-    $table->data[] = array(fullname($user), userdate($user->lastsync), $user->lastgrade, $forcesendbutton, $user->serviceurl, s($user->sourceid));
-}
+//Button to send grade to selected users
+$forcesendurl_participant = new \moodle_url('test/forcesendgrades.php', array('toolid' => $tool->id,
+    'printresponse' => 1, 'selected_users' => 1, 'user_force_grade' => ''));
+$action = new component_action('click', 'ltiprovider_send_syncreport');
+echo $OUTPUT->single_button($forcesendurl_participant, get_string('forcesendgradesselectedusers', 'local_ltiprovider'),
+    'post', array('actions' => array($action), 'formid' => 'ltiprovider_send_syncreport_form'));
 
-
-echo html_writer::table($table);
-
+//Button to send grade to all users
 $forcesendurl = new \moodle_url('test/forcesendgrades.php', array('toolid' => $tool->id, 'printresponse' => 1));
 echo $OUTPUT->single_button($forcesendurl, get_string('forcesendgradesallusers', 'local_ltiprovider'));
 
@@ -82,4 +103,6 @@ if ($tool->requirecompletion) {
     echo $OUTPUT->single_button($forcesendurl, get_string('forcesendgradesallusersomittingcompletion', 'local_ltiprovider'));
 }
 
-echo $OUTPUT->footer();
+if (!$table->is_downloading()) {
+    echo $OUTPUT->footer();
+}

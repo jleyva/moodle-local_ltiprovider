@@ -127,7 +127,9 @@ $string['gradessent'] = 'Grades sent';
 $string['gradesserviceurl'] = 'Grades service URL';
 $string['gradessourceid'] = 'Grades source Id';
 $string['gradessyncreport'] = 'Grades synchronization report';
-$string['notifycompletion'] = 'This tool is configured to require completion, if the user has not completed the course or activity he won\'t be listed bellow.';
+$string['notifycompletion'] = 'This tool is configured to require completion, if the user has not completed the course or activity he won\'t have grade.';
 
 $string['addtogroup'] = 'Add users to group (idnumber or request based)';
 $string['addtogroup_help'] = 'Add new users to the indicated group (use the group idnumber). If you want to use or create groups based on a parameter from the request, you must add "request:" before parameter name in the setting field, for example, request:myrememotegroup';
+$string['forcesendgradesselectedusers'] = 'Force sned grades for selected users';
+$string['youhavetoselectauser'] = 'Must select at least one user';
