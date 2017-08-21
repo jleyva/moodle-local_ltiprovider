@@ -96,14 +96,15 @@ if ($selected_users && strlen($user_force_grade)==0) {
 
             $completion = new completion_info(get_course($tool->courseid));
 
-            $select_user = 'toolid = ?';
-            $params_user = array($tool->id);
+            $select_user = 'toolid = :toolid';
+            $params_user = array('toolid'=>$tool->id);
             if (!empty($userid)) {
-                $select_user .= ' AND userid=?';
-                array_push($params_user, $userid);
+                $select_user .= ' AND userid = :userid';
+                $params_user += array('userid' => $userid);
             } elseif ($selected_users) {
-                $select_user .= ' AND userid IN (?)';
-                array_push($params_user, $user_force_grade);
+                list($sql_in, $params_in) = $DB->get_in_or_equal(explode(",", $user_force_grade), SQL_PARAMS_NAMED);
+                $select_user .= ' AND userid '.$sql_in;
+                $params_user += $params_in;
             }
 
             if ($users = $DB->get_records_select('local_ltiprovider_user', $select_user, $params_user)) {
