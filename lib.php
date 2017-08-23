@@ -300,7 +300,10 @@ function local_ltiprovider_cron() {
                                     continue;
                                 }
 
-                                if ($grade = grade_get_course_grade($user->userid, $tool->courseid)) {
+                                if ($tool->sendcompletion) {
+                                    $grade = $completion->is_course_complete($user->userid) ? 1 : 0;
+                                    $grademax = 1;
+                                } else if ($grade = grade_get_course_grade($user->userid, $tool->courseid)) {
                                     $grademax = floatval($grade->item->grademax);
                                     $grade = $grade->grade;
                                 }
@@ -315,17 +318,29 @@ function local_ltiprovider_cron() {
                                     }
                                 }
 
-                                $grades = grade_get_grades($cm->course, 'mod', $cm->modname, $cm->instance, $user->userid);
-                                if (empty($grades->items[0]->grades)) {
-                                    $grade = false;
-                                } else {
-                                    $grade = reset($grades->items[0]->grades);
-                                    if (!empty($grade->item)) {
-                                        $grademax = floatval($grade->item->grademax);
+                                if ($tool->sendcompletion) {
+                                    $data = $completion->get_data($cm, false, $user->userid);
+                                    if ($data->completionstate == COMPLETION_COMPLETE_PASS ||
+                                            $data->completionstate == COMPLETION_COMPLETE ||
+                                            $data->completionstate == COMPLETION_COMPLETE_FAIL) {
+                                        $grade = 1;
                                     } else {
-                                        $grademax = floatval($grades->items[0]->grademax);
+                                        $grade = 0;
                                     }
-                                    $grade = $grade->grade;
+                                    $grademax = 1;
+                                } else {
+                                    $grades = grade_get_grades($cm->course, 'mod', $cm->modname, $cm->instance, $user->userid);
+                                    if (empty($grades->items[0]->grades)) {
+                                        $grade = false;
+                                    } else {
+                                        $grade = reset($grades->items[0]->grades);
+                                        if (!empty($grade->item)) {
+                                            $grademax = floatval($grade->item->grademax);
+                                        } else {
+                                            $grademax = floatval($grades->items[0]->grademax);
+                                        }
+                                        $grade = $grade->grade;
+                                    }
                                 }
                             }
 

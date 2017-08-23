@@ -55,13 +55,6 @@ class edit_form extends moodleform {
         $mform->addElement('select', 'contextid', get_string('tooltobeprovide', 'local_ltiprovider'), $tools);
         $mform->setDefault('contextid', $context->id);
 
-        $mform->addElement('checkbox', 'sendgrades', null, get_string('sendgrades', 'local_ltiprovider'));
-        $mform->setDefault('sendgrades', 1);
-
-        $mform->addElement('advcheckbox', 'requirecompletion', null, get_string('requirecompletion', 'local_ltiprovider'));
-        $mform->setDefault('requirecompletion', 0);
-        $mform->disabledIf('requirecompletion', 'sendgrades');
-
         $mform->addElement('checkbox', 'forcenavigation', null, get_string('forcenavigation', 'local_ltiprovider'));
         $mform->setDefault('forcenavigation', 1);
 
@@ -174,6 +167,19 @@ class edit_form extends moodleform {
         $mform->setDefault('institution', $templateuser->institution);
         $mform->setAdvanced('institution');
 
+        $mform->addElement('header', 'outcomes', get_string('outcomessettings', 'local_ltiprovider'));
+        $mform->addElement('checkbox', 'sendgrades', null, get_string('sendgrades', 'local_ltiprovider'));
+        $mform->setDefault('sendgrades', 1);
+
+        $mform->addElement('advcheckbox', 'requirecompletion', null, get_string('requirecompletion', 'local_ltiprovider'));
+        $mform->setDefault('requirecompletion', 0);
+        $mform->disabledIf('requirecompletion', 'sendgrades');
+
+        $mform->addElement('advcheckbox', 'sendcompletion', null, get_string('sendcompletion', 'local_ltiprovider'));
+        $mform->setDefault('sendcompletion', 0);
+        $mform->disabledIf('sendcompletion', 'sendgrades');
+        $mform->addHelpButton('sendcompletion', 'sendcompletion', 'local_ltiprovider');
+
         $mform->addElement('header', 'memberships', get_string('membershipsettings', 'local_ltiprovider'));
         $mform->addElement('checkbox', 'syncmembers', null, get_string('enablememberssync', 'local_ltiprovider'));
         $mform->disabledIf('syncmembers', 'contextid', 'neq', $context->id);
@@ -234,7 +240,7 @@ class edit_form extends moodleform {
             $errors['enrolenddate'] = get_string('enrolenddaterror', 'local_ltiprovider');
         }
 
-        if (!empty($data['requirecompletion'])) {
+        if (!empty($data['requirecompletion']) || !empty($data['sendcompletion'])) {
             $completion = new completion_info($COURSE);
             $moodlecontext = $DB->get_record('context', array('id' => $data['contextid']));
             if ($moodlecontext->contextlevel == CONTEXT_MODULE) {
@@ -244,7 +250,12 @@ class edit_form extends moodleform {
             }
 
             if (! $completion->is_enabled($cm)) {
-                $errors['requirecompletion'] = get_string('errorcompletionenabled', 'local_ltiprovider');
+                if (!empty($data['requirecompletion'])) {
+                    $errors['requirecompletion'] = get_string('errorcompletionenabled', 'local_ltiprovider');
+                }
+                if (!empty($data['sendcompletion'])) {
+                    $errors['sendcompletion'] = get_string('errorcompletionenabled', 'local_ltiprovider');
+                }
             }
         }
 

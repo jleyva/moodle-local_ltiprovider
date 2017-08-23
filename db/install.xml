@@ -44,6 +44,7 @@
         <FIELD NAME="enrolinst" TYPE="int" LENGTH="2" NOTNULL="false" DEFAULT="1" SEQUENCE="false" PREVIOUS="requirecompletion" NEXT="enrollearn"/>
         <FIELD NAME="enrollearn" TYPE="int" LENGTH="2" NOTNULL="false" DEFAULT="1" SEQUENCE="false" PREVIOUS="enrolinst"/>
         <FIELD NAME="addtogroup" TYPE="char" LENGTH="64" NOTNULL="false" DEFAULT="" SEQUENCE="false"/>
+        <FIELD NAME="sendcompletion" TYPE="int" LENGTH="2" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
