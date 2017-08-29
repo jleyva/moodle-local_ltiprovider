@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') or die;
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
-require_once($CFG->dirroot.'/course/lib.php');
+require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/OAuthBody.php');
 
 use moodle\local\ltiprovider as ltiprovider;
 
@@ -756,5 +756,166 @@ function local_ltiprovider_add_user_to_group($tool, $user) {
 
         groups_add_member($group->id, $user->id);
     }
+}
+
+function local_ltiprovider_membership_service($tool, $timenow, $userphotos, $consumers) {
+    global $DB;
+    mtrace('Starting sync of tool: ' . $tool->id);
+    $response = "";
+    // We check for all the users, notice that users can access the same tool from different consumers.
+    if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id), 'lastaccess DESC')) {
+
+        foreach ($users as $user) {
+            if (!$user->membershipsurl or !$user->membershipsid) {
+                continue;
+            }
+
+            $consumer = md5($user->membershipsurl . ':' . $user->membershipsid . ':' . $user->consumerkey . ':' . $user->consumersecret);
+            if (in_array($consumer, $consumers)) {
+                // We had syncrhonized with this consumer yet.
+                continue;
+            }
+            $consumers[] = $consumer;
+
+            $params = array(
+                'lti_message_type' => 'basic-lis-readmembershipsforcontext',
+                'id' => $user->membershipsid,
+                'lti_version' => 'LTI-1p0'
+            );
+
+            mtrace('Calling memberships url: ' . $user->membershipsurl . ' with body: ' . json_encode($params));
+
+            try {
+                $response = ltiprovider\sendOAuthParamsPOST('POST', $user->membershipsurl, $user->consumerkey, $user->consumersecret,
+                    'application/x-www-form-urlencoded', $params);
+            } catch (Exception $e) {
+                mtrace("Exception: " . $e->getMessage());
+                $response = false;
+            }
+
+            if ($response) {
+                $data = new SimpleXMLElement($response);
+                if(!empty($data->statusinfo)) {
+                    if(strpos(strtolower($data->statusinfo->codemajor), 'success') !== false) {
+                        $members = $data->memberships->member;
+                        mtrace(count($members) . ' members received');
+                        $currentusers = array();
+                        foreach ($members as $member) {
+                            $username = local_ltiprovider_create_username($user->consumerkey, $member->user_id);
+
+                            $userobj = $DB->get_record('user', array('username' => $username));
+                            if (!$userobj) {
+                                // Old format.
+                                $oldusername = 'ltiprovider' . md5($user->consumerkey . ':' . $member->user_id);
+                                $userobj = $DB->get_record('user', array('username' => $oldusername));
+                                if ($userobj) {
+                                    $DB->set_field('user', 'username', $username, array('id' => $userobj->id));
+                                }
+                                $userobj = $DB->get_record('user', array('username' => $username));
+                            }
+
+                            if ($userobj) {
+                                $currentusers[] = $userobj->id;
+                                $userobj->firstname = clean_param($member->person_name_given, PARAM_TEXT);
+                                $userobj->lastname = clean_param($member->person_name_family, PARAM_TEXT);
+                                $userobj->email = clean_param($member->person_contact_email_primary, PARAM_EMAIL);
+                                $userobj->timemodified = time();
+
+                                $DB->update_record('user', $userobj);
+                                $userphotos[$userobj->id] = $member->user_image;
+
+                                // Trigger event.
+                                $event = \core\event\user_updated::create(
+                                    array(
+                                        'objectid' => $userobj->id,
+                                        'relateduserid' => $userobj->id,
+                                        'context' => context_user::instance($userobj->id)
+                                    )
+                                );
+                                $event->trigger();
+
+                            } else {
+                                // New members.
+                                if ($tool->syncmode == 1 or $tool->syncmode == 2) {
+                                    // We have to enrol new members so we have to create it.
+                                    $userobj = new stdClass();
+                                    // clean_param , email username text
+                                    $auth = get_config('local_ltiprovider', 'defaultauthmethod');
+                                    if ($auth) {
+                                        $userobj->auth = $auth;
+                                    } else {
+                                        $userobj->auth = 'nologin';
+                                    }
+
+                                    $username = local_ltiprovider_create_username($user->consumerkey, $member->user_id);
+                                    $userobj->username = $username;
+                                    $userobj->password = md5(uniqid(rand(), 1));
+                                    $userobj->firstname = clean_param($member->person_name_given, PARAM_TEXT);
+                                    $userobj->lastname = clean_param($member->person_name_family, PARAM_TEXT);
+                                    $userobj->email = clean_param($member->person_contact_email_primary, PARAM_EMAIL);
+                                    $userobj->city = $tool->city;
+                                    $userobj->country = $tool->country;
+                                    $userobj->institution = $tool->institution;
+                                    $userobj->timezone = $tool->timezone;
+                                    $userobj->maildisplay = $tool->maildisplay;
+                                    $userobj->mnethostid = $CFG->mnet_localhost_id;
+                                    $userobj->confirmed = 1;
+                                    $userobj->lang = $tool->lang;
+                                    $userobj->timecreated = time();
+                                    if (! $userobj->lang) {
+                                        // TODO: This should be changed for detect the course lang
+                                        $userobj->lang = current_language();
+                                    }
+
+                                    $userobj->id = $DB->insert_record('user', $userobj);
+                                    // Reload full user
+                                    $userobj = $DB->get_record('user', array('id' => $userobj->id));
+
+                                    $userphotos[$userobj->id] = $member->user_image;
+                                    // Trigger event.
+                                    $event = \core\event\user_created::create(
+                                        array(
+                                            'objectid' => $userobj->id,
+                                            'relateduserid' => $userobj->id,
+                                            'context' => context_user::instance($userobj->id)
+                                        )
+                                    );
+                                    $event->trigger();
+
+                                    $currentusers[] = $userobj->id;
+                                }
+                            }
+                            // 1 -> Enrol and unenrol, 2 -> enrol
+                            if ($tool->syncmode == 1 or $tool->syncmode == 2) {
+                                // Enroll the user in the course. We don't know if it was previously unenrolled.
+                                $roles = explode(',', strtolower($member->roles));
+                                local_ltiprovider_enrol_user($tool, $userobj, $roles, true);
+                            }
+                        }
+                        // Now we check if we have to unenrol users for keep both systems sync.
+                        if ($tool->syncmode == 1 or $tool->syncmode == 3) {
+                            // Unenrol users also.
+                            $context = context_course::instance($tool->courseid);
+                            $eusers = get_enrolled_users($context);
+                            foreach ($eusers as $euser) {
+                                if (!in_array($euser->id, $currentusers)) {
+                                    local_ltiprovider_unenrol_user($tool, $euser);
+                                }
+                            }
+                        }
+                    } else {
+                        mtrace('Error recived from the remote system: ' . $data->statusinfo->codemajor . ' ' . $data->statusinfo->severity . ' ' . $data->statusinfo->codeminor);
+                    }
+                } else {
+                    mtrace('Error parsing the XML received' . substr($response, 0, 125) . '... (Displaying only 125 chars)');
+                }
+            } else {
+                mtrace('No response received from ' . $user->membershipsurl);
+            }
+        }
+        set_config('membershipslastsync-' . $tool->id, $timenow, 'local_ltiprovider');
+        mtrace('Finished sync of member using the memberships service');
+    }
+    return array('userphotos'=>$userphotos, 'consumers'=>$consumers, 'response'=>$response);
 }
 

@@ -140,3 +140,5 @@ $string['sendcompletion_help'] = 'If this setting is checked, instead the course
 1: When the course or activity is completed<br/>
 0: When the course or activity is not completed yet';
 
+$string['forcesyncmembers'] = 'Force sync members';
+
