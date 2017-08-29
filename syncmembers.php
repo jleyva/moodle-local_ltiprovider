@@ -58,4 +58,7 @@ $timenow = time();
 $ret = local_ltiprovider_membership_service($tool, $timenow, $userphotos, $consumers);
 echo '<p>Response => <pre>'.htmlentities($ret['response']).'</pre></p>';
 
+$userphotos = $ret['userphotos'];
+local_ltiprovider_membership_service_update_userphotos($userphotos);
+
 echo $OUTPUT->footer();

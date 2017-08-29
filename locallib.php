@@ -919,3 +919,23 @@ function local_ltiprovider_membership_service($tool, $timenow, $userphotos, $con
     return array('userphotos'=>$userphotos, 'consumers'=>$consumers, 'response'=>$response);
 }
 
+function local_ltiprovider_membership_service_update_userphotos($userphotos) {
+
+    // Sync of user photos.
+    mtrace("Sync user profile images");
+    $counter = 0;
+    if ($userphotos) {
+        foreach ($userphotos as $userid => $url) {
+            if ($url) {
+                $result = local_ltiprovider_update_user_profile_image($userid, $url);
+                if ($result === true) {
+                    $counter++;
+                    mtrace("Profile image succesfully downloaded and created from $url");
+                } else {
+                    mtrace($result);
+                }
+            }
+        }
+    }
+    mtrace("$counter profile images updated");
+}
