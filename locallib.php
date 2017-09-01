@@ -25,6 +25,7 @@
 
 defined('MOODLE_INTERNAL') or die;
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/blti_util.php');
+require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->dirroot.'/local/ltiprovider/ims-blti/OAuthBody.php');
 
 use moodle\local\ltiprovider as ltiprovider;
