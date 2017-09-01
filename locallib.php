@@ -759,6 +759,14 @@ function local_ltiprovider_add_user_to_group($tool, $user) {
     }
 }
 
+/**
+ * This function executes membership service for the current tool
+ * @param $tool
+ * @param $timenow
+ * @param $userphotos array of current userphotos
+ * @param $consumers array of consumers that have already been made
+ * @return array with keys userphotos, consumers and response
+ */
 function local_ltiprovider_membership_service($tool, $timenow, $userphotos, $consumers) {
     global $DB;
     mtrace('Starting sync of tool: ' . $tool->id);
@@ -920,6 +928,10 @@ function local_ltiprovider_membership_service($tool, $timenow, $userphotos, $con
     return array('userphotos'=>$userphotos, 'consumers'=>$consumers, 'response'=>$response);
 }
 
+/**
+ * Gets the user photos and add it to each user
+ * @param $userphotos
+ */
 function local_ltiprovider_membership_service_update_userphotos($userphotos) {
 
     // Sync of user photos.
