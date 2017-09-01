@@ -223,7 +223,7 @@ function local_ltiprovider_populate($user, $context, $tool) {
  * Compares two users
  * @param  stdClass $newuser    The new user
  * @param  stdClass $olduser    The old user
- * @return bolol                True if both users are the same
+ * @return bool                True if both users are the same
  */
 function local_ltiprovider_user_match($newuser, $olduser) {
     if ( $newuser->firstname != $olduser->firstname )
@@ -530,8 +530,11 @@ function local_ltiprovider_create_tool($courseid, $contextid, $lticontext) {
 
             // Enrol the user.
             if ($tool = $DB->get_record('local_ltiprovider', array('contextid' => $newcoursecontextid->id))) {
-                $roles = explode(',', strtolower($context->info['roles']));
-                local_ltiprovider_enrol_user($tool, $user, $roles, true);
+                $roles = strtolower($context->info['roles']);
+                $isInstructor = false;
+                if ( ! ( strpos($roles,"instructor") === false ) ) $isInstructor = true;
+                if ( ! ( strpos($roles,"administrator") === false ) ) $isInstructor = true;
+                local_ltiprovider_enrol_user($tool, $user, $isInstructor, true);
             }
 
 
@@ -897,8 +900,12 @@ function local_ltiprovider_membership_service($tool, $timenow, $userphotos, $con
                             // 1 -> Enrol and unenrol, 2 -> enrol
                             if ($tool->syncmode == 1 or $tool->syncmode == 2) {
                                 // Enroll the user in the course. We don't know if it was previously unenrolled.
-                                $roles = explode(',', strtolower($member->roles));
-                                local_ltiprovider_enrol_user($tool, $userobj, $roles, true);
+                                $roles = strtolower($member->roles);
+                                $isInstructor = false;
+                                if ( ! ( strpos($roles,"instructor") === false ) ) $isInstructor = true;
+                                if ( ! ( strpos($roles,"administrator") === false ) ) $isInstructor = true;
+
+                                local_ltiprovider_enrol_user($tool, $userobj, $isInstructor, true);
                             }
                         }
                         // Now we check if we have to unenrol users for keep both systems sync.
