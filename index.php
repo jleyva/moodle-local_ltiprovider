@@ -76,6 +76,10 @@ foreach ($tools as $tool) {
             $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/syncreport.php', array('id'=>$tool->id)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/grades'), 'alt'=>get_string('gradessyncreport', 'local_ltiprovider'), 'class'=>'iconsmall')));
         }
 
+        if ($tool->syncmembers) {
+            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/syncmembers.php', array('id'=>$tool->id)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/users'), 'alt'=>get_string('forcesyncmembers', 'local_ltiprovider'), 'class'=>'iconsmall')));
+        }
+
         $line[] = implode(' ', $buttons);
     } else {
         $line[] = '';

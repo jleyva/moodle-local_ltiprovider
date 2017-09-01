@@ -131,7 +131,7 @@ $string['notifycompletion'] = 'This tool is configured to require completion, if
 
 $string['addtogroup'] = 'Add users to group (idnumber or request based)';
 $string['addtogroup_help'] = 'Add new users to the indicated group (use the group idnumber). If you want to use or create groups based on a parameter from the request, you must add "request:" before parameter name in the setting field, for example, request:myrememotegroup';
-$string['forcesendgradesselectedusers'] = 'Force sned grades for selected users';
+$string['forcesendgradesselectedusers'] = 'Force send grades for selected users';
 $string['youhavetoselectauser'] = 'Must select at least one user';
 
 $string['outcomessettings'] = 'Outcomes service settings';
@@ -139,4 +139,6 @@ $string['sendcompletion'] = 'Send completion status instead grades';
 $string['sendcompletion_help'] = 'If this setting is checked, instead the course grade the completion status will be returned:<br/>
 1: When the course or activity is completed<br/>
 0: When the course or activity is not completed yet';
+
+$string['forcesyncmembers'] = 'Force sync members';
 
