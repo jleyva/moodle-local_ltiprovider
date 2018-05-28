@@ -142,3 +142,5 @@ $string['sendcompletion_help'] = 'If this setting is checked, instead the course
 
 $string['forcesyncmembers'] = 'Force sync members';
 
+$string['nomanualenrol'] = 'Manual enrol method is not enabled';
+

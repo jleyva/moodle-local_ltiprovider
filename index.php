@@ -63,21 +63,21 @@ foreach ($tools as $tool) {
     if (has_capability('local/ltiprovider:manage', $context)) {
         $buttons = array();
 
-        $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'delete'=>1, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/delete'), 'alt'=>get_string('delete'), 'class'=>'iconsmall')));
-        $buttons[] =  html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/edit'), 'alt'=>get_string('edit'), 'class'=>'iconsmall')));
+        $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'delete'=>1, 'sesskey'=>sesskey())), $OUTPUT->pix_icon('t/delete', get_string('delete')));
+        $buttons[] =  html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'sesskey'=>sesskey())), $OUTPUT->pix_icon('t/edit', get_string('edit')));
 
         if ($tool->disabled) {
-            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'show'=>1, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/show'), 'alt'=>get_string('show'), 'class'=>'iconsmall')));
+            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'show'=>1, 'sesskey'=>sesskey())), $OUTPUT->pix_icon('t/show', get_string('show')));
         } else {
-            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'hide'=>1, 'sesskey'=>sesskey())), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/hide'), 'alt'=>get_string('hide'), 'class'=>'iconsmall')));
+            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/edit.php', array('id'=>$tool->id, 'hide'=>1, 'sesskey'=>sesskey())), $OUTPUT->pix_icon('t/hide', get_string('hide')));
         }
 
         if ($tool->sendgrades) {
-            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/syncreport.php', array('id'=>$tool->id)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/grades'), 'alt'=>get_string('gradessyncreport', 'local_ltiprovider'), 'class'=>'iconsmall')));
+            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/syncreport.php', array('id'=>$tool->id)), $OUTPUT->pix_icon('i/grades', get_string('gradessyncreport', 'local_ltiprovider')));
         }
 
         if ($tool->syncmembers) {
-            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/syncmembers.php', array('id'=>$tool->id)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/users'), 'alt'=>get_string('forcesyncmembers', 'local_ltiprovider'), 'class'=>'iconsmall')));
+            $buttons[] = html_writer::link(new moodle_url('/local/ltiprovider/syncmembers.php', array('id'=>$tool->id)), $OUTPUT->pix_icon('i/users', get_string('forcesyncmembers', 'local_ltiprovider')));
         }
 
         $line[] = implode(' ', $buttons);

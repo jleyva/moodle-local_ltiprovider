@@ -138,8 +138,13 @@ if ($context->valid) {
         $newcourse->shortname = local_ltiprovider_get_new_course_info('shortname', $context);
         $newcourse->idnumber  = local_ltiprovider_get_new_course_info('idnumber', $context);
 
-        $categories = $DB->get_records('course_categories', null, '', 'id', 0, 1);
+        //Gets the first visible category by sort order 
+        $categories = $DB->get_records('course_categories', array('visible'=>1), 'sortorder', 'id', 0, 1);
+        if (count($categories)==0){
+            $categories = $DB->get_records('course_categories', null, '', 'id', 0, 1);
+        }
         $category = array_shift($categories);
+
         $newcourse->category  = $category->id;
 
         // Course exists?? First try idnumber.
