@@ -2,9 +2,6 @@
 
 namespace moodle\local\ltiprovider;
 
-require_once("OAuth.php");
-require_once("TrivialOAuthDataStore.php");
-
 function getLastOAuthBodyBaseString() {
     global $LastOAuthBodyBaseString;
     return $LastOAuthBodyBaseString;
