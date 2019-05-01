@@ -212,23 +212,6 @@ function local_ltiprovider_delete_tool($tool) {
 }
 
 /**
- * Checks if a course linked to a tool is missing, is so, delete the lti entries
- * @param  stdclass $tool Tool record
- * @return bool      True if the course was missing
- */
-function local_ltiprovider_check_missing_course($tool) {
-    global $DB;
-
-    if (! $course = $DB->get_record('course', array('id' => $tool->courseid))) {
-        $DB->delete_records('local_ltiprovider', array('courseid' => $tool->courseid));
-        $DB->delete_records('local_ltiprovider_user', array('toolid' => $tool->id));
-        mtrace("Tool: $tool->id deleted (courseid: $tool->courseid missing)");
-        return true;
-    }
-    return false;
-}
-
-/**
  * Cron function for sync grades
  * @return void
  */
@@ -247,14 +230,13 @@ function local_ltiprovider_cron() {
     mtrace('Running cron for ltiprovider');
 
     mtrace('Deleting LTI tools assigned to deleted courses');
-    if ($tools = $DB->get_records('local_ltiprovider')) {
-        foreach ($tools as $tool) {
-            local_ltiprovider_check_missing_course($tool);
-        }
-    }
+    $query = "DELETE FROM {local_ltiprovider} where courseid NOT IN (SELECT id FROM {course})";
+    $DB->execute($query);
+    $query = "DELETE FROM {local_ltiprovider_user} where toolid NOT IN (SELECT id FROM {local_ltiprovider})";
+    $DB->execute($query);
 
     // Grades service.
-    if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND sendgrades = ?', array(0, 1))) {
+    if ($tools = $DB->get_records_select('local_ltiprovider', 'disabled = ? AND sendgrades = ?', array(0, 1), '', 'id, lastsync, contextid, courseid')) {
         foreach ($tools as $tool) {
             if ($tool->lastsync + $synctime < $timenow) {
                 mtrace(" Starting sync tool for grades id $tool->id course id $tool->courseid");
@@ -267,7 +249,8 @@ function local_ltiprovider_cron() {
 
                 $completion = new completion_info(get_course($tool->courseid));
 
-                if ($users = $DB->get_records('local_ltiprovider_user', array('toolid' => $tool->id))) {
+                $query = "SELECT id, userid, lastgrade, serviceurl, sourceid, consumerkey, consumersecret FROM {local_ltiprovider_user} WHERE toolid=? AND lastsync<? AND serviceurl!='' AND serviceurl IS NOT NULL AND sourceid!='' AND sourceid IS NOT NULL";
+                if ($users = $DB->get_records_sql($query, array($tool->id, $tool->lastsync))) {
                     foreach ($users as $user) {
 
                         $data = array(
@@ -277,20 +260,6 @@ function local_ltiprovider_cron() {
                         local_ltiprovider_call_hook('grades', (object) $data);
 
                         $user_count = $user_count + 1;
-                        // This can happen is the sync process has an unexpected error
-                        if ( strlen($user->serviceurl) < 1 ) {
-                            mtrace("   Empty serviceurl");
-                            continue;
-                        }
-                        if ( strlen($user->sourceid) < 1 ) {
-                            mtrace("   Empty sourceid");
-                            continue;
-                        }
-
-                        if ($user->lastsync > $tool->lastsync) {
-                            mtrace("   Skipping user {$user->id} due to recent sync");
-                            continue;
-                        }
 
                         $grade = false;
                         if ($context = $DB->get_record('context', array('id' => $tool->contextid))) {
